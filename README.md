@@ -27,21 +27,39 @@ GDAL MCP is an open‑source server implementing the Model Context Protocol (MCP
    cd gdal-mcp
    ```
 
-2. Install dependencies:
+2.2. Install dependencies:
+
+   Recommended: use [uv](https://docs.astral.sh/uv/) to manage the Python environment and install MCP and GDAL dependencies:
 
    ```bash
-   python3 -m pip install -r requirements.txt
+   uv init
+   uv add "mcp[cli]" gdal
    ```
 
-3. Start the server using Uvicorn:
+   Alternatively, install packages with pip:
 
    ```bash
-   uvicorn src.server:app --host 0.0.0.0 --port 8000
+   python3 -m pip install "mcp[cli]" gdal
    ```
 
-   The MCP server will listen for JSON‑RPC requests at `http://localhost:8000/jsonrpc`.
+3. Run the server using the MCP CLI via uv:
 
-> **Note:** Many existing MCP servers are distributed via `npx` or `uv/uvx` packages for Node.js or Deno. This project uses a Python/ASGI stack for easy deployment with FastAPI and Uvicorn.
+   For development:
+
+   ```bash
+   uv run mcp dev src/server.py
+   ```
+
+   For production (stdio mode):
+
+   ```bash
+   uv run mcp src/server.py stdio
+   ```
+
+   These commands use the FastMCP server provided by the MCP Python SDK to expose the GDAL tools. The server will listen for JSON-RPC requests and support the Model Context Protocol as described in the design document.
+
+> **Note:** Many MCP servers are distributed via `npx` or `uv/uvx` packages for Node.js or Deno. This project now uses the MCP Python SDK and `uv` for dependency management and execution.
+ployment with FastAPI and Uvicorn.
 
 ## Configuration
 
@@ -61,7 +79,7 @@ You can customise server behaviour through a simple JSON configuration file. Cre
 - `max_timeout` – maximum execution time (seconds) for GDAL commands.
 - `port` – TCP port for the server.
 
-To run the server with this configuration, set the environment variable `GDAL_MCP_CONFIG` to the path of your JSON file before starting Uvicorn.
+To run the server with this configuration, set the environment variable `GDAL_MCP_CONFIG` to the path of your JSON file before starting .
 
 ## MCP tools
 

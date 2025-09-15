@@ -188,3 +188,9 @@ uv run python -m server gdal_tools stdio
 # Convert to JPEG
 {"jsonrpc": "2.0", "method": "tools/call", "params": {"name": "gdal_translate", "arguments": {"src_dataset": "my_raster.tif", "dst_dataset": "preview.jpg", "output_format": "JPEG"}}, "id": 3}
 ```
+
+Here's how to call a tool using `curl` with an MCP server running on localhost:
+
+```bash
+curl -X POST http://localhost:8000/tools/call -H "Content-Type: application/json" -d '{"name": "gdalinfo", "arguments": {"dataset": "test_data/sample.tif"}}'
+```

@@ -1,11 +1,10 @@
 [project]
 name = "gdal-mcp"
 version = "0.1.0"
-description = "Add your description here"
+description = "GDAL MCP Server - Expose GDAL operations as MCP tools for AI agents"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "gdal>=3.11.4",
     "mcp[cli]>=1.14.0",
 ]
 

@@ -78,25 +78,15 @@ wheels = [
 ]
 
 [[package]]
-name = "gdal"
-version = "3.11.4"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/62/e0/1840d476bfd2d1e8c22dacb612027a16ad1dfba60d5d4379bdaaf6a1545f/gdal-3.11.4.tar.gz", hash = "sha256:c28cd5ffda3df98555e21083d922762b0a095d8f10292e2ec60ee0d55651d74a", size = 878351, upload-time = "2025-09-11T09:28:00.097Z" }
-
-[[package]]
 name = "gdal-mcp"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "gdal" },
     { name = "mcp", extra = ["cli"] },
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "gdal", specifier = ">=3.11.4" },
-    { name = "mcp", extras = ["cli"], specifier = ">=1.14.0" },
-]
+requires-dist = [{ name = "mcp", extras = ["cli"], specifier = ">=1.14.0" }]
 
 [[package]]
 name = "h11"

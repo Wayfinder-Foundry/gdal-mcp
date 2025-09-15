@@ -53,3 +53,13 @@ coverage.xml
 *.cover
 .cache
 .pytest_cache/
+
+# Test data and temporary files
+test_data/
+*.tif
+*.tiff
+*.vrt
+*.jpg
+*.jpeg
+*.png
+*.aux.xml

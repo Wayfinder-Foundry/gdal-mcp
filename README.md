@@ -42,21 +42,45 @@ GDAL MCP is an open‑source server implementing the Model Context Protocol (MCP
    python3 -m pip install "mcp[cli]" gdal
    ```
 
-3. Run the server using the MCP CLI via uv:
+3. Run the example basic tool server (does not require GDAL installed):
 
-   For development:
+  Using the console script installed via this package:
 
-   ```bash
-   uv run mcp dev src/server.py
-   ```
+  ```bash
+  uv run gdal-mcp-server basic_tool stdio
+  ```
 
-   For production (stdio mode):
+  Or with Python module execution:
 
-   ```bash
-   uv run mcp src/server.py stdio
-   ```
+  ```bash
+  uv run python -m server basic_tool stdio
+  ```
 
-   These commands use the FastMCP server provided by the MCP Python SDK to expose the GDAL tools. The server will listen for JSON-RPC requests and support the Model Context Protocol as described in the design document.
+  To use an SSE transport instead of stdio:
+
+  ```bash
+  uv run gdal-mcp-server basic_tool sse
+  ```
+
+4. (Planned) GDAL-backed tools will require GDAL. On macOS you can install it with Homebrew:
+
+  ```bash
+  brew install gdal
+  ```
+
+  Then reinstall dependencies so Python bindings match the system libs:
+
+  ```bash
+  uv sync --reinstall
+  ```
+
+  After GDAL tooling is implemented you will be able to run (example):
+
+  ```bash
+  uv run gdal-mcp-server gdalinfo stdio
+  ```
+
+  These commands use the FastMCP server provided by the MCP Python SDK. The server listens for JSON-RPC requests implementing the Model Context Protocol.
 
 > **Note:** Many MCP servers are distributed via `npx` or `uv/uvx` packages for Node.js or Deno. This project now uses the MCP Python SDK and `uv` for dependency management and execution.
 ployment with FastAPI and Uvicorn.

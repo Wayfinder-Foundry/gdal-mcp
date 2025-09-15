@@ -1,0 +1,55 @@
+# Virtual Environment
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.so
+*.egg-info/
+*.egg
+*.eggs/
+*.manifest
+*.spec
+
+# Virtual environments
+venv/
+.env/
+.envrc
+.env.*
+.virtualenv/
+*.virtualenv
+
+# uv (Python package manager)
+.uv/
+uv_cache/
+uv.db
+
+# Local eggs
+dist/
+build/
+*.egg
+.eggs/
+*.egg-info/
+.installed.cfg
+
+# Misc
+.DS_Store
+*.log
+*.sqlite3
+*.db
+*.bak
+*.swp
+*.swo
+
+# Test output
+htmlcov/
+.coverage
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+.cache
+.pytest_cache/

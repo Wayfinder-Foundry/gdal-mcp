@@ -21,9 +21,7 @@ def run_server():
     """
     if len(sys.argv) < 2:
         print("Usage: server <server-name> [transport]")
-        print("Available servers: basic_tool, basic_resource, basic_prompt, tool_progress,")
-        print("                   sampling, elicitation, completion, notifications,")
-        print("                   fastmcp_quickstart, structured_output, images")
+        print("Available servers: gdal_tools")
         print("Available transports: stdio (default), sse, streamable-http")
         sys.exit(1)
 
@@ -31,8 +29,12 @@ def run_server():
     transport = sys.argv[2] if len(sys.argv) > 2 else "stdio"
 
     try:
-        module = importlib.import_module(f".{server_name}", package=__name__)
-        module.mcp.run(cast(Literal["stdio", "sse", "streamable-http"], transport))
+        if server_name == "gdal_tools":
+            from . import gdal_tools
+            gdal_tools.mcp.run(cast(Literal["stdio", "sse", "streamable-http"], transport))
+        else:
+            module = importlib.import_module(f".{server_name}", package=__name__)
+            module.mcp.run(cast(Literal["stdio", "sse", "streamable-http"], transport))
     except ImportError:
         print(f"Error: Server '{server_name}' not found")
         sys.exit(1)

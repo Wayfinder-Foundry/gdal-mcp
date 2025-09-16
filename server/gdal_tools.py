@@ -4,16 +4,19 @@ This module provides GDAL command-line tools as MCP tools for AI agents.
 """
 
 import os
+import sys
 import subprocess
 
 from pathlib import Path
-from typing import Dict, Any, List
 from mcp.server.fastmcp import FastMCP
+from typing import Dict, Any, List, Literal, cast, Union, Annotated
 
-mcp = FastMCP(name="GDAL Tools")
+FilePath: Annotated[Union[str, Path], "A valid file path as string or Path object"]
+
+mcp = FastMCP(name="GDAL Tools", json_response=True)
 
 
-def validate_file_path(file_path: str) -> bool:
+def _validate_file_path(file_path: FilePath) -> bool: # type: ignore
     """Validate that the file path exists and is readable."""
     try:
         path = Path(file_path)
@@ -22,7 +25,7 @@ def validate_file_path(file_path: str) -> bool:
         return False
 
 
-def generate_output_path(input_path: str, suffix: str = "", extension: str = None) -> str:
+def _generate_output_path(input_path: str, suffix: str = "", extension: str = None) -> str:
     """Generate an output file path based on input path."""
     input_path_obj = Path(input_path)
     if extension:
@@ -34,7 +37,7 @@ def generate_output_path(input_path: str, suffix: str = "", extension: str = Non
     return str(input_path_obj.parent / output_name)
 
 
-def run_gdal_command(cmd: List[str], timeout: int = 60) -> Dict[str, Any]:
+def command(cmd: List[str], timeout: int = 60) -> Dict[str, Any]:
     """Run a GDAL command and return the result.
     
     Args:
@@ -104,7 +107,7 @@ def gdalinfo(dataset: str, json_output: bool = False, stats: bool = False) -> st
     Returns:
         String containing the gdalinfo output or error message
     """
-    if not validate_file_path(dataset):
+    if not _validate_file_path(dataset):
         return f"Error: File not found or not readable: {dataset}"
     
     cmd = ["gdalinfo"]
@@ -117,7 +120,7 @@ def gdalinfo(dataset: str, json_output: bool = False, stats: bool = False) -> st
     
     cmd.append(dataset)
     
-    result = run_gdal_command(cmd)
+    result = command(cmd)
     
     if result["success"]:
         return result["stdout"]
@@ -155,7 +158,7 @@ def gdal_translate(
     Returns:
         String containing the result path or error message
     """
-    if not validate_file_path(src_dataset):
+    if not _validate_file_path(src_dataset):
         return f"Error: Source file not found or not readable: {src_dataset}"
     
     # Generate output path if not provided
@@ -168,7 +171,7 @@ def gdal_translate(
             "ENVI": ".dat"
         }
         ext = format_extensions.get(output_format, ".tif")
-        dst_dataset = generate_output_path(src_dataset, "_converted", ext)
+        dst_dataset = _generate_output_path(src_dataset, "_converted", ext)
     
     cmd = ["gdal_translate"]
     
@@ -191,7 +194,7 @@ def gdal_translate(
     # Add source and destination
     cmd.extend([src_dataset, dst_dataset])
     
-    result = run_gdal_command(cmd, timeout=120)
+    result = command(cmd, timeout=120)
     
     if result["success"]:
         return f"Successfully converted to: {dst_dataset}"
@@ -232,13 +235,13 @@ def gdalwarp(
     
     # Validate all source files
     for src in src_datasets:
-        if not validate_file_path(src):
+        if not _validate_file_path(src):
             return f"Error: Source file not found or not readable: {src}"
     
     # Generate output path if not provided
     if not dst_dataset:
         base_name = Path(src_datasets[0]).stem
-        dst_dataset = generate_output_path(src_datasets[0], f"_warped_{target_srs.replace(':', '_')}", ".tif")
+        dst_dataset = _generate_output_path(src_datasets[0], f"_warped_{target_srs.replace(':', '_')}", ".tif")
     
     cmd = ["gdalwarp"]
     
@@ -254,7 +257,7 @@ def gdalwarp(
     cmd.extend(src_datasets)
     cmd.append(dst_dataset)
     
-    result = run_gdal_command(cmd, timeout=180)
+    result = command(cmd, timeout=180)
     
     if result["success"]:
         return f"Successfully warped to: {dst_dataset}"
@@ -290,12 +293,12 @@ def gdalbuildvrt(
     
     # Validate all source files
     for src in src_datasets:
-        if not validate_file_path(src):
+        if not _validate_file_path(src):
             return f"Error: Source file not found or not readable: {src}"
     
     # Generate output path if not provided
     if not dst_vrt:
-        dst_vrt = generate_output_path(src_datasets[0], "_mosaic", ".vrt")
+        dst_vrt = _generate_output_path(src_datasets[0], "_mosaic", ".vrt")
     
     cmd = ["gdalbuildvrt"]
     
@@ -309,7 +312,7 @@ def gdalbuildvrt(
     cmd.append(dst_vrt)
     cmd.extend(src_datasets)
     
-    result = run_gdal_command(cmd)
+    result = command(cmd)
     
     if result["success"]:
         return f"Successfully created VRT: {dst_vrt}"
@@ -372,3 +375,33 @@ def list_gdal_formats() -> str:
             
     except Exception as e:
         return f"Error: {str(e)}"
+
+
+def run_server():
+    """Entry point for console script to run GDAL MCP server.
+
+    Uses stdio transport by default. Optionally allow a transport argument
+    (stdio, sse, streamable-http) for flexibility, mirroring pattern in
+    `server.__init__.run_server` but specialized for this single server.
+    """
+
+    allowed: List[str] = ["stdio", "sse", "streamable-http"]
+    if len(sys.argv) > 1:
+        arg = sys.argv[1]
+        if arg in ("-h", "--help"):
+            print("Usage: gdal-mcp-server [transport]\n")
+            print("Run the GDAL MCP server exposing GDAL tools as MCP tools.")
+            print("Optional transport (default stdio): stdio | sse | streamable-http")
+            return 0
+        if arg not in allowed:
+            print(f"Unknown transport '{arg}'. Allowed: {', '.join(allowed)}")
+            return 1
+        transport = arg
+    else:
+        transport = "stdio"
+
+    mcp.run(cast(Literal["stdio", "sse", "streamable-http"], transport))
+
+
+if __name__ == "__main__":  # Allow `python -m server.gdal_tools`
+    run_server()

@@ -5,16 +5,13 @@ This module provides GDAL command-line tools as MCP tools for AI agents.
 
 import os
 import sys
+from enum import Enum
 import subprocess
-from enum import StrEnum
 from pathlib import Path
 from mcp.server.fastmcp import FastMCP
-from typing import Dict, Any, List, Literal, cast, Union, Annotated, TypeAlias, Tuple
+from typing import Dict, Any, List, Literal, cast, Union, Tuple
 
-FilePath: TypeAlias = Union[str, Path]
-
-
-class Resampling(StrEnum):
+class Resampling(Enum):
     """GDAL resampling methods."""
     NEAREST = "near"
     BILINEAR = "bilinear" 
@@ -34,7 +31,7 @@ class Resampling(StrEnum):
         return method in cls.all()
 
 
-class Format(StrEnum):
+class Format(Enum):
     """Common GDAL raster formats."""
     GTIFF = "GTiff"
     PNG = "PNG"
@@ -52,10 +49,10 @@ class Format(StrEnum):
     def supported(cls, fmt: str) -> bool:
         return fmt in cls.all()
 
-mcp = FastMCP(name="GDAL Tools", json_response=True)
+mcp = FastMCP(name="GDAL Tools", json_response=True, stateless_http=True)
 
 
-def _validate_file_path(path: FilePath) -> bool:
+def _validate_file_path(path: Union[str, Path]) -> bool:
     """Validate that the file path exists and is readable."""
     try:
         path_obj = Path(path)
@@ -64,7 +61,7 @@ def _validate_file_path(path: FilePath) -> bool:
         return False
 
 
-def _output_path(path: FilePath, suffix: str = "", extension: str = None) -> str:
+def _output_path(path: Union[str, Path], suffix: str = "", extension: str = None) -> str:
     """Generate an output file path based on input path."""
     input_path_obj = Path(path)
     if extension:
@@ -247,7 +244,7 @@ def gdal_translate(
 
 @mcp.tool()
 def gdalwarp(
-    src_datasets: List[FilePath],
+    src_datasets: List[Union[str, Path]],
     dst_dataset: str = "",
     target_epsg: int = 4326,
     resampling: str = Resampling.NEAREST,
@@ -321,7 +318,7 @@ def gdalwarp(
 
 @mcp.tool()
 def gdalbuildvrt(
-    src_datasets: List[FilePath],
+    src_datasets: List[Union[str, Path]],
     dst_vrt: str = "",
     resolution: str = "average",
     separate: bool = False

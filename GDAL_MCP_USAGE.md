@@ -75,7 +75,7 @@ Response includes all available tools with their schemas:
 #### Example: Reproject Raster
 
 ```json
-{"jsonrpc": "2.0", "method": "tools/call", "params": {"name": "gdalwarp", "arguments": {"src_datasets": ["test_data/sample.tif"], "dst_dataset": "test_data/reprojected.tif", "target_srs": "EPSG:3857", "resampling": "bilinear"}}, "id": 5}
+{"jsonrpc": "2.0", "method": "tools/call", "params": {"name": "gdalwarp", "arguments": {"src_datasets": ["test_data/sample.tif"], "dst_dataset": "test_data/reprojected.tif", "target_epsg": 3857, "resampling": "bilinear"}}, "id": 5}
 ```
 
 ## Tool Schemas
@@ -107,7 +107,7 @@ Response includes all available tools with their schemas:
 **Input Schema:**
 - `src_datasets` (array of strings, required): List of source raster dataset paths
 - `dst_dataset` (string, default: ""): Path to output dataset (auto-generated if empty)
-- `target_srs` (string, default: "EPSG:4326"): Target spatial reference system
+- `target_epsg` (integer, default: 4326): Target EPSG code for spatial reference system
 - `resampling` (string, default: "near"): Resampling algorithm (near, bilinear, cubic, etc.)
 - `output_format` (string, default: "GTiff"): GDAL output format
 - `overwrite` (boolean, default: false): Overwrite existing output file

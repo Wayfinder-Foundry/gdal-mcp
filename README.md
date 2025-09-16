@@ -122,38 +122,114 @@ The server exposes the following tools via `tools/list` and `tools/call`:
 
 For each tool, consult [`gdal_mcp_design.md`](gdal_mcp_design.md) for JSON schema definitions and sample usage.
 
-### Example usage
+### HTTP / JSON-RPC Usage (FastMCP `streamable-http`)
 
-To list the tools:
+The FastMCP streamable HTTP transport mounts a **single endpoint** (default: `/mcp`) that handles all JSON‑RPC 2.0 requests. In stateless mode (enabled in this project) you do **not** need an initialization handshake or a session header for quick tool invocations.
 
-```bash
-curl -X POST http://localhost:8000/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1}'
+#### Transports
+
+| Transport | How to run | Notes |
+|-----------|------------|-------|
+| stdio | `uv run gdal-mcp-server` | Best for editor integrations / MCP clients spawning a subprocess |
+| sse | `uv run gdal-mcp-server sse` | Server‑Sent Events endpoint (mount path configurable) |
+| streamable-http | `uv run gdal-mcp-server streamable-http` | Single `/mcp` endpoint; supports streaming + JSON responses |
+
+#### Accept Header
+
+The streamable HTTP transport negotiates streaming; we keep `json_response=True` but some versions still expect you to advertise support for both content types. Include:
+
+```
+Accept: application/json, text/event-stream
 ```
 
-To request a `gdalinfo` call:
+#### Stateless vs Session Mode
+
+We initialize FastMCP with `stateless_http=True`, so each request is independent and you can omit `mcp-session-id`. If you disable stateless mode later, you must:
+1. Send `initialize` with a `mcp-session-id` header.
+2. (Optionally) send `notifications/initialized`.
+3. Then issue `tools/list` / `tools/call` with the same session ID.
+
+#### List Tools
 
 ```bash
-# Prepare a JSON-RPC request
-cat > request.json <<'EOF'
-{
-  "jsonrpc": "2.0",
-  "method": "tools/call",
-  "params": {
-    "name": "gdalinfo",
-    "input": { "dataset": "/data/datasets/my.tif", "json": true }
-  },
-  "id": 2
-}
-EOF
-
-curl -X POST http://localhost:8000/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d @request.json
+curl -X POST http://localhost:8000/mcp \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": "1",
+    "method": "tools/list",
+    "params": {}
+  }'
 ```
 
-The server will ask for human confirmation before executing the command. Once approved, it returns the report or a resource URI.
+#### Call `gdalinfo`
+
+```bash
+curl -X POST http://localhost:8000/mcp \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": "2",
+    "method": "tools/call",
+    "params": {
+      "name": "gdalinfo",
+      "arguments": { "dataset": "test_data/sample.tif", "json_output": true }
+    }
+  }'
+```
+
+#### Call `gdal_translate` (automatic output path)
+
+```bash
+curl -X POST http://localhost:8000/mcp \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": "3",
+    "method": "tools/call",
+    "params": {
+      "name": "gdal_translate",
+      "arguments": { "src_dataset": "test_data/sample.tif", "output_format": "GTiff", "bands": [1] }
+    }
+  }'
+```
+
+#### Session Mode Example (if you disable `stateless_http`)
+
+```bash
+# 1. Initialize
+curl -X POST http://localhost:8000/mcp \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -H 'mcp-session-id: demo-1' \
+  -d '{
+    "jsonrpc":"2.0",
+    "id":"init-1",
+    "method":"initialize",
+    "params": { "protocolVersion":"2024-11-05", "capabilities": {"tools":{}}, "clientInfo":{"name":"curl","version":"0.0.1"}}
+  }'
+
+# 2. List tools in the same session
+curl -X POST http://localhost:8000/mcp \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -H 'mcp-session-id: demo-1' \
+  -d '{"jsonrpc":"2.0","id":"2","method":"tools/list","params":{}}'
+```
+
+#### Common Errors
+
+| Message | Cause | Fix |
+|---------|-------|-----|
+| Not Acceptable: Client must accept both application/json and text/event-stream | Missing or incomplete Accept header | Add `-H 'Accept: application/json, text/event-stream'` |
+| Missing session ID | Server running in stateful mode | Add `mcp-session-id` header or enable `stateless_http=True` |
+| No valid session ID provided | Invalid / missing session header in stateful mode | Ensure consistent, non-empty `mcp-session-id` |
+| Command not found: gdalinfo | GDAL binaries not in PATH | Install GDAL (e.g. `brew install gdal`) |
+
+The server returns tool output (or error messages) as a simple string inside the JSON-RPC result.
 
 ## Contributing
 

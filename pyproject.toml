@@ -8,5 +8,13 @@ dependencies = [
     "mcp[cli]>=1.14.0",
 ]
 
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["server"]
+exclude = ["test_data", "test_data.*"]
+
 [project.scripts]
-gdal-mcp-server = "server:run_server"
+gdal-mcp-server = "server:gdal_tools.run_server"

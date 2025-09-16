@@ -108,7 +108,7 @@ def demo_gdalwarp():
     result = gdalwarp(
         src_datasets=["test_data/sample.tif"],
         dst_dataset="test_data/demo_webmercator.tif",
-        target_srs="EPSG:3857",
+        target_epsg=3857,
         resampling="bilinear",
         output_format="GTiff"
     )

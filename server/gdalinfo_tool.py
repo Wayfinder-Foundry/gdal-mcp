@@ -3,11 +3,11 @@
 This module provides a basic gdalinfo tool that wraps the gdalinfo command-line utility.
 """
 
-import subprocess
 import os
-import json
-from typing import Dict, Any, Optional
+import subprocess
+
 from pathlib import Path
+from typing import Dict, Any
 from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP(name="GDAL Info Tool")

@@ -7,8 +7,9 @@ To run a server, use the command:
     uv run server basic_tool sse
 """
 
-import importlib
 import sys
+import importlib
+
 from typing import Literal, cast
 
 

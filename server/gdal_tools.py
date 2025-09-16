@@ -3,13 +3,11 @@
 This module provides GDAL command-line tools as MCP tools for AI agents.
 """
 
-import subprocess
 import os
-import json
-import tempfile
-import shutil
-from typing import Dict, Any, Optional, List
+import subprocess
+
 from pathlib import Path
+from typing import Dict, Any, List
 from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP(name="GDAL Tools")

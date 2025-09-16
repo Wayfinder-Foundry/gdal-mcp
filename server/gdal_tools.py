@@ -6,12 +6,51 @@ This module provides GDAL command-line tools as MCP tools for AI agents.
 import os
 import sys
 import subprocess
-
+from enum import StrEnum
 from pathlib import Path
 from mcp.server.fastmcp import FastMCP
-from typing import Dict, Any, List, Literal, cast, Union, Annotated, TypeAlias
+from typing import Dict, Any, List, Literal, cast, Union, Annotated, TypeAlias, Tuple
 
 FilePath: TypeAlias = Union[str, Path]
+
+
+class Resampling(StrEnum):
+    """GDAL resampling methods."""
+    NEAREST = "near"
+    BILINEAR = "bilinear" 
+    CUBIC = "cubic"
+    CUBICSPLINE = "cubicspline"
+    LANCZOS = "lanczos"
+    AVERAGE = "average"
+    MODE = "mode"
+    
+    @classmethod
+    def all(cls) -> Tuple[str, ...]:
+        return (cls.NEAREST, cls.BILINEAR, cls.CUBIC, cls.CUBICSPLINE, 
+                cls.LANCZOS, cls.AVERAGE, cls.MODE)
+    
+    @classmethod
+    def exists(cls, method: str) -> bool:
+        return method in cls.all()
+
+
+class Format(StrEnum):
+    """Common GDAL raster formats."""
+    GTIFF = "GTiff"
+    PNG = "PNG"
+    JPEG = "JPEG"
+    HFA = "HFA"
+    ENVI = "ENVI"
+    NETCDF = "NetCDF"
+    VRT = "VRT"
+    
+    @classmethod
+    def all(cls) -> Tuple[str, ...]:
+        return (cls.GTIFF, cls.PNG, cls.JPEG, cls.HFA, cls.ENVI, cls.NETCDF, cls.VRT)
+    
+    @classmethod
+    def supported(cls, fmt: str) -> bool:
+        return fmt in cls.all()
 
 mcp = FastMCP(name="GDAL Tools", json_response=True)
 
@@ -132,7 +171,7 @@ def gdalinfo(dataset: str, json_output: bool = False, stats: bool = False) -> st
 def gdal_translate(
     src_dataset: str,
     dst_dataset: str = "",
-    output_format: str = "GTiff",
+    output_format: str = Format.GTIFF,
     bands: List[int] = None,
     scale_min: float = None,
     scale_max: float = None,
@@ -160,6 +199,10 @@ def gdal_translate(
     """
     if not _validate_file_path(src_dataset):
         return f"Error: Source file not found or not readable: {src_dataset}"
+    
+    # Validate output format
+    if not Format.supported(output_format):
+        return f"Error: Invalid output format '{output_format}'. Valid options: {', '.join(Format.all())}"
     
     # Generate output path if not provided
     if not dst_dataset:
@@ -207,8 +250,8 @@ def gdalwarp(
     src_datasets: List[FilePath],
     dst_dataset: str = "",
     target_epsg: int = 4326,
-    resampling: str = "near",
-    output_format: str = "GTiff",
+    resampling: str = Resampling.NEAREST,
+    output_format: str = Format.GTIFF,
     overwrite: bool = False
 ) -> str:
     """Reproject and warp raster images using gdalwarp.
@@ -237,6 +280,14 @@ def gdalwarp(
     for src in src_datasets:
         if not _validate_file_path(src):
             return f"Error: Source file not found or not readable: {src}"
+    
+    # Validate resampling method
+    if not Resampling.exists(resampling):
+        return f"Error: Invalid resampling method '{resampling}'. Valid options: {', '.join(Resampling.all())}"
+    
+    # Validate output format
+    if not Format.supported(output_format):
+        return f"Error: Invalid output format '{output_format}'. Valid options: {', '.join(Format.all())}"
     
     # Generate output path if not provided
     if not dst_dataset:

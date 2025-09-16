@@ -72,7 +72,7 @@ def test_basic_functionality():
         result = gdalwarp(
             ["test_data/sample.tif"],
             "test_data/sample_reprojected.tif",
-            target_srs="EPSG:3857",
+            target_epsg=3857,
             resampling="bilinear"
         )
         print(result)

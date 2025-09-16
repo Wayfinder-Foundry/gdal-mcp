@@ -9,25 +9,25 @@ import subprocess
 
 from pathlib import Path
 from mcp.server.fastmcp import FastMCP
-from typing import Dict, Any, List, Literal, cast, Union, Annotated
+from typing import Dict, Any, List, Literal, cast, Union, Annotated, TypeAlias
 
-FilePath: Annotated[Union[str, Path], "A valid file path as string or Path object"]
+FilePath: TypeAlias = Union[str, Path]
 
 mcp = FastMCP(name="GDAL Tools", json_response=True)
 
 
-def _validate_file_path(file_path: FilePath) -> bool: # type: ignore
+def _validate_file_path(path: FilePath) -> bool:
     """Validate that the file path exists and is readable."""
     try:
-        path = Path(file_path)
-        return path.exists() and path.is_file() and os.access(path, os.R_OK)
+        path_obj = Path(path)
+        return path_obj.exists() and path_obj.is_file() and os.access(path_obj, os.R_OK)
     except Exception:
         return False
 
 
-def _generate_output_path(input_path: str, suffix: str = "", extension: str = None) -> str:
+def _output_path(path: FilePath, suffix: str = "", extension: str = None) -> str:
     """Generate an output file path based on input path."""
-    input_path_obj = Path(input_path)
+    input_path_obj = Path(path)
     if extension:
         new_extension = extension
     else:
@@ -171,7 +171,7 @@ def gdal_translate(
             "ENVI": ".dat"
         }
         ext = format_extensions.get(output_format, ".tif")
-        dst_dataset = _generate_output_path(src_dataset, "_converted", ext)
+        dst_dataset = _output_path(src_dataset, "_converted", ext)
     
     cmd = ["gdal_translate"]
     
@@ -204,9 +204,9 @@ def gdal_translate(
 
 @mcp.tool()
 def gdalwarp(
-    src_datasets: List[str],
+    src_datasets: List[FilePath],
     dst_dataset: str = "",
-    target_srs: str = "EPSG:4326",
+    target_epsg: int = 4326,
     resampling: str = "near",
     output_format: str = "GTiff",
     overwrite: bool = False
@@ -222,7 +222,7 @@ def gdalwarp(
     Args:
         src_datasets: List of source raster dataset paths
         dst_dataset: Path to output dataset (auto-generated if empty)
-        target_srs: Target spatial reference system (default: EPSG:4326)
+        target_epsg: Target EPSG code for spatial reference system (default: 4326)
         resampling: Resampling algorithm (near, bilinear, cubic, etc.)
         output_format: GDAL output format (default: GTiff)
         overwrite: Overwrite existing output file
@@ -241,7 +241,10 @@ def gdalwarp(
     # Generate output path if not provided
     if not dst_dataset:
         base_name = Path(src_datasets[0]).stem
-        dst_dataset = _generate_output_path(src_datasets[0], f"_warped_{target_srs.replace(':', '_')}", ".tif")
+        dst_dataset = _output_path(src_datasets[0], f"_warped_EPSG_{target_epsg}", ".tif")
+    
+    # Build target SRS from EPSG code
+    target_srs = f"EPSG:{target_epsg}"
     
     cmd = ["gdalwarp"]
     
@@ -267,7 +270,7 @@ def gdalwarp(
 
 @mcp.tool()
 def gdalbuildvrt(
-    src_datasets: List[str],
+    src_datasets: List[FilePath],
     dst_vrt: str = "",
     resolution: str = "average",
     separate: bool = False
@@ -298,7 +301,7 @@ def gdalbuildvrt(
     
     # Generate output path if not provided
     if not dst_vrt:
-        dst_vrt = _generate_output_path(src_datasets[0], "_mosaic", ".vrt")
+        dst_vrt = _output_path(src_datasets[0], "_mosaic", ".vrt")
     
     cmd = ["gdalbuildvrt"]
     

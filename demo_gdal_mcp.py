@@ -5,8 +5,9 @@ This script demonstrates the GDAL MCP tools in action and can be used
 to test the functionality before integrating with MCP clients.
 """
 
-import sys
 import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'server'))
 
 from gdal_tools import (

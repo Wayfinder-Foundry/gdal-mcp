@@ -49,6 +49,7 @@ class Format(Enum):
     def supported(cls, fmt: str) -> bool:
         return fmt in cls.all()
 
+# TODO: remove stateless_http=True if stateful sessions are needed
 mcp = FastMCP(name="GDAL Tools", json_response=True, stateless_http=True)
 
 

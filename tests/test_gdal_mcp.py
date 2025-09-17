@@ -6,9 +6,9 @@ This script demonstrates how to use the GDAL MCP tools manually.
 
 import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'server'))
 
-from gdal_tools import (
+# Import from the installed package module path
+from server.gdal_tools import (
     check_gdal_installation,
     gdalinfo,
     gdal_translate,

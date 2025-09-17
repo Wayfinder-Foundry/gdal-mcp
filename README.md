@@ -231,6 +231,48 @@ curl -X POST http://localhost:8000/mcp \
 
 The server returns tool output (or error messages) as a simple string inside the JSON-RPC result.
 
+### Automated HTTP Smoke Test
+
+You can run a simple smoke test against a manually started HTTP server using the provided script `test_http_mcp.py`.
+
+1. Start the server in another terminal (session or stateless mode depending on configuration):
+
+```bash
+uv run gdal-mcp-server streamable-http
+```
+
+2. In a second terminal run the test script (it will detect whether a sessionId was issued):
+
+```bash
+python test_http_mcp.py --base-url http://127.0.0.1:8000
+```
+
+Flags:
+
+| Flag | Description |
+|------|-------------|
+| `--base-url` | Change host/port (default `http://127.0.0.1:8000`) |
+| `--no-translate` | Skip the `gdal_translate` test |
+| `--verbose` | Print raw notification response |
+
+The script performs (in order):
+
+1. `initialize` (captures `sessionId` if the server returns one)
+2. `notifications/initialized` (only if session mode)
+3. `tools/list` (prints number of tools)
+4. `tools/call gdalinfo` on `test_data/sample.tif` if present
+5. `tools/call gdal_translate` creating `test_data/sample_http_translated.tif` (unless `--no-translate`)
+
+Exit codes:
+
+| Code | Meaning |
+|------|---------|
+| 0 | All selected tests passed |
+| 1 | Initialization failed |
+| 2 | One or more tool calls failed |
+
+This script uses only the Python standard library (urllib) so no extra dependencies are required.
+
 ## Contributing
 
 Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on contributing, reporting bugs, and running tests.

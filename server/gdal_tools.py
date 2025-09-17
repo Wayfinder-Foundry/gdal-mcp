@@ -23,8 +23,9 @@ class Resampling(Enum):
     
     @classmethod
     def all(cls) -> Tuple[str, ...]:
-        return (cls.NEAREST, cls.BILINEAR, cls.CUBIC, cls.CUBICSPLINE, 
-                cls.LANCZOS, cls.AVERAGE, cls.MODE)
+        # Return underlying string values for usability
+        return tuple(m.value for m in (cls.NEAREST, cls.BILINEAR, cls.CUBIC, cls.CUBICSPLINE,
+                                       cls.LANCZOS, cls.AVERAGE, cls.MODE))
     
     @classmethod
     def exists(cls, method: str) -> bool:
@@ -34,17 +35,21 @@ class Resampling(Enum):
 class Format(Enum):
     """Common GDAL raster formats."""
     GTIFF = "GTiff"
+    COG = "COG"
+    HDF4 = "HDF4"
+    HDF5 = "HDF5"
+    NETCDF = "NetCDF"
     PNG = "PNG"
     JPEG = "JPEG"
     HFA = "HFA"
     ENVI = "ENVI"
-    NETCDF = "NetCDF"
     VRT = "VRT"
+    ZARR = "Zarr"
     
     @classmethod
     def all(cls) -> Tuple[str, ...]:
-        return (cls.GTIFF, cls.PNG, cls.JPEG, cls.HFA, cls.ENVI, cls.NETCDF, cls.VRT)
-    
+        return tuple(f.value for f in (cls.GTIFF, cls.PNG, cls.JPEG, cls.HFA, cls.ENVI, cls.NETCDF, cls.VRT, cls.COG, cls.ZARR, cls.HDF4, cls.HDF5))
+
     @classmethod
     def supported(cls, fmt: str) -> bool:
         return fmt in cls.all()
@@ -198,8 +203,12 @@ def gdal_translate(
     if not _validate_file_path(src_dataset):
         return f"Error: Source file not found or not readable: {src_dataset}"
     
-    # Validate output format
-    if not Format.supported(output_format):
+    # Normalize and validate output format (accept Enum or str)
+    if isinstance(output_format, Format):
+        output_format_value = output_format.value
+    else:
+        output_format_value = str(output_format)
+    if not Format.supported(output_format_value):
         return f"Error: Invalid output format '{output_format}'. Valid options: {', '.join(Format.all())}"
     
     # Generate output path if not provided
@@ -217,7 +226,7 @@ def gdal_translate(
     cmd = ["gdal_translate"]
     
     # Add format option
-    cmd.extend(["-of", output_format])
+    cmd.extend(["-of", output_format_value])
     
     # Add band selection
     if bands:
@@ -279,12 +288,20 @@ def gdalwarp(
         if not _validate_file_path(src):
             return f"Error: Source file not found or not readable: {src}"
     
-    # Validate resampling method
-    if not Resampling.exists(resampling):
+    # Normalize resampling (accept Enum or str)
+    if isinstance(resampling, Resampling):
+        resampling_value = resampling.value
+    else:
+        resampling_value = str(resampling)
+    if not Resampling.exists(resampling_value):
         return f"Error: Invalid resampling method '{resampling}'. Valid options: {', '.join(Resampling.all())}"
     
-    # Validate output format
-    if not Format.supported(output_format):
+    # Normalize output format
+    if isinstance(output_format, Format):
+        output_format_value = output_format.value
+    else:
+        output_format_value = str(output_format)
+    if not Format.supported(output_format_value):
         return f"Error: Invalid output format '{output_format}'. Valid options: {', '.join(Format.all())}"
     
     # Generate output path if not provided
@@ -299,8 +316,8 @@ def gdalwarp(
     
     # Add options
     cmd.extend(["-t_srs", target_srs])
-    cmd.extend(["-r", resampling])
-    cmd.extend(["-of", output_format])
+    cmd.extend(["-r", resampling_value])
+    cmd.extend(["-of", output_format_value])
     
     if overwrite:
         cmd.append("-overwrite")

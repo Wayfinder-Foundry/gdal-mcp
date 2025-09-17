@@ -133,7 +133,7 @@ def gdalinfo(dataset: str, json_output: bool = False, stats: bool = False) -> st
 def gdal_translate(
     src_dataset: str,
     dst_dataset: str = "",
-    output_format: str = Format.GTIFF,
+    output_format: str = Format.GTIFF.value,
     bands: List[int] = None,
     scale_min: float = None,
     scale_max: float = None,
@@ -212,8 +212,8 @@ def gdalwarp(
     src_datasets: List[Union[str, Path]],
     dst_dataset: str = "",
     target_epsg: int = 4326,
-    resampling: str = Resampling.NEAREST,
-    output_format: str = Format.GTIFF,
+    resampling: str = Resampling.NEAREST.value,
+    output_format: str = Format.GTIFF.value,
     overwrite: bool = False
 ) -> str:
     """Reproject and warp raster images using gdalwarp.

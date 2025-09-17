@@ -5,49 +5,13 @@ This module provides GDAL command-line tools as MCP tools for AI agents.
 
 import os
 import sys
-from enum import Enum
 import subprocess
 from pathlib import Path
 from mcp.server.fastmcp import FastMCP
 from typing import Dict, Any, List, Literal, cast, Union, Tuple
 
-class Resampling(Enum):
-    """GDAL resampling methods."""
-    NEAREST = "near"
-    BILINEAR = "bilinear" 
-    CUBIC = "cubic"
-    CUBICSPLINE = "cubicspline"
-    LANCZOS = "lanczos"
-    AVERAGE = "average"
-    MODE = "mode"
-    
-    @classmethod
-    def all(cls) -> Tuple[str, ...]:
-        return (cls.NEAREST, cls.BILINEAR, cls.CUBIC, cls.CUBICSPLINE, 
-                cls.LANCZOS, cls.AVERAGE, cls.MODE)
-    
-    @classmethod
-    def exists(cls, method: str) -> bool:
-        return method in cls.all()
-
-
-class Format(Enum):
-    """Common GDAL raster formats."""
-    GTIFF = "GTiff"
-    PNG = "PNG"
-    JPEG = "JPEG"
-    HFA = "HFA"
-    ENVI = "ENVI"
-    NETCDF = "NetCDF"
-    VRT = "VRT"
-    
-    @classmethod
-    def all(cls) -> Tuple[str, ...]:
-        return (cls.GTIFF, cls.PNG, cls.JPEG, cls.HFA, cls.ENVI, cls.NETCDF, cls.VRT)
-    
-    @classmethod
-    def supported(cls, fmt: str) -> bool:
-        return fmt in cls.all()
+from server.enums.resampling import Resampling
+from server.enums.format import Format
 
 # TODO: remove stateless_http=True if stateful sessions are needed
 mcp = FastMCP(name="GDAL Tools", json_response=True, stateless_http=True)
@@ -169,7 +133,7 @@ def gdalinfo(dataset: str, json_output: bool = False, stats: bool = False) -> st
 def gdal_translate(
     src_dataset: str,
     dst_dataset: str = "",
-    output_format: str = Format.GTIFF,
+    output_format: str = Format.GTIFF.value,
     bands: List[int] = None,
     scale_min: float = None,
     scale_max: float = None,
@@ -248,8 +212,8 @@ def gdalwarp(
     src_datasets: List[Union[str, Path]],
     dst_dataset: str = "",
     target_epsg: int = 4326,
-    resampling: str = Resampling.NEAREST,
-    output_format: str = Format.GTIFF,
+    resampling: str = Resampling.NEAREST.value,
+    output_format: str = Format.GTIFF.value,
     overwrite: bool = False
 ) -> str:
     """Reproject and warp raster images using gdalwarp.

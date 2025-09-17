@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ## [Unreleased]
 
+### Changed
+- Refactored `Resampling` and `Format` enums into dedicated modules (`server/enums/resampling.py` and `server/enums/format.py`) to improve code organization
+- Fixed enum `all()` methods to return string values instead of enum members for clearer validation logic
+- Updated enum method signatures and behavior to be consistent with string-based validation
+
 ### Added
 - Planned enhancements and future improvements.
 

@@ -5,8 +5,27 @@ description = "GDAL MCP Server - Expose GDAL operations as MCP tools for AI agen
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "mcp[cli]>=1.14.0",
-    "pytest>=8.4.2",
+    "mcp>=1.0.0",
+]
+license = { file = "LICENSE" }
+keywords = ["GDAL", "MCP", "geospatial", "CLI", "tools"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: GIS",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
 ]
 
 [build-system]
@@ -18,4 +37,4 @@ include = ["server"]
 exclude = ["test_data", "test_data.*"]
 
 [project.scripts]
-gdal-mcp-server = "server:gdal_tools.run_server"
+gdal-mcp-server = "server.gdal_tools:cli_main"

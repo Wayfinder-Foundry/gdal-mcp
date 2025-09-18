@@ -1,475 +1,431 @@
-"""GDAL Tools for MCP Server.
+"""GDAL MCP Server and utility wrappers.
 
-This module provides GDAL command-line tools as MCP tools for AI agents.
+This module exposes:
+- Simple Python wrappers around common GDAL CLI tools (gdalinfo, gdal_translate, gdalwarp, gdalbuildvrt)
+- A Model Context Protocol (MCP) stdio server that publishes those tools
+
+The implementation mirrors the structure of the provided STAC example while
+staying focused on executing GDAL commands safely with helpful validation.
 """
 
-import os
-import sys
+from __future__ import annotations
+
+import asyncio
+import logging
 import subprocess
+import os
+import shutil
 from pathlib import Path
-from mcp.server.fastmcp import FastMCP
-from typing import Dict, Any, List, Literal, cast, Union, Tuple
+from typing import Any, Iterable, Optional
 
-class Resampling(Enum):
-    """GDAL resampling methods."""
-    NEAREST = "near"
-    BILINEAR = "bilinear" 
-    CUBIC = "cubic"
-    CUBICSPLINE = "cubicspline"
-    LANCZOS = "lanczos"
-    AVERAGE = "average"
-    MODE = "mode"
-    
-    @classmethod
-    def all(cls) -> Tuple[str, ...]:
-        # Return underlying string values for usability
-        return tuple(m.value for m in (cls.NEAREST, cls.BILINEAR, cls.CUBIC, cls.CUBICSPLINE,
-                                       cls.LANCZOS, cls.AVERAGE, cls.MODE))
-    
-    @classmethod
-    def exists(cls, method: str) -> bool:
-        return method in cls.all()
+from mcp.server import NotificationOptions, Server
+from mcp.server.models import InitializationOptions
+from mcp.server.stdio import stdio_server
+from mcp.types import TextContent, Tool
+
+from .enums.format import Format
+from .enums.resampling import Resampling
+
+# ---------------- Logging -----------------
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
-class Format(Enum):
-    """Common GDAL raster formats."""
-    GTIFF = "GTiff"
-    COG = "COG"
-    HDF4 = "HDF4"
-    HDF5 = "HDF5"
-    NETCDF = "NetCDF"
-    PNG = "PNG"
-    JPEG = "JPEG"
-    HFA = "HFA"
-    ENVI = "ENVI"
-    VRT = "VRT"
-    ZARR = "Zarr"
-    
-    @classmethod
-    def all(cls) -> Tuple[str, ...]:
-        return tuple(f.value for f in (cls.GTIFF, cls.PNG, cls.JPEG, cls.HFA, cls.ENVI, cls.NETCDF, cls.VRT, cls.COG, cls.ZARR, cls.HDF4, cls.HDF5))
+# ----------------- Helpers -----------------
 
-    @classmethod
-    def supported(cls, fmt: str) -> bool:
-        return fmt in cls.all()
+def _validate_file_path(path: str | Path) -> bool:
+    """Return True if input looks like an accessible dataset.
 
-# TODO: remove stateless_http=True if stateful sessions are needed
-mcp = FastMCP(name="GDAL Tools", json_response=True, stateless_http=True)
+    Accepts:
+    - Local filesystem paths that exist
+    - Remote/public URIs (http, https)
+    - GDAL VSI/Cloud schemes (e.g., /vsicurl/, s3://, gs://, /vsis3/, /vsigs/)
+    """
+    s = str(path)
+    # Remote URLs
+    if s.startswith(("http://", "https://")):
+        return True
+    # Common GDAL virtual file systems and cloud schemes
+    if s.startswith(("/vsicurl/", "/vsis3/", "/vsigs/", "/vsiaz/", "s3://", "gs://", "az://")):
+        return True
+    # Fallback to local file existence
+    return Path(s).exists()
 
 
-def _validate_file_path(path: Union[str, Path]) -> bool:
-    """Validate that the file path exists and is readable."""
-    try:
-        path_obj = Path(path)
-        return path_obj.exists() and path_obj.is_file() and os.access(path_obj, os.R_OK)
-    except Exception:
-        return False
+def _output_path(
+    src: str | Path,
+    *,
+    suffix: str = "",
+    extension: str | None = None,
+) -> str:
+    """Build an output path based on a source path with optional suffix and extension.
+
+    - If extension is None, keep the source suffix; else replace with provided extension.
+    """
+    p = Path(src)
+    stem = p.stem + (suffix or "")
+    ext = extension if extension is not None else p.suffix
+    if ext and not ext.startswith("."):
+        ext = "." + ext
+    return str(p.with_name(stem + (ext or "")))
 
 
-def _output_path(path: Union[str, Path], suffix: str = "", extension: str = None) -> str:
-    """Generate an output file path based on input path."""
-    input_path_obj = Path(path)
-    if extension:
-        new_extension = extension
-    else:
-        new_extension = input_path_obj.suffix
-    
-    output_name = f"{input_path_obj.stem}{suffix}{new_extension}"
-    return str(input_path_obj.parent / output_name)
+def command(cmd: Iterable[str], timeout: float | int = 60) -> dict[str, Any]:
+    """Run a subprocess command and return a structured result.
 
-
-def command(cmd: List[str], timeout: int = 60) -> Dict[str, Any]:
-    """Run a GDAL command and return the result.
-    
-    Args:
-        cmd: Command and arguments as a list
-        timeout: Timeout in seconds
-        
-    Returns:
-        Dictionary containing command result
+    Returns a dict with keys: success (bool), stdout (str), stderr (str), and optional error (str).
     """
     try:
         result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            check=False
+            list(cmd), capture_output=True, text=True, timeout=timeout
         )
-        
-        if result.returncode == 0:
-            return {
-                "success": True,
-                "stdout": result.stdout,
-                "stderr": result.stderr,
-                "return_code": result.returncode
-            }
-        else:
-            return {
-                "success": False,
-                "error": f"Command failed: {result.stderr}",
-                "stdout": result.stdout,
-                "return_code": result.returncode
-            }
-            
-    except subprocess.TimeoutExpired:
         return {
-            "success": False,
-            "error": f"Command timed out after {timeout} seconds"
+            "success": result.returncode == 0,
+            "stdout": result.stdout,
+            "stderr": result.stderr,
         }
+    except subprocess.TimeoutExpired:
+        return {"success": False, "stdout": "", "stderr": "", "error": "Command timed out"}
     except FileNotFoundError:
         return {
             "success": False,
-            "error": f"Command not found: {cmd[0]}. Please ensure GDAL is installed."
+            "stdout": "",
+            "stderr": "",
+            "error": "Command not found",
         }
-    except Exception as e:
+    except Exception as exc:  # safety net
         return {
             "success": False,
-            "error": f"Unexpected error: {str(e)}"
+            "stdout": "",
+            "stderr": str(exc),
+            "error": "Execution failed",
         }
 
 
-@mcp.tool()
-def gdalinfo(dataset: str, json_output: bool = False, stats: bool = False) -> str:
-    """Get information about a raster dataset using gdalinfo.
-    
-    This tool provides summary information about a raster dataset including:
-    - File format and size
-    - Coordinate system and geolocation
-    - Band information
-    - Metadata
-    - Optionally, band statistics
-    
-    Args:
-        dataset: Path to the raster dataset file
-        json_output: Return output in JSON format (default: False)
-        stats: Compute and include raster band statistics (default: False)
-        
-    Returns:
-        String containing the gdalinfo output or error message
+def _resolve_exe(name: str) -> str:
+    """Resolve an executable name to an absolute path.
+
+    Precedence:
+    1. GDAL_BIN env var (prefix directory)
+    2. shutil.which on current PATH
+    3. Fallback to the name as-is
+    """
+    base = name
+    gdal_bin = os.environ.get("GDAL_BIN")
+    if gdal_bin:
+        candidate = Path(gdal_bin) / base
+        if candidate.exists():  # noqa: PTH110
+            return str(candidate)
+    found = shutil.which(base)
+    return found or base
+
+
+# ------------- High-level wrappers -------------
+
+def check_gdal_installation() -> str:
+    """Check that GDAL is installed and reachable on PATH.
+
+    Returns a human-friendly message.
+    """
+    res = command([_resolve_exe("gdalinfo"), "--version"])  # type: ignore[list-item]
+    if res.get("success"):
+        version = res.get("stdout", "").strip()
+        return f"GDAL is installed: {version}"
+    return "Error: GDAL not installed or not in PATH"
+
+
+def list_gdal_formats() -> str:
+    """Return the output of `gdalinfo --formats` as a string."""
+    res = command([_resolve_exe("gdalinfo"), "--formats"])  # type: ignore[list-item]
+    if res.get("success"):
+        return res.get("stdout", "")
+    err = res.get("error") or res.get("stderr") or "Unknown error"
+    return f"Error: {err}"
+
+
+def gdalinfo(
+    dataset: str,
+    *,
+    json_output: bool = False,
+    stats: bool = False,
+    extra_args: Optional[list[str]] = None,
+) -> str:
+    """Run gdalinfo and return its stdout or an error string.
+
+    Parameters align with the MCP tool's input schema.
     """
     if not _validate_file_path(dataset):
-        return f"Error: File not found or not readable: {dataset}"
-    
-    cmd = ["gdalinfo"]
-    
+        return "Error: Dataset not found"
+    cmd: list[str] = [_resolve_exe("gdalinfo")]
     if json_output:
         cmd.append("-json")
-    
     if stats:
         cmd.append("-stats")
-    
+    if extra_args:
+        cmd.extend(extra_args)
     cmd.append(dataset)
-    
-    result = command(cmd)
-    
-    if result["success"]:
-        return result["stdout"]
-    else:
-        return f"Error: {result['error']}"
+    res = command(cmd)
+    if res.get("success"):
+        return res.get("stdout", "")
+    return f"Error: {res.get('error') or res.get('stderr') or 'gdalinfo failed'}"
 
 
-@mcp.tool()
 def gdal_translate(
     src_dataset: str,
-    dst_dataset: str = "",
-    output_format: str = Format.GTIFF.value,
-    bands: List[int] = None,
-    scale_min: float = None,
-    scale_max: float = None,
-    output_type: str = None
+    dst_dataset: Optional[str] = None,
+    *,
+    output_format: Optional[str] = None,
+    bands: Optional[list[int]] = None,
+    extra_args: Optional[list[str]] = None,
 ) -> str:
-    """Convert raster data between formats using gdal_translate.
-    
-    This tool converts raster data between different formats and can also:
-    - Subset specific bands
-    - Rescale pixel values
-    - Change output data type
-    - Compress output files
-    
-    Args:
-        src_dataset: Path to source raster dataset
-        dst_dataset: Path to output dataset (auto-generated if empty)
-        output_format: GDAL output format (default: GTiff)
-        bands: List of band numbers to copy (1-based indexing)
-        scale_min: Minimum value for scaling
-        scale_max: Maximum value for scaling
-        output_type: Output data type (Byte, UInt16, Int16, UInt32, Int32, Float32, Float64)
-        
-    Returns:
-        String containing the result path or error message
+    """Run gdal_translate to convert a dataset.
+
+    - Validates output format if provided using a small whitelist.
+    - Creates a default destination path if not supplied.
     """
     if not _validate_file_path(src_dataset):
-        return f"Error: Source file not found or not readable: {src_dataset}"
-    
-    # Normalize and validate output format (accept Enum or str)
-    if isinstance(output_format, Format):
-        output_format_value = output_format.value
-    else:
-        output_format_value = str(output_format)
-    if not Format.supported(output_format_value):
-        return f"Error: Invalid output format '{output_format}'. Valid options: {', '.join(Format.all())}"
-    
-    # Generate output path if not provided
-    if not dst_dataset:
-        format_extensions = {
-            "GTiff": ".tif",
-            "JPEG": ".jpg",
-            "PNG": ".png",
-            "HFA": ".img",
-            "ENVI": ".dat"
-        }
-        ext = format_extensions.get(output_format, ".tif")
-        dst_dataset = _output_path(src_dataset, "_converted", ext)
-    
-    cmd = ["gdal_translate"]
-    
-    # Add format option
-    cmd.extend(["-of", output_format_value])
-    
-    # Add band selection
+        return "Error: Source dataset not found"
+
+    if output_format and not Format.supported(output_format):
+        return f"Invalid output format: {output_format}"
+
+    if dst_dataset is None:
+        # Default extension based on format hint
+        ext = ".tif" if (output_format or "").lower() in {"gtiff", "gtif", "gtiff"} or output_format == "GTiff" else None
+        dst_dataset = _output_path(src_dataset, suffix="_converted", extension=ext)
+
+    cmd: list[str] = [_resolve_exe("gdal_translate")]
+    if output_format:
+        cmd += ["-of", output_format]
     if bands:
-        for band in bands:
-            cmd.extend(["-b", str(band)])
-    
-    # Add scaling options
-    if scale_min is not None and scale_max is not None:
-        cmd.extend(["-scale", str(scale_min), str(scale_max)])
-    
-    # Add output type
-    if output_type:
-        cmd.extend(["-ot", output_type])
-    
-    # Add source and destination
-    cmd.extend([src_dataset, dst_dataset])
-    
-    result = command(cmd, timeout=120)
-    
-    if result["success"]:
-        return f"Successfully converted to: {dst_dataset}"
-    else:
-        return f"Error: {result['error']}"
+        for b in bands:
+            cmd += ["-b", str(int(b))]
+    if extra_args:
+        cmd.extend(extra_args)
+    cmd += [src_dataset, dst_dataset]
+    res = command(cmd)
+    if res.get("success"):
+        return f"Successfully converted {src_dataset} -> {dst_dataset}"
+    return f"Error: {res.get('error') or res.get('stderr') or 'gdal_translate failed'}"
 
 
-@mcp.tool()
 def gdalwarp(
-    src_datasets: List[Union[str, Path]],
-    dst_dataset: str = "",
-    target_epsg: int = 4326,
-    resampling: str = Resampling.NEAREST.value,
-    output_format: str = Format.GTIFF.value,
-    overwrite: bool = False
+    src_datasets: list[str],
+    dst_dataset: Optional[str] = None,
+    *,
+    target_epsg: Optional[int] = None,
+    resampling: Optional[str] = None,
+    extra_args: Optional[list[str]] = None,
 ) -> str:
-    """Reproject and warp raster images using gdalwarp.
-    
-    This tool reprojects raster images and can:
-    - Change coordinate system
-    - Mosaic multiple inputs
-    - Apply different resampling algorithms
-    - Crop to specific extents
-    
-    Args:
-        src_datasets: List of source raster dataset paths
-        dst_dataset: Path to output dataset (auto-generated if empty)
-        target_epsg: Target EPSG code for spatial reference system (default: 4326)
-        resampling: Resampling algorithm (near, bilinear, cubic, etc.)
-        output_format: GDAL output format (default: GTiff)
-        overwrite: Overwrite existing output file
-        
-    Returns:
-        String containing the result path or error message
+    """Run gdalwarp to reproject/warp datasets.
+
+    - Validates resampling method against known options.
+    - Creates a default output path when not provided.
     """
     if not src_datasets:
         return "Error: No source datasets provided"
-    
-    # Validate all source files
-    for src in src_datasets:
-        if not _validate_file_path(src):
-            return f"Error: Source file not found or not readable: {src}"
-    
-    # Normalize resampling (accept Enum or str)
-    if isinstance(resampling, Resampling):
-        resampling_value = resampling.value
-    else:
-        resampling_value = str(resampling)
-    if not Resampling.exists(resampling_value):
-        return f"Error: Invalid resampling method '{resampling}'. Valid options: {', '.join(Resampling.all())}"
-    
-    # Normalize output format
-    if isinstance(output_format, Format):
-        output_format_value = output_format.value
-    else:
-        output_format_value = str(output_format)
-    if not Format.supported(output_format_value):
-        return f"Error: Invalid output format '{output_format}'. Valid options: {', '.join(Format.all())}"
-    
-    # Generate output path if not provided
-    if not dst_dataset:
-        base_name = Path(src_datasets[0]).stem
-        dst_dataset = _output_path(src_datasets[0], f"_warped_EPSG_{target_epsg}", ".tif")
-    
-    # Build target SRS from EPSG code
-    target_srs = f"EPSG:{target_epsg}"
-    
-    cmd = ["gdalwarp"]
-    
-    # Add options
-    cmd.extend(["-t_srs", target_srs])
-    cmd.extend(["-r", resampling_value])
-    cmd.extend(["-of", output_format_value])
-    
-    if overwrite:
-        cmd.append("-overwrite")
-    
-    # Add all source files and destination
-    cmd.extend(src_datasets)
-    cmd.append(dst_dataset)
-    
-    result = command(cmd, timeout=180)
-    
-    if result["success"]:
-        return f"Successfully warped to: {dst_dataset}"
-    else:
-        return f"Error: {result['error']}"
+    if not all(_validate_file_path(p) for p in src_datasets):
+        return "Error: One or more source datasets not found"
+
+    if resampling and not Resampling.exists(resampling):
+        return f"Invalid resampling: {resampling}"
+
+    if dst_dataset is None:
+        dst_dataset = _output_path(src_datasets[0], suffix="_warped", extension=None)
+
+    cmd: list[str] = [_resolve_exe("gdalwarp")]
+    if target_epsg:
+        cmd += ["-t_srs", f"EPSG:{int(target_epsg)}"]
+    if resampling:
+        cmd += ["-r", resampling]
+    if extra_args:
+        cmd.extend(extra_args)
+    cmd += src_datasets + [dst_dataset]
+    res = command(cmd)
+    if res.get("success"):
+        return f"Successfully warped {len(src_datasets)} file(s) -> {dst_dataset}"
+    return f"Error: {res.get('error') or res.get('stderr') or 'gdalwarp failed'}"
 
 
-@mcp.tool()
 def gdalbuildvrt(
-    src_datasets: List[Union[str, Path]],
-    dst_vrt: str = "",
-    resolution: str = "average",
-    separate: bool = False
+    source_files: list[str],
+    dst_vrt: Optional[str] = None,
+    *,
+    resolution: Optional[str] = None,
+    extra_args: Optional[list[str]] = None,
 ) -> str:
-    """Build a virtual dataset (VRT) from input rasters using gdalbuildvrt.
-    
-    This tool creates a virtual mosaic that combines multiple raster files:
-    - Creates lightweight VRT files
-    - Handles different resolutions
-    - Can separate bands or mosaic them
-    
-    Args:
-        src_datasets: List of source raster dataset paths
-        dst_vrt: Path to output VRT file (auto-generated if empty)
-        resolution: Output resolution (highest, lowest, average)
-        separate: Place each input file into separate VRT bands
-        
-    Returns:
-        String containing the result path or error message
-    """
-    if not src_datasets:
+    """Run gdalbuildvrt to build a VRT from sources."""
+    if not source_files:
         return "Error: No source datasets provided"
-    
-    # Validate all source files
-    for src in src_datasets:
-        if not _validate_file_path(src):
-            return f"Error: Source file not found or not readable: {src}"
-    
-    # Generate output path if not provided
-    if not dst_vrt:
-        dst_vrt = _output_path(src_datasets[0], "_mosaic", ".vrt")
-    
-    cmd = ["gdalbuildvrt"]
-    
-    # Add options
-    cmd.extend(["-resolution", resolution])
-    
-    if separate:
-        cmd.append("-separate")
-    
-    # Add destination and all sources
-    cmd.append(dst_vrt)
-    cmd.extend(src_datasets)
-    
-    result = command(cmd)
-    
-    if result["success"]:
-        return f"Successfully created VRT: {dst_vrt}"
-    else:
-        return f"Error: {result['error']}"
+    if not all(_validate_file_path(p) for p in source_files):
+        return "Error: One or more source datasets not found"
+
+    if dst_vrt is None:
+        dst_vrt = _output_path(source_files[0], suffix="_mosaic", extension=".vrt")
+
+    cmd: list[str] = [_resolve_exe("gdalbuildvrt")]
+    if resolution:
+        cmd += ["-resolution", resolution]
+    if extra_args:
+        cmd.extend(extra_args)
+    cmd += [dst_vrt] + list(source_files)
+    res = command(cmd)
+    if res.get("success"):
+        return f"Successfully created VRT -> {dst_vrt}"
+    return f"Error: {res.get('error') or res.get('stderr') or 'gdalbuildvrt failed'}"
 
 
-@mcp.tool()
-def check_gdal_installation() -> str:
-    """Check if GDAL is properly installed and accessible."""
+# ---------------- MCP Server wiring ----------------
+
+# Initialize the MCP server
+server = Server("gdal-mcp")
+
+
+@server.list_tools()
+async def handle_list_tools() -> list[Tool]:
+    """List available GDAL tools with their input schemas."""
+    return [
+        Tool(
+            name="gdalinfo",
+            description="Get metadata information about a raster dataset using gdalinfo",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "dataset": {"type": "string", "description": "Path to dataset"},
+                    "json_output": {"type": "boolean", "default": False},
+                    "stats": {"type": "boolean", "default": False},
+                },
+                "required": ["dataset"],
+            },
+        ),
+        Tool(
+            name="gdal_translate",
+            description="Convert a raster dataset using gdal_translate",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "src_dataset": {"type": "string", "description": "Source path"},
+                    "dst_dataset": {"type": "string", "description": "Destination path (optional)"},
+                    "output_format": {
+                        "type": "string",
+                        "description": f"Output format (e.g., {', '.join(Format.all())})",
+                    },
+                    "bands": {
+                        "type": "array",
+                        "items": {"type": "integer"},
+                        "description": "Optional list of band indices (1-based)",
+                    },
+                },
+                "required": ["src_dataset"],
+            },
+        ),
+        Tool(
+            name="gdalwarp",
+            description="Reproject or warp raster(s) using gdalwarp",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "src_datasets": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Source dataset paths",
+                    },
+                    "dst_dataset": {"type": "string", "description": "Destination path (optional)"},
+                    "target_epsg": {"type": "integer", "description": "Target EPSG code"},
+                    "resampling": {
+                        "type": "string",
+                        "description": f"Resampling method ({', '.join(Resampling.all())})",
+                    },
+                },
+                "required": ["src_datasets"],
+            },
+        ),
+        Tool(
+            name="gdalbuildvrt",
+            description="Create a VRT from multiple rasters using gdalbuildvrt",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "source_files": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Source raster paths",
+                    },
+                    "dst_vrt": {"type": "string", "description": "Destination VRT path (optional)"},
+                    "resolution": {"type": "string", "description": "Resolution strategy (e.g., average)"},
+                },
+                "required": ["source_files"],
+            },
+        ),
+    ]
+
+
+@server.call_tool()
+async def handle_call_tool(tool_name: str, arguments: dict):
+    """Dispatch tool calls to the appropriate wrapper and return textual output."""
     try:
-        result = subprocess.run(
-            ["gdalinfo", "--version"],
-            capture_output=True,
-            text=True,
-            timeout=10,
-            check=False
+        if tool_name == "gdalinfo":
+            text = gdalinfo(
+                dataset=arguments["dataset"],
+                json_output=arguments.get("json_output", False),
+                stats=arguments.get("stats", False),
+            )
+            return [TextContent(type="text", text=text)]
+
+        if tool_name == "gdal_translate":
+            text = gdal_translate(
+                src_dataset=arguments["src_dataset"],
+                dst_dataset=arguments.get("dst_dataset"),
+                output_format=arguments.get("output_format"),
+                bands=arguments.get("bands"),
+            )
+            return [TextContent(type="text", text=text)]
+
+        if tool_name == "gdalwarp":
+            text = gdalwarp(
+                src_datasets=arguments["src_datasets"],
+                dst_dataset=arguments.get("dst_dataset"),
+                target_epsg=arguments.get("target_epsg"),
+                resampling=arguments.get("resampling"),
+            )
+            return [TextContent(type="text", text=text)]
+
+        if tool_name == "gdalbuildvrt":
+            text = gdalbuildvrt(
+                source_files=arguments["source_files"],
+                dst_vrt=arguments.get("dst_vrt"),
+                resolution=arguments.get("resolution"),
+            )
+            return [TextContent(type="text", text=text)]
+
+        raise ValueError(f"Unknown tool: {tool_name}")
+    except Exception as e:  # noqa: BLE001
+        logger.error(f"Error executing tool {tool_name}: {e}")
+        raise
+
+
+async def main() -> None:
+    """Main entry point for the GDAL MCP server (stdio transport)."""
+    async with stdio_server() as (read_stream, write_stream):
+        await server.run(
+            read_stream,
+            write_stream,
+            InitializationOptions(
+                server_name="gdal-mcp",
+                server_version="0.1.0",
+                capabilities=server.get_capabilities(
+                    notification_options=NotificationOptions(),
+                    experimental_capabilities={},
+                ),
+            ),
         )
-        
-        if result.returncode == 0:
-            version_info = result.stdout.strip()
-            
-            # Also check for common GDAL utilities
-            utilities = ["gdal_translate", "gdalwarp", "gdalbuildvrt"]
-            available_utils = []
-            
-            for util in utilities:
-                try:
-                    subprocess.run([util, "--help"], capture_output=True, timeout=5, check=False)
-                    available_utils.append(util)
-                except:
-                    pass
-            
-            return f"GDAL is installed: {version_info}\nAvailable utilities: {', '.join(available_utils)}"
-        else:
-            return f"GDAL command failed: {result.stderr}"
-            
-    except FileNotFoundError:
-        return "GDAL is not installed or not in PATH. Please install GDAL."
-    except Exception as e:
-        return f"Error checking GDAL installation: {str(e)}"
 
 
-@mcp.tool()
-def list_gdal_formats() -> str:
-    """List all supported GDAL formats."""
-    try:
-        result = subprocess.run(
-            ["gdalinfo", "--formats"],
-            capture_output=True,
-            text=True,
-            timeout=10,
-            check=False
-        )
-        
-        if result.returncode == 0:
-            return result.stdout
-        else:
-            return f"Error getting formats: {result.stderr}"
-            
-    except Exception as e:
-        return f"Error: {str(e)}"
+def cli_main() -> None:
+    """CLI entry point to run the GDAL MCP server."""
+    asyncio.run(main())
 
 
-def run_server():
-    """Entry point for console script to run GDAL MCP server.
-
-    Uses stdio transport by default. Optionally allow a transport argument
-    (stdio, sse, streamable-http) for flexibility, mirroring pattern in
-    `server.__init__.run_server` but specialized for this single server.
-    """
-
-    allowed: List[str] = ["stdio", "sse", "streamable-http"]
-    if len(sys.argv) > 1:
-        arg = sys.argv[1]
-        if arg in ("-h", "--help"):
-            print("Usage: gdal-mcp-server [transport]\n")
-            print("Run the GDAL MCP server exposing GDAL tools as MCP tools.")
-            print("Optional transport (default stdio): stdio | sse | streamable-http")
-            return 0
-        if arg not in allowed:
-            print(f"Unknown transport '{arg}'. Allowed: {', '.join(allowed)}")
-            return 1
-        transport = arg
-    else:
-        transport = "stdio"
-
-    mcp.run(cast(Literal["stdio", "sse", "streamable-http"], transport))
-
-
-if __name__ == "__main__":  # Allow `python -m server.gdal_tools`
-    run_server()
+if __name__ == "__main__":
+    cli_main()

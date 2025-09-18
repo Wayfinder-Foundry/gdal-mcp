@@ -4,19 +4,19 @@ GDAL MCP is an open‑source server implementing the Model Context Protocol (MCP
 
 ## Features
 
-- Exposes GDAL utilities such as `gdalinfo`, `gdal_translate`, `gdalwarp`, `gdalbuildvrt`, `gdal_rasterize`, `gdal2xyz`, `gdal_merge` and `gdal_polygonize` as MCP tools.
+- Exposes core GDAL utilities such as `gdalinfo`, `gdal_translate`, `gdalwarp`, and `gdalbuildvrt` as MCP tools.
 - Uses JSON‑RPC 2.0 for communication.
 - Human‑in‑the‑loop confirmation for every tool execution.
 - Modular, extensible design with Python wrappers for each tool.
-- Supports returning output files as resources.
+ 
 
 ## Installation
 
 ### Prerequisites
 
-- Python 3.9 or later.
-- GDAL installed on your system (e.g., `sudo apt install gdal-bin libgdal-dev`).
-- The GDAL Python bindings (`pip install gdal`).
+- Python 3.10 or later.
+- GDAL CLI installed on your system (e.g., Homebrew on macOS: `brew install gdal`, or conda-forge).
+  - The server shells out to the GDAL binaries; Python GDAL bindings are not required.
 
 ### Steps
 
@@ -27,83 +27,36 @@ GDAL MCP is an open‑source server implementing the Model Context Protocol (MCP
    cd gdal-mcp
    ```
 
-2.2. Install dependencies:
+2. Install dependencies (recommended with [uv](https://docs.astral.sh/uv/)):
 
    Recommended: use [uv](https://docs.astral.sh/uv/) to manage the Python environment and install MCP and GDAL dependencies:
 
-   ```bash
-   uv init
-   uv add "mcp[cli]" gdal
-   ```
-
-   Alternatively, install packages with pip:
-
-   ```bash
-   python3 -m pip install "mcp[cli]" gdal
-   ```
-
-3. Run the example basic tool server (does not require GDAL installed):
-
-  Using the console script installed via this package:
-
   ```bash
-  uv run gdal-mcp-server basic_tool stdio
+  uv pip install -e ".[dev]"
   ```
 
-  Or with Python module execution:
+  Alternatively with pip:
 
   ```bash
-  uv run python -m server basic_tool stdio
+  python3 -m pip install -e ".[dev]"
   ```
 
-  To use an SSE transport instead of stdio:
+3. Run the MCP server (stdio transport):
+
+   Using the console script installed via this package:
 
   ```bash
-  uv run gdal-mcp-server basic_tool sse
+  uv run gdal-mcp-server
   ```
 
-4. (Planned) GDAL-backed tools will require GDAL. On macOS you can install it with Homebrew:
+   Or with Python module execution:
 
   ```bash
-  brew install gdal
+  uv run python -m server.gdal_tools
   ```
 
-  Then reinstall dependencies so Python bindings match the system libs:
+> **Note:** The server uses the GDAL command-line tools. If the VS Code extension host doesn't inherit your shell PATH, set `GDAL_BIN` to the directory containing GDAL binaries (e.g., `/opt/homebrew/bin`) in your MCP configuration for the `gdal` server.
 
-  ```bash
-  uv sync --reinstall
-  ```
-
-  After GDAL tooling is implemented you will be able to run (example):
-
-  ```bash
-  uv run gdal-mcp-server gdalinfo stdio
-  ```
-
-  These commands use the FastMCP server provided by the MCP Python SDK. The server listens for JSON-RPC requests implementing the Model Context Protocol.
-
-> **Note:** Many MCP servers are distributed via `npx` or `uv/uvx` packages for Node.js or Deno. This project now uses the MCP Python SDK and `uv` for dependency management and execution.
-ployment with FastAPI and Uvicorn.
-
-## Configuration
-
-You can customise server behaviour through a simple JSON configuration file. Create a `config.json` in the project root:
-
-```json
-{
-  "workdir": "/tmp/gdal-mcp-workdir",
-  "whitelist": ["/data/datasets"],
-  "max_timeout": 3600,
-  "port": 8000
-}
-```
-
-- `workdir` – directory where output files will be stored.
-- `whitelist` – list of directories that the server is allowed to read from.
-- `max_timeout` – maximum execution time (seconds) for GDAL commands.
-- `port` – TCP port for the server.
-
-To run the server with this configuration, set the environment variable `GDAL_MCP_CONFIG` to the path of your JSON file before starting .
 
 ## MCP tools
 
@@ -115,163 +68,40 @@ The server exposes the following tools via `tools/list` and `tools/call`:
 | `gdal_translate` | Converts raster data between formats, and can subset, resample or rescale pixels. |
 | `gdalwarp` | Reprojects and warps raster images; can mosaic multiple inputs and apply ground control points. |
 | `gdalbuildvrt` | Builds a virtual mosaic (VRT) from a list of input rasters. |
-| `gdal_rasterize` | Burns vector geometries into raster band(s). |
-| `gdal2xyz` | Converts a raster dataset into x/y/z points, supporting multiple bands and nodata handling. |
-| `gdal_merge` | Mosaics a set of images that share the same coordinate system and number of bands. |
-| `gdal_polygonize` | Creates vector polygons from connected regions of pixels with the same value. |
+ 
 
 For each tool, consult [`gdal_mcp_design.md`](gdal_mcp_design.md) for JSON schema definitions and sample usage.
 
-### HTTP / JSON-RPC Usage (FastMCP `streamable-http`)
-
-The FastMCP streamable HTTP transport mounts a **single endpoint** (default: `/mcp`) that handles all JSON‑RPC 2.0 requests. In stateless mode (enabled in this project) you do **not** need an initialization handshake or a session header for quick tool invocations.
+### MCP client usage
 
 #### Transports
 
 | Transport | How to run | Notes |
 |-----------|------------|-------|
 | stdio | `uv run gdal-mcp-server` | Best for editor integrations / MCP clients spawning a subprocess |
-| sse | `uv run gdal-mcp-server sse` | Server‑Sent Events endpoint (mount path configurable) |
-| streamable-http | `uv run gdal-mcp-server streamable-http` | Single `/mcp` endpoint; supports streaming + JSON responses |
 
-#### Accept Header
+The server exposes tools via `tools/list` and `tools/call` over stdio. Use an MCP-compatible client (e.g., VS Code MCP extension) to interact.
 
-The streamable HTTP transport negotiates streaming; we keep `json_response=True` but some versions still expect you to advertise support for both content types. Include:
+### VS Code MCP configuration
 
-```
-Accept: application/json, text/event-stream
-```
+Add to your user `mcp.json`:
 
-#### Stateless vs Session Mode
-
-We initialize FastMCP with `stateless_http=True`, so each request is independent and you can omit `mcp-session-id`. If you disable stateless mode later, you must:
-1. Send `initialize` with a `mcp-session-id` header.
-2. (Optionally) send `notifications/initialized`.
-3. Then issue `tools/list` / `tools/call` with the same session ID.
-
-#### List Tools
-
-```bash
-curl -X POST http://localhost:8000/mcp \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json, text/event-stream' \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "1",
-    "method": "tools/list",
-    "params": {}
-  }'
-```
-
-#### Call `gdalinfo`
-
-```bash
-curl -X POST http://localhost:8000/mcp \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json, text/event-stream' \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "2",
-    "method": "tools/call",
-    "params": {
-      "name": "gdalinfo",
-      "arguments": { "dataset": "test_data/sample.tif", "json_output": true }
+```jsonc
+{
+  "servers": {
+    "gdal": {
+      "command": "/absolute/path/to/your/venv/bin/gdal-mcp-server",
+      "transport": "stdio",
+      "workingDirectory": "/absolute/path/to/gdal-mcp",
+      "env": {
+        "GDAL_BIN": "path/to/gdal/bin"  // Optional: ensure GDAL is in the PATH
+      }
     }
-  }'
+  }
+}
 ```
 
-#### Call `gdal_translate` (automatic output path)
-
-```bash
-curl -X POST http://localhost:8000/mcp \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json, text/event-stream' \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "3",
-    "method": "tools/call",
-    "params": {
-      "name": "gdal_translate",
-      "arguments": { "src_dataset": "test_data/sample.tif", "output_format": "GTiff", "bands": [1] }
-    }
-  }'
-```
-
-#### Session Mode Example (if you disable `stateless_http`)
-
-```bash
-# 1. Initialize
-curl -X POST http://localhost:8000/mcp \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json, text/event-stream' \
-  -H 'mcp-session-id: demo-1' \
-  -d '{
-    "jsonrpc":"2.0",
-    "id":"init-1",
-    "method":"initialize",
-    "params": { "protocolVersion":"2024-11-05", "capabilities": {"tools":{}}, "clientInfo":{"name":"curl","version":"0.0.1"}}
-  }'
-
-# 2. List tools in the same session
-curl -X POST http://localhost:8000/mcp \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json, text/event-stream' \
-  -H 'mcp-session-id: demo-1' \
-  -d '{"jsonrpc":"2.0","id":"2","method":"tools/list","params":{}}'
-```
-
-#### Common Errors
-
-| Message | Cause | Fix |
-|---------|-------|-----|
-| Not Acceptable: Client must accept both application/json and text/event-stream | Missing or incomplete Accept header | Add `-H 'Accept: application/json, text/event-stream'` |
-| Missing session ID | Server running in stateful mode | Add `mcp-session-id` header or enable `stateless_http=True` |
-| No valid session ID provided | Invalid / missing session header in stateful mode | Ensure consistent, non-empty `mcp-session-id` |
-| Command not found: gdalinfo | GDAL binaries not in PATH | Install GDAL (e.g. `brew install gdal`) |
-
-The server returns tool output (or error messages) as a simple string inside the JSON-RPC result.
-
-### Automated HTTP Smoke Test
-
-You can run a simple smoke test against a manually started HTTP server using the provided script `test_http_mcp.py`.
-
-1. Start the server in another terminal (session or stateless mode depending on configuration):
-
-```bash
-uv run gdal-mcp-server streamable-http
-```
-
-2. In a second terminal run the test script (it will detect whether a sessionId was issued):
-
-```bash
-python test_http_mcp.py --base-url http://127.0.0.1:8000
-```
-
-Flags:
-
-| Flag | Description |
-|------|-------------|
-| `--base-url` | Change host/port (default `http://127.0.0.1:8000`) |
-| `--no-translate` | Skip the `gdal_translate` test |
-| `--verbose` | Print raw notification response |
-
-The script performs (in order):
-
-1. `initialize` (captures `sessionId` if the server returns one)
-2. `notifications/initialized` (only if session mode)
-3. `tools/list` (prints number of tools)
-4. `tools/call gdalinfo` on `test_data/sample.tif` if present
-5. `tools/call gdal_translate` creating `test_data/sample_http_translated.tif` (unless `--no-translate`)
-
-Exit codes:
-
-| Code | Meaning |
-|------|---------|
-| 0 | All selected tests passed |
-| 1 | Initialization failed |
-| 2 | One or more tool calls failed |
-
-This script uses only the Python standard library (urllib) so no extra dependencies are required.
+If PATH is already correct and gdal is included, `GDAL_BIN` is optional.
 
 ## Contributing
 

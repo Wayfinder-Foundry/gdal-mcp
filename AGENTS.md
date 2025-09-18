@@ -16,16 +16,17 @@ Formatting & linting
 - Use Ruff for linting and auto-fixes; resolve remaining issues manually.
 - Commands:
   - pip install -e ".[dev]"
-  - black stac_mcp/ tests/ examples/ || black .
-  - ruff check stac_mcp/ tests/ examples/ --fix
+  - black server/ tests/ || black .
+  - ruff check server/ tests/ --fix
 
 Testing & validation
 - Write tests for behavior, not implementation; prefer parametrized tests for similar cases.
 - Run the full test suite locally:
   - pytest -v
 - Validate MCP/CLI/server functionality (example usage):
-  - python examples/example_usage.py
-- Integration tests that exercise GDAL bindings require system GDAL — see GDAL setup below.
+  - uv run gdal-mcp-server
+  - or: python -m server.gdal_tools
+- Integration tests that exercise GDAL CLI require the GDAL binaries to be available — see GDAL setup below.
 
 GDAL / native dependency notes (project-specific)
 - GDAL is a native dependency. Prefer a conda/mamba environment to install matching GDAL and libgdal:
@@ -37,6 +38,13 @@ GDAL / native dependency notes (project-specific)
   - export GDAL_DATA=/path/to/gdal/data
   - export PROJ_LIB=/path/to/proj/data
 - In CI, use a docker image or matrix entries that include preinstalled GDAL to validate integration tests.
+ - macOS tip: Homebrew provides a recent GDAL. Install with:
+   - brew install gdal
+   After install, GDAL binaries (gdalinfo, gdal_translate, etc.) will typically be under /opt/homebrew/bin on Apple Silicon.
+ - PATH-constrained environments: The server will try GDAL_BIN first. You can set it to the directory that contains the GDAL CLI tools, e.g.:
+   - export GDAL_BIN=/opt/homebrew/bin
+   - export GDAL_BIN=$(gdal-config --prefix)/bin
+   This helps MCP hosts that don’t inherit your shell PATH locate GDAL.
 
 Packaging & CI
 - Use pyproject.toml / PEP 517 for builds. When building wheels for distribution prefer cibuildwheel for manylinux wheels.
@@ -60,6 +68,7 @@ Dependencies & environment
 - Use virtual environments, uv for isolation.
 - Pin dev dependencies in pyproject.toml where appropriate.
 - Install in editable mode during development: pip install -e ".[dev]"
+ - When running under an MCP host, prefer using the absolute path to the console script in your venv for the server command (e.g., /path/to/venv/bin/gdal-mcp-server) and set the working directory to the repository root. If PATH is not propagated, set GDAL_BIN as noted above.
 
 Commit & PR guidance
 - Write clear commit messages with intent and scope.
@@ -75,20 +84,24 @@ CI & pre-merge checks
 
 Quick contributor checklist
 1. Prepare environment (uv recommended for GDAL):
-    - uv new gdal-mcp python=3.11
-    - uv activate gdal-mcp
-    - uv install gdal
+   - uv new gdal-mcp python=3.11
+   - uv activate gdal-mcp
+   - Install GDAL CLI:
+    - macOS: brew install gdal
+    - or conda/mamba: mamba install -c conda-forge gdal
+   - Optional (PATH-constrained): export GDAL_BIN=/path/to/gdal/bin
 2. Install dev deps:
    - pip install -e ".[dev]"
 3. Format & lint:
-   - black stac_mcp/ tests/ examples/
-   - ruff check stac_mcp/ tests/ examples/ --fix
+  - black server/ tests/ || black .
+  - ruff check server/ tests/ --fix
 4. Run tests:
    - pytest -v
 5. Smoke test example:
-   - python examples/example_usage.py
+  - uv run gdal-mcp-server
+  - or: python -m server.gdal_tools
 6. If changes touch GDAL integration:
-   - run integration tests against a GDAL-enabled environment (local conda or CI job).
+  - run integration tests against a GDAL-enabled environment (local conda/brew or a CI job with GDAL installed).
 
 References
 - PEP 8 — Style Guide for Python Code: https://peps.python.org/pep-0008/

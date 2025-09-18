@@ -1,22 +1,27 @@
+---
+type: product_context
+title: GDAL MCP Overview
+tags: [gdal, mcp, server, docs]
+---
+
 # GDAL MCP
 
 GDAL MCP is an open‑source server implementing the Model Context Protocol (MCP). It wraps the command‑line tools from the Geospatial Data Abstraction Library (GDAL) and exposes them as MCP tools so AI agents can perform geospatial operations in a safe, user‑approved manner.
 
 ## Features
 
-- Exposes GDAL utilities such as `gdalinfo`, `gdal_translate`, `gdalwarp`, `gdalbuildvrt`, `gdal_rasterize`, `gdal2xyz`, `gdal_merge` and `gdal_polygonize` as MCP tools.
-- Uses JSON‑RPC 2.0 for communication.
+- Implements the GDAL 3.11 unified CLI as MCP tools (initial set): `info`, `convert`, `reproject` (raster).
+- JSON‑RPC 2.0 communication via FastMCP (stdio or HTTP transport).
 - Human‑in‑the‑loop confirmation for every tool execution.
-- Modular, extensible design with Python wrappers for each tool.
-- Supports returning output files as resources.
+- Modular wrappers with typed signatures and clear error surfacing.
+- File‑producing tools publish results as `file://` resources.
 
 ## Installation
 
 ### Prerequisites
 
-- Python 3.9 or later.
-- GDAL installed on your system (e.g., `sudo apt install gdal-bin libgdal-dev`).
-- The GDAL Python bindings (`pip install gdal`).
+- Python 3.10+.
+- GDAL 3.11+ CLI available on PATH (unified `gdal` command). For Debian/Ubuntu: `sudo apt install gdal-bin`.
 
 ### Steps
 
@@ -27,60 +32,29 @@ GDAL MCP is an open‑source server implementing the Model Context Protocol (MCP
    cd gdal-mcp
    ```
 
-2.2. Install dependencies:
-
-   Recommended: use [uv](https://docs.astral.sh/uv/) to manage the Python environment and install MCP and GDAL dependencies:
+2. Install deps (recommended: [uv](https://docs.astral.sh/uv/)):
 
    ```bash
-   uv init
-   uv add "mcp[cli]" gdal
+   uv sync
    ```
 
-   Alternatively, install packages with pip:
+3. Run the server (stdio or HTTP):
 
    ```bash
-   python3 -m pip install "mcp[cli]" gdal
+   # stdio (typical for editor integrations)
+   uv run gdal-mcp serve --transport stdio
+
+   # HTTP
+   uv run gdal-mcp serve --transport http --port 8000
    ```
 
-3. Run the example basic tool server (does not require GDAL installed):
+   Or via Python module:
 
-  Using the console script installed via this package:
+   ```bash
+   uv run python -m gdal_mcp serve --transport stdio
+   ```
 
-  ```bash
-  uv run gdal-mcp-server basic_tool stdio
-  ```
-
-  Or with Python module execution:
-
-  ```bash
-  uv run python -m server basic_tool stdio
-  ```
-
-  To use an SSE transport instead of stdio:
-
-  ```bash
-  uv run gdal-mcp-server basic_tool sse
-  ```
-
-4. (Planned) GDAL-backed tools will require GDAL. On macOS you can install it with Homebrew:
-
-  ```bash
-  brew install gdal
-  ```
-
-  Then reinstall dependencies so Python bindings match the system libs:
-
-  ```bash
-  uv sync --reinstall
-  ```
-
-  After GDAL tooling is implemented you will be able to run (example):
-
-  ```bash
-  uv run gdal-mcp-server gdalinfo stdio
-  ```
-
-  These commands use the FastMCP server provided by the MCP Python SDK. The server listens for JSON-RPC requests implementing the Model Context Protocol.
+   The server listens for JSON‑RPC requests implementing the Model Context Protocol.
 
 > **Note:** Many MCP servers are distributed via `npx` or `uv/uvx` packages for Node.js or Deno. This project now uses the MCP Python SDK and `uv` for dependency management and execution.
 ployment with FastAPI and Uvicorn.
@@ -120,9 +94,9 @@ The server exposes the following tools via `tools/list` and `tools/call`:
 | `gdal_merge` | Mosaics a set of images that share the same coordinate system and number of bands. |
 | `gdal_polygonize` | Creates vector polygons from connected regions of pixels with the same value. |
 
-For each tool, consult [`gdal_mcp_design.md`](gdal_mcp_design.md) for JSON schema definitions and sample usage.
+For detailed JSON Schemas, architecture notes, and testing guidance see [`docs/design/`](docs/design/index.md).
 
-### HTTP / JSON-RPC Usage (FastMCP `streamable-http`)
+### HTTP / JSON‑RPC Usage (FastMCP HTTP)
 
 The FastMCP streamable HTTP transport mounts a **single endpoint** (default: `/mcp`) that handles all JSON‑RPC 2.0 requests. In stateless mode (enabled in this project) you do **not** need an initialization handshake or a session header for quick tool invocations.
 
@@ -130,9 +104,8 @@ The FastMCP streamable HTTP transport mounts a **single endpoint** (default: `/m
 
 | Transport | How to run | Notes |
 |-----------|------------|-------|
-| stdio | `uv run gdal-mcp-server` | Best for editor integrations / MCP clients spawning a subprocess |
-| sse | `uv run gdal-mcp-server sse` | Server‑Sent Events endpoint (mount path configurable) |
-| streamable-http | `uv run gdal-mcp-server streamable-http` | Single `/mcp` endpoint; supports streaming + JSON responses |
+| stdio | `uv run gdal-mcp serve --transport stdio` | Best for editor integrations |
+| http | `uv run gdal-mcp serve --transport http --port 8000` | Single `/mcp` endpoint; supports streaming + JSON responses |
 
 #### Accept Header
 
@@ -163,7 +136,7 @@ curl -X POST http://localhost:8000/mcp \
   }'
 ```
 
-#### Call `gdalinfo`
+#### Call `info`
 
 ```bash
 curl -X POST http://localhost:8000/mcp \
@@ -174,13 +147,13 @@ curl -X POST http://localhost:8000/mcp \
     "id": "2",
     "method": "tools/call",
     "params": {
-      "name": "gdalinfo",
-      "arguments": { "dataset": "test_data/sample.tif", "json_output": true }
+      "name": "info",
+      "arguments": { "path": "test/data/sample.tif", "format": "json" }
     }
   }'
 ```
 
-#### Call `gdal_translate` (automatic output path)
+#### Call `convert`
 
 ```bash
 curl -X POST http://localhost:8000/mcp \
@@ -191,8 +164,25 @@ curl -X POST http://localhost:8000/mcp \
     "id": "3",
     "method": "tools/call",
     "params": {
-      "name": "gdal_translate",
-      "arguments": { "src_dataset": "test_data/sample.tif", "output_format": "GTiff", "bands": [1] }
+      "name": "convert",
+      "arguments": { "input": "test/data/sample.tif", "output": "out.tif", "output_format": "GTiff" }
+
+#### Call `reproject`
+
+```bash
+curl -X POST http://localhost:8000/mcp \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": "4",
+    "method": "tools/call",
+    "params": {
+      "name": "reproject",
+      "arguments": { "input": "test/data/sample.tif", "output": "reproj.tif", "dst_crs": "EPSG:4326" }
+    }
+  }'
+```
     }
   }'
 ```
@@ -229,7 +219,9 @@ curl -X POST http://localhost:8000/mcp \
 | No valid session ID provided | Invalid / missing session header in stateful mode | Ensure consistent, non-empty `mcp-session-id` |
 | Command not found: gdalinfo | GDAL binaries not in PATH | Install GDAL (e.g. `brew install gdal`) |
 
-The server returns tool output (or error messages) as a simple string inside the JSON-RPC result.
+### Resources
+
+File‑producing tools return a `resource_uri` (`file://...`) and register it with the server so clients can list/read it via the MCP resources API.
 
 ## Contributing
 

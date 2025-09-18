@@ -1,0 +1,64 @@
+The ConPort server exposes the following tools via MCP, allowing interaction with the underlying **project knowledge graph**. This includes tools for **semantic search** powered by **vector data storage**. These tools facilitate the **Retrieval** aspect crucial for **Augmented Generation (RAG)** by AI agents. All tools require a `workspace_id` argument (string, required) to specify the target project workspace.
+
+- **Product Context Management:**
+  - `get_product_context`: Retrieves the overall project goals, features, and architecture.
+  - `update_product_context`: Updates the product context. Accepts full `content` (object) or `patch_content` (object) for partial updates (use `__DELETE__` as a value in patch to remove a key).
+- **Active Context Management:**
+  - `get_active_context`: Retrieves the current working focus, recent changes, and open issues.
+  - `update_active_context`: Updates the active context. Accepts full `content` (object) or `patch_content` (object) for partial updates (use `__DELETE__` as a value in patch to remove a key).
+- **Decision Logging:**
+  - `log_decision`: Logs an architectural or implementation decision.
+    - Args: `summary` (str, req), `rationale` (str, opt), `implementation_details` (str, opt), `tags` (list[str], opt).
+  - `get_decisions`: Retrieves logged decisions.
+    - Args: `limit` (int, opt), `tags_filter_include_all` (list[str], opt), `tags_filter_include_any` (list[str], opt).
+  - `search_decisions_fts`: Full-text search across decision fields (summary, rationale, details, tags).
+    - Args: `query_term` (str, req), `limit` (int, opt).
+  - `delete_decision_by_id`: Deletes a decision by its ID.
+    - Args: `decision_id` (int, req).
+- **Progress Tracking:**
+  - `log_progress`: Logs a progress entry or task status.
+    - Args: `status` (str, req), `description` (str, req), `parent_id` (int, opt), `linked_item_type` (str, opt), `linked_item_id` (str, opt).
+  - `get_progress`: Retrieves progress entries.
+    - Args: `status_filter` (str, opt), `parent_id_filter` (int, opt), `limit` (int, opt).
+  - `update_progress`: Updates an existing progress entry.
+    - Args: `progress_id` (int, req), `status` (str, opt), `description` (str, opt), `parent_id` (int, opt).
+  - `delete_progress_by_id`: Deletes a progress entry by its ID.
+    - Args: `progress_id` (int, req).
+- **System Pattern Management:**
+  - `log_system_pattern`: Logs or updates a system/coding pattern.
+    - Args: `name` (str, req), `description` (str, opt), `tags` (list[str], opt).
+  - `get_system_patterns`: Retrieves system patterns.
+    - Args: `tags_filter_include_all` (list[str], opt), `tags_filter_include_any` (list[str], opt).
+  - `delete_system_pattern_by_id`: Deletes a system pattern by its ID.
+    - Args: `pattern_id` (int, req).
+- **Custom Data Management:**
+  - `log_custom_data`: Stores/updates a custom key-value entry under a category. Value is JSON-serializable.
+    - Args: `category` (str, req), `key` (str, req), `value` (any, req).
+  - `get_custom_data`: Retrieves custom data.
+    - Args: `category` (str, opt), `key` (str, opt).
+  - `delete_custom_data`: Deletes a specific custom data entry.
+    - Args: `category` (str, req), `key` (str, req).
+  - `search_project_glossary_fts`: Full-text search within the 'ProjectGlossary' custom data category.
+    - Args: `query_term` (str, req), `limit` (int, opt).
+  - `search_custom_data_value_fts`: Full-text search across all custom data values, categories, and keys.
+    - Args: `query_term` (str, req), `category_filter` (str, opt), `limit` (int, opt).
+- **Context Linking:**
+  - `link_conport_items`: Creates a relationship link between two ConPort items, explicitly building out the **project knowledge graph**.
+    - Args: `source_item_type` (str, req), `source_item_id` (str, req), `target_item_type` (str, req), `target_item_id` (str, req), `relationship_type` (str, req), `description` (str, opt).
+  - `get_linked_items`: Retrieves items linked to a specific item.
+    - Args: `item_type` (str, req), `item_id` (str, req), `relationship_type_filter` (str, opt), `linked_item_type_filter` (str, opt), `limit` (int, opt).
+- **History & Meta Tools:**
+  - `get_item_history`: Retrieves version history for Product or Active Context.
+    - Args: `item_type` ("product_context" | "active_context", req), `version` (int, opt), `before_timestamp` (datetime, opt), `after_timestamp` (datetime, opt), `limit` (int, opt).
+  - `get_recent_activity_summary`: Provides a summary of recent ConPort activity.
+    - Args: `hours_ago` (int, opt), `since_timestamp` (datetime, opt), `limit_per_type` (int, opt, default: 5).
+  - `get_conport_schema`: Retrieves the schema of available ConPort tools and their arguments.
+- **Import/Export:**
+  - `export_conport_to_markdown`: Exports ConPort data to markdown files.
+    - Args: `output_path` (str, opt, default: "./conport_export/").
+  - `import_markdown_to_conport`: Imports data from markdown files into ConPort.
+    - Args: `input_path` (str, opt, default: "./conport_export/").
+- **Batch Operations:**
+  - `batch_log_items`: Logs multiple items of the same type (e.g., decisions, progress entries) in a single call.
+    - Args: `item_type` (str, req - e.g., "decision", "progress_entry"), `items` (list[dict], req - list of Pydantic model dicts for the item type).
+

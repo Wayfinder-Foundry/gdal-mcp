@@ -1,29 +1,32 @@
+---
+type: usage
+title: GDAL MCP Usage Guide
+tags: [usage, docs]
+---
+
 # GDAL MCP Server Usage Guide
 
 This guide demonstrates how to use the GDAL MCP Server to expose GDAL operations as tools for AI agents.
 
 ## Overview
 
-The GDAL MCP Server provides the following tools:
-- `gdalinfo` - Get information about raster datasets
-- `gdal_translate` - Convert raster data between formats
-- `gdalwarp` - Reproject and warp raster images  
-- `gdalbuildvrt` - Build virtual datasets from input rasters
-- `check_gdal_installation` - Verify GDAL is properly installed
-- `list_gdal_formats` - List all supported GDAL formats
+The GDAL MCP Server provides the following tools (initial set):
+- `info` - Get information about raster datasets (GDAL `gdal info`)
+- `convert` - Convert raster data between formats (GDAL `gdal convert`)
+- `reproject` - Reproject raster images (GDAL `gdal raster reproject`)  
 
 ## Running the Server
 
 Start the MCP server using stdio transport:
 
 ```bash
-uv run python -m server gdal_tools stdio
+uv run gdal-mcp serve --transport stdio
 ```
 
-Or using SSE transport:
+Or using HTTP transport:
 
 ```bash
-uv run python -m server gdal_tools sse
+uv run gdal-mcp serve --transport http --port 8000
 ```
 
 ## MCP Protocol Communication

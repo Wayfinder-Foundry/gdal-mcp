@@ -47,7 +47,7 @@ class Format(Enum):
     
     @classmethod
     def all(cls) -> Tuple[str, ...]:
-        return tuple(f.value for f in (cls.GTIFF, cls.PNG, cls.JPEG, cls.HFA, cls.ENVI, cls.NETCDF, cls.VRT, cls.COG, cls.ZARR, cls.HDF4, cls.HDF5))
+        return tuple(f.value for f in cls)
 
     @classmethod
     def supported(cls, fmt: str) -> bool:

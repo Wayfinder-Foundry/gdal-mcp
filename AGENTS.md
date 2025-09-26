@@ -81,8 +81,8 @@ Quick contributor checklist
 2. Install dev deps:
    - pip install -e ".[dev]"
 3. Format & lint:
-   - black stac_mcp/ tests/ examples/
-   - ruff check stac_mcp/ tests/ examples/ --fix
+   - black tests/ examples/
+   - ruff check tests/ examples/ --fix
 4. Run tests:
    - pytest -v
 5. Smoke test example:

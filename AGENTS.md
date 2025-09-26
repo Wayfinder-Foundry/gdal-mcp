@@ -16,7 +16,7 @@ Formatting & linting
 - Use Ruff for linting and auto-fixes; resolve remaining issues manually.
 - Commands:
   - pip install -e ".[dev]"
-  - black stac_mcp/ tests/ examples/ || black .
+  - black server/ tests/ examples/ || black .
   - ruff check stac_mcp/ tests/ examples/ --fix
 
 Testing & validation

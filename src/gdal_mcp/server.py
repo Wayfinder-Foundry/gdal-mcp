@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from gdal_mcp.app import mcp  # Shared FastMCP instance
 
-# Import tool packages to register tools at import time
-import gdal_mcp.tools  # noqa: F401
+# Import tool modules to register tools at import time
+import gdal_mcp.tools  # package placeholder, keep for namespace
+import gdal_mcp.tools.raster.info  # noqa: F401
 import gdal_mcp.prompts  # noqa: F401

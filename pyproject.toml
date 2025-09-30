@@ -41,8 +41,8 @@ dev = [
 [project.scripts]
 # Main server entrypoint (will start the FastMCP server; stub for now)
 "gdal-mcp" = "gdal_mcp.__main__:main"
-# Docs ingestion CLI (idempotent ConPort exporter; stub for now)
-"gdal-mcp-ingest" = "gdal_mcp.ingest:main"
+# Docs ingestion CLI (idempotent ConPort exporter)
+"gdal-mcp-ingest" = "gdal_mcp.ingest:app"
 # Benchmark CLI (perf harness; stub for now)
 "gdal-mcp-bench" = "gdal_mcp.bench:main"
 

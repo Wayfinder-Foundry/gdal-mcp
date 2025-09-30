@@ -1,266 +1,106 @@
-# Lask Development Overview: Complete System Architecture
-
----
-
-## Project Vision
-
-Lask is a **high-performance, production-ready LAS point cloud processing system** designed for 
-enterprise-scale geospatial data workflows. The system provides a comprehensive toolkit for reading, 
-processing, analyzing, and writing LAS files with emphasis on mathematical accuracy, performance 
-optimization, and horizontal scalability.
-
-### Core Mission
-Transform point cloud data processing from a specialized, fragmented domain into a unified, 
-accessible, and scalable platform that handles datasets from megabytes to petabytes with 
-consistent performance and reliability.
-
----
-
-## System Architecture Philosophy
-
-### Design Principles
-
-1. **Mathematical Precision**: All operations maintain numerical accuracy with proper error bounds and validation
-2. **Performance by Design**: Every component optimized for memory efficiency and computational speed
-3. **Horizontal Scalability**: Architecture designed for linear scaling from single-node to thousand-node clusters
-4. **Production Readiness**: Enterprise-grade reliability, monitoring, and operational capabilities
-5. **Ecosystem Integration**: Seamless integration with existing geospatial and data science tools
-6. **Developer Experience**: Clean APIs, comprehensive documentation, and intuitive workflows
-
-### Technical Foundation
-
-The Lask architecture follows a **layered, component-based design** with a clear separation of concerns:
-```text
-┌────────────────────────────────────────────────────────┐
-│                 USER INTERFACE LAYER                   │
-├────────────────────────────────────────────────────────┤
-│   CLI  │  Python APIs  │  Web Dashboard  │  Plugins    │
-├────────────────────────────────────────────────────────┤
-│                 PROCESSING ENGINE LAYER                │
-├────────────────────────────────────────────────────────┤
-│  Pipeline Orchestration  │  Algorithm Execution        │
-│  Workflow Management     │  Transform Operations       │
-├────────────────────────────────────────────────────────┤
-│                 DATA MANAGEMENT LAYER                  │
-├────────────────────────────────────────────────────────┤
-│  Spatial Indexing  │  Chunking & Partitioning          │
-│  Caching Strategy  │  Memory Management                │
-├────────────────────────────────────────────────────────┤
-│                 I/O AND STORAGE LAYER                  │
-├────────────────────────────────────────────────────────┤
-│  LAS Reader/Writer     │  Storage Backends             │
-│  Format Validation     │  Data Persistence             │
-├────────────────────────────────────────────────────────┤
-│                 INFRASTRUCTURE LAYER                   │
-├────────────────────────────────────────────────────────┤
-│  Configuration Management   │  Testing Framework       │
-│  Monitoring & Observability │  Distributed Computing   │
-├────────────────────────────────────────────────────────┤
-│                 CORE FOUNDATION LAYER                  │
-├────────────────────────────────────────────────────────┤
-│  Data Structures  │  Type System  │  Memory Patterns   │
-│  Mathematical Primitives    │   Error Handling         │
-└────────────────────────────────────────────────────────┘
-```
-
----
-
-## Development Phase Strategy
-
-### Phase-Based Development Approach
-
-The Lask system is developed through **six interconnected phases**, each building upon previous foundations while introducing specialized capabilities. This approach ensures:
-
-- **Incremental Value Delivery**: Each phase produces working, testable components
-- **Risk Mitigation**: Early validation of core assumptions and architectural decisions
-- **Quality Assurance**: Comprehensive testing and validation at each level
-- **Stakeholder Engagement**: Regular demonstration of progress and capabilities
-
-### Phase Interconnection Map
-```
-Phase 1 (Foundation)
-   │
-   ├─→ Phase 2 (I/O)
-   │
-   ├─→ Phase 3 (Processing) ──┐
-   │                          ├─→ Phase 5 (Production) ─→ Phase 6 (Enterprise)
-   └─→ Phase 4 (Advanced) ────┘
-
-Cross-Cutting: Configuration Management & Testing (applies to all phases)
-``` 
-
----
-
-## Phase Detailed Breakdown
-
-### Phase 1: Foundation and Data Structures (Weeks 1-4)
-
-#### Mission
-Establish mathematical and architectural foundation
-
-#### Core Components
-- **Type System**: Comprehensive point cloud data representations with numpy integration
-- **Memory Management**: Efficient memory allocation patterns and garbage collection strategies
-- **Mathematical Primitives**: Coordinate transformations, scaling operations, and precision handling
-- **Configuration Foundation**: Basic configuration management for development environments
-- **Testing Infrastructure**: Unit testing framework and mathematical validation patterns
-
-#### Strategic Value
-Creates the mathematical and structural foundation that ensures all subsequent development maintains numerical accuracy and performance characteristics.
-
-#### Key Relationships
-- Enables all other phases through foundational data structures
-- Provides type safety guarantees for complex processing operations
-- Establishes performance baselines for memory and computational efficiency
-
-### Phase 2: LAS File I/O Operations (Weeks 5-8)
-
-#### Mission 
-Implement production-grade LAS file reading and writing capabilities
-
-#### Core Components
-- **LAS Reader**: Multi-version LAS file parsing with streaming capabilities and validation
-- **LAS Writer**: Compliant LAS file generation with optimization and compression
-- **Format Validation**: Comprehensive validation of LAS specification compliance
-- **Performance Optimization**: Memory-efficient I/O patterns for large datasets
-- **Testing Enhancement**: I/O-specific testing patterns and real-world file validation
-
-#### Strategic Value
-Provides the essential data ingress/egress capabilities that enable Lask to interface with existing 
-point cloud ecosystems and workflows.
-
-#### Key Relationships
-- Depends on Phase 1 data structures for type safety
-- Enables Phase 3 processing through reliable data access
-- Feeds into Phase 4 with performance-optimized data flows
-
-### Phase 3: Processing Engine and Pipeline (Weeks 9-12)
-
-#### Mission 
-Create flexible, high-performance point cloud processing capabilities
-
-#### Core Components
-- **Processing Engine**: Algorithm execution framework with plugin architecture
-- **Pipeline Orchestration**: Workflow management and stage coordination
-- **Transform Operations**: Coordinate transformations, filtering, and analysis algorithms
-- **Algorithm Integration**: Extensible framework for custom processing algorithms
-- **Integration Testing**: Pipeline validation and algorithm correctness verification
-
-#### Strategic Value
-Transforms Lask from a data access tool into a comprehensive processing platform capable of complex 
-analytical workflows.
-
-#### Key Relationships
-- Builds upon Phase 1 foundations and Phase 2 I/O capabilities
-- Provides processing capabilities that Phase 4 optimizes and scales
-- Creates the workflow patterns that Phase 5 deploys to production
-
-### Phase 4: Advanced Data Management (Weeks 13-16)
-
-#### Mission 
-Implement sophisticated data management for performance and scalability
-
-#### Core Components
-- **Spatial Indexing**: R-trees, KD-trees, and octrees for efficient spatial queries
-- **Data Chunking**: Intelligent partitioning strategies for memory management
-- **Storage Systems**: Multiple backend support with caching and optimization
-- **Performance Optimization**: Memory and computational efficiency across large datasets
-- **Advanced Testing**: Spatial algorithm validation and performance regression testing
-
-#### Strategic Value
-Enables Lask to handle enterprise-scale datasets efficiently while maintaining interactive 
-performance for analytical workflows.
-
-#### Key Relationships
-- Enhances Phase 2 I/O with intelligent data management
-- Optimizes Phase 3 processing through efficient data structures
-- Prepares foundation for Phase 5 distributed computing capabilities
-
-### Phase 5: Production Deployment (Weeks 17-20)
-
-#### Mission 
-Transform the development system into a production-ready platform
-
-#### Core Components
-- **Production Configuration**: Environment-specific configuration management with validation
-- **Monitoring & Observability**: Comprehensive metrics, logging, and performance tracking
-- **Deployment Automation**: Container orchestration and cloud platform integration
-- **Reliability Engineering**: Error handling, recovery mechanisms, and stability improvements
-- **Production Testing**: End-to-end validation and performance benchmarking
-
-#### Strategic Value
-Bridges the gap between development capabilities and enterprise deployment requirements, ensuring 
-Lask can operate reliably in production environments.
-
-#### Key Relationships
-- Integrates all previous phases into a deployable system
-- Provides operational foundation for Phase 6 distributed scaling
-- Validates entire system architecture under production loads
-
-### Phase 6: Distributed Processing and Enterprise Features (Weeks 21-32)
-
-#### Mission 
-Enable horizontal scaling and enterprise-grade capabilities
-
-#### Core Components
-- **Distributed Computing**: Cluster management and task orchestration across multiple nodes
-- **Enterprise Integration**: Authentication, security, and workflow integration capabilities
-- **Advanced Monitoring**: Cluster-wide observability and management interfaces
-- **Scaling Optimization**: Load balancing, resource management, and performance tuning
-- **Enterprise Testing**: Large-scale validation and production environment testing
-
-#### Strategic Value
-Transforms Lask into an enterprise-scale platform capable of handling petabyte datasets with linear scaling and enterprise-grade reliability.
-
-#### Key Relationships
-- Scales all previous capabilities across distributed infrastructure
-- Provides enterprise features that integrate with existing organizational workflows
-- Validates entire architecture at massive scale
-
----
-
-## Cross-Cutting Infrastructure
-
-### Configuration Management
-**Role**: Provides consistent, hierarchical configuration across all components
-**Integration**: 
-- Phase 1: Development environment basics
-- Phase 2: I/O optimization settings
-- Phase 3: Algorithm and pipeline configuration
-- Phase 4: Storage and indexing tuning
-- Phase 5: Production environment management
-- Phase 6: Distributed system coordination
-
-### Testing Strategy
-**Role**: Ensures mathematical accuracy, performance, and reliability across all components
-**Integration**:
-- Phase 1: Mathematical validation and type safety
-- Phase 2: I/O correctness and format compliance
-- Phase 3: Algorithm accuracy and pipeline integration
-- Phase 4: Spatial algorithm validation and performance testing
-- Phase 5: Production environment validation
-- Phase 6: Distributed system testing and enterprise integration
-
----
-
-## Technical Innovation Areas
-
-### Mathematical Precision
-- **Coordinate System Handling**: Robust support for all common CRS with precision preservation
-- **Numerical Stability**: Error analysis and bound checking for all mathematical operations
-- **Scaling Operations**: High-precision coordinate transformations with minimal accumulated error
-
-### Performance Engineering
-- **Memory Efficiency**: Zero-copy operations where possible, intelligent memory pooling
-- **Computational Optimization**: Vectorized operations, SIMD utilization, and algorithmic efficiency
-- **I/O Optimization**: Streaming patterns, prefetching, and adaptive buffering
-
-### Scalability Architecture
-- **Horizontal Scaling**: Linear performance scaling from single-node to thousand-node clusters
-- **Resource Management**: Intelligent resource allocation and load balancing
-- **Fault Tolerance**: Automatic recovery and degradation strategies
-
-### Developer Experience
-- **API Design**: Intuitive, consistent interfaces with comprehensive documentation
-- **Error Handling**: Detailed error messages with actionable remediation suggestions
-- **Integration Patterns**: Seamless integration with existing Python and geospatial ecosystems
+Project Brief (concise)
+Goal: Build a standards-compliant MCP server that exposes core GDAL capabilities (inspect, translate, warp/reproject, resample, clip/crop, convert formats), with good UX for devtools and automations.
+Users: ML/Data eng, GIS analysts, AI agents needing geospatial transforms at scale with reproducible configs.
+Scope (Phase 1):
+fastMCP server exposing minimal, well-typed tools:
+info/metadata, translate (format/creationOptions), warp (dstSRS, resampling, cutline), overview build, gcp/reprojection helpers.
+Controlled outputs: file, stream, or in-memory bytes where practical.
+Enum safety: reuse Format and Resampling from server/enums/.
+Deterministic temp paths & cleanup; error reporting with GDAL error class capture.
+Docs ingestion pipeline to ConPort (architecture, decisions, patterns, glossary).
+Distribution via uvx and Docker, with GDAL binaries/runtime.
+Non-goals (Phase 1): Full raster/vector analytics, tiling services, catalog/search, async job queue.
+Deliverables:
+fastMCP server package gdal_mcp with tools (API docstrings + tests).
+CLI gdal-mcp to run server locally (for uvx and Docker entrypoint).
+Docs ingester CLI that syncs docs/ → ConPort (idempotent).
+Minimal examples in test/demo_gdal_mcp.py and pytest coverage.
+Quality: Type hints, small composable functions, clear error messages, hermetic tests where possible.
+Distribution: uvx gdal-mcp and a slim Docker image with GDAL + server.
+Ingestion Plan for docs/
+Objectives
+Parse markdown in docs/ and map to ConPort entities:
+Product/Architecture context, Decisions (ADRs), System Patterns, Glossary, Usage.
+Idempotently upsert, tag, and link items. Generate ConPort-ready artifacts for import.
+Source Inventory and Mapping
+docs/design/index.md → Product summary (vision/scope).
+docs/design/architecture.md → Product context (components, flows, constraints).
+docs/design/distribution.md → Product context (packaging/deploy).
+README.md → Product context (intro, quickstart).
+GDAL_MCP_USAGE.md → Usage notes → Custom Data category “ProjectUsage”.
+Future ADRs: docs/adr/NNN-*.md → Decisions.
+Patterns: docs/patterns/*.md (to be added) → System Patterns.
+Glossary: docs/glossary.md (to be added) → Custom Data category “ProjectGlossary”.
+Authoring Conventions (lightweight)
+Add YAML frontmatter to each doc:
+type: product_context | decision | system_pattern | glossary | usage
+title: ...
+tags: [gdal, mcp, server, packaging, ...]
+Optional linking: links: [{type: 'relates_to' | 'implements' | 'supersedes', target: 'id-or-title'}]
+Optional stable id: id: ADR-0001 (for decisions) or pattern: Name.
+For ADRs: sections “Context”, “Decision”, “Consequences”, “Status”.
+Transformation Pipeline (CLI)
+Tool: scripts/ingest_docs.py (or tools/ingest_docs.py)
+Behavior:
+Walk docs/ and selected top-level files (README.md, GDAL_MCP_USAGE.md).
+Parse frontmatter (fallback heuristics if absent based on path/headers).
+Normalize into ConPort model payloads:
+Product Context: consolidate into a structured JSON with sections.
+Decisions: summary, rationale, implementation_details, tags.
+System Patterns: name, description, tags.
+Glossary/Usage: key/value entries under categories.
+Compute content hash to support idempotent upserts (store .cache/ingest-index.json).
+Emit ConPort Markdown artifacts into ./conport_export/ (one file per item + an aggregated product context).
+Option A (preferred): I call ConPort import tool to ingest artifacts.
+Option B: script prints a summary and you trigger import via workflow.
+CLI flags:
+--root docs/, --only types (comma list), --since <date>, --dry-run, --verbose.
+--emit conport_export/ (default), --no-import to skip auto-import.
+ConPort Operations
+Import path: use ConPort’s import to read ./conport_export/.
+For incremental updates: patch product context via merges; upsert decisions/patterns by stable id or title; add tags: docs_source:<relpath>, gdal, mcp, version:<x>.
+Create relationships via link metadata:
+ADRs “implements/affects” product sections.
+Patterns “used_by” decisions.
+Usage docs “relates_to” product context.
+Idempotency & Safety
+Stable IDs from frontmatter or filename; hash of normalized content.
+Dry-run prints planned creates/updates/links.
+No deletes by default; --prune optional to archive or mark stale.
+Minimal Dependencies
+python-frontmatter, markdown-it-py (or mdpo alternative), pyyaml.
+No network calls required; emits markdown for ConPort import.
+Workflows
+Add a Windsurf workflow /ingest shortcut that runs the CLI and then calls ConPort import.
+Nightly CI optional to enforce docs ↔ ConPort sync.
+fastMCP Integration Outline
+Server package: server/ evolves to a fastMCP app gdal_mcp:
+Tools:
+get_info(path) → metadata, srs, size, bbox.
+translate(src, dst, format: Format, creation_options: dict).
+warp(src, dst, dst_srs, resampling: Resampling, cutline=None, bbox=None, dst_res=None).
+build_overviews(src, resampling: Resampling, levels=None).
+Use enums in server/enums/format.py, server/enums/resampling.py.
+Temp handling: TMPDIR/gdal-mcp/<jobId>/..., cleanup on success/failure.
+Error capture: map GDAL error levels to MCP errors with actionable messages.
+Config: env-driven (GDAL_DATA, PROJ, cache dirs), logging config.
+Docs: docstrings + examples mirrored in test/demo_gdal_mcp.py.
+Distribution Plan
+uvx executable:
+Provide console entry point gdal-mcp that launches the fastMCP server.
+Ensure pyproject.toml has [project.scripts] gdal-mcp = "gdal_mcp.__main__:main".
+Publish under a pinned version; verified with uvx gdal-mcp@<ver>.
+Docker:
+Base on a slim GDAL image (e.g., osgeo/gdal:alpine-small-latest or ghcr.io/osgeo/gdal minimal).
+Install Python + project deps; ENTRYPOINT ["gdal-mcp"].
+Expose server port; healthcheck endpoint.
+Multi-arch build via buildx; small attack surface.
+Recommended Actions
+[Enable FS access] Add /home/jgodau/work/personal/gdal-mcp to the filesystem MCP allowed directories so I can automate scans/edits.
+[Confirm brief] Approve the Project Brief above or suggest changes.
+[Docs ingestion] Approve the ingestion plan and frontmatter convention. I’ll then:
+Add frontmatter to existing docs where missing.
+Scaffold scripts/ingest_docs.py and a /ingest workflow.
+Generate conport_export/ and import into ConPort.
+[fastMCP scaffold] Create the server package with initial tools using the existing enums.
+[Packaging] Add uvx entrypoint + Dockerfile; wire CI to build and test.

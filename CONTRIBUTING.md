@@ -22,7 +22,7 @@ pip install -r requirements.txt
 
 ## Adding a new MCP tool
 
-New tools should follow the design described in `gdal_mcp_design.md`:
+New tools should follow the design described in [`docs/design/`](docs/design/index.md):
 
 - Provide a Python wrapper around the GDAL CLI command in `src/tools/`.
 - Define the tool’s metadata (name, title, description, inputSchema, outputSchema, annotations) in the server’s tool registry.

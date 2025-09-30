@@ -23,7 +23,7 @@ async def test_info_json_success(monkeypatch):
         return 0, json.dumps({"ok": True}), ""
 
     monkeypatch.setattr(utils, "run_gdal", fake_run)
-    res = await tool_info(path="/tmp/dataset.tif", format="json")
+    res = await tool_info(path="/tmp/dataset.tif", fmt="json")
     assert isinstance(res, dict)
     assert res["ok"] is True
 
@@ -34,7 +34,7 @@ async def test_info_text_success(monkeypatch):
         return 0, "some text", ""
 
     monkeypatch.setattr(utils, "run_gdal", fake_run)
-    res = await tool_info(path="/tmp/dataset.tif", format="text")
+    res = await tool_info(path="/tmp/dataset.tif", fmt="text")
     assert res == {"text": "some text"}
 
 
@@ -44,7 +44,7 @@ async def test_info_json_nonjson_stdout(monkeypatch):
         return 0, "not json", ""
 
     monkeypatch.setattr(utils, "run_gdal", fake_run)
-    res = await tool_info(path="/tmp/dataset.tif", format="json")
+    res = await tool_info(path="/tmp/dataset.tif", fmt="json")
     assert res == {"raw": "not json"}
 
 

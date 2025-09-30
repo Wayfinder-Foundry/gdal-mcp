@@ -63,3 +63,8 @@ test_data/
 *.jpeg
 *.png
 *.aux.xml
+
+src/.idea
+.idea
+
+.mcp-config.json

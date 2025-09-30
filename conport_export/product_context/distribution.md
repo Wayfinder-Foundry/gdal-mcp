@@ -34,7 +34,7 @@ Implementation details:
 
 1. **Packaging metadata.** Use `pyproject.toml` with `project.scripts = { "gdal-mcp" = "gdal_mcp.__main__:main" }` so `uvx` exposes a console entry point.
 2. **fastMCP integration.** Depend on `fastmcp` and configure the entrypoint to instantiate the GDAL tool set before handing control to fastMCP’s server runner.
-3. **Wheel dependencies.** Document that GDAL binaries will not be explicitly used, but rather, emulated in alignment with the ubiquotously known gdal CLI commands. This avoids the requirement that the GDAL binaries be available on the host system.
+3. **Binary dependencies.** Document that GDAL binaries must be available on the host system. Provide optional scripts that install GDAL via `uv tool install gdal` or system packages.
 4. **Version pinning.** Leverage `uv lock` files to ensure deterministic dependency resolution for both development and runtime.
 5. **Usage docs.** Add a quick-start snippet to the README:
    ```bash
@@ -47,7 +47,7 @@ This approach is ideal for developers who already use `uv` or want an ephemeral 
 
 ## Docker Distribution
 
-Docker remains the an alternative way to bundle the application:
+Docker remains the easiest way to bundle GDAL native libraries with the MCP server:
 
 1. **Base image.** Start from an official GDAL image or a slim Python image with GDAL installed via `apt`.
 2. **Layering.** Copy the packaged wheel (built during CI) into the container and install it with `pip` or `uv pip install`. Include healthcheck scripts and default configuration.

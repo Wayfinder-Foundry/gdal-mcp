@@ -11,6 +11,7 @@ import src.tools.raster.info  # noqa: F401
 import src.tools.raster.convert  # noqa: F401
 import src.tools.raster.reproject  # noqa: F401
 import src.tools.raster.stats  # noqa: F401
+import src.tools.vector.info  # noqa: F401
 
 # Import prompts
 import src.prompts  # noqa: F401

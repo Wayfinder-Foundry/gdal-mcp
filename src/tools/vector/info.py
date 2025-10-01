@@ -149,7 +149,7 @@ async def _info_with_fiona(uri: str, ctx: Context | None = None) -> Info:
 
 
 @mcp.tool(
-    name="vector.info",
+    name="vector_info",
     description=(
         "Inspect vector dataset metadata using Python-native pyogrio (or fiona fallback). "
         "USE WHEN: Need to understand vector dataset properties before processing, "

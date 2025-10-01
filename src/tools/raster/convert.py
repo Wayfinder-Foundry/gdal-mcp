@@ -195,7 +195,7 @@ async def _convert(
 
 
 @mcp.tool(
-    name="raster.convert",
+    name="raster_convert",
     description=(
         "Convert raster format with compression, tiling, and overview generation. "
         "USE WHEN: Need to change format (e.g. GeoTIFF to COG), apply compression "

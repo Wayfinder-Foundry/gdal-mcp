@@ -112,7 +112,7 @@ async def _info(
 
 
 @mcp.tool(
-    name="raster.info",
+    name="raster_info",
     description=(
         "Inspect raster metadata using Python-native Rasterio. "
         "USE WHEN: Need to understand raster properties before processing, "

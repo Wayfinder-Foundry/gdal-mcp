@@ -245,7 +245,7 @@ async def _reproject(
 
 
 @mcp.tool(
-    name="raster.reproject",
+    name="raster_reproject",
     description=(
         "Reproject raster to new coordinate reference system with explicit resampling "
         "method (ADR-0011 requirement). "

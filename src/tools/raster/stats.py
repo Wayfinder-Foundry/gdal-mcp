@@ -190,7 +190,7 @@ async def _stats(
 
 
 @mcp.tool(
-    name="raster.stats",
+    name="raster_stats",
     description=(
         "Compute comprehensive statistics for raster bands including "
         "min/max/mean/std/median/percentiles and optional histogram. "

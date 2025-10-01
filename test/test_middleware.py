@@ -3,8 +3,7 @@ from __future__ import annotations
 
 import os
 import pytest
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import MagicMock
 
 from fastmcp.exceptions import ToolError
 from fastmcp.server.middleware import MiddlewareContext

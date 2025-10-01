@@ -14,8 +14,8 @@ async def validate_server():
     
     # List registered tools
     tools = await mcp._list_tools()
-    print(f"\n✅ Server loaded successfully")
-    print(f"📊 Tools registered: {len(tools)}")
+    print("\n✅ Server loaded successfully")
+    print("📊 Tools registered: {len(tools)}")
     print("\n🔧 Available tools:")
     for tool in tools:
         # FunctionTool objects have name and description attributes

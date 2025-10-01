@@ -1,10 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Optional
-
 import typer
-
 from .server import mcp
 
 app = typer.Typer(add_completion=False, no_args_is_help=False)

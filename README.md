@@ -1,22 +1,45 @@
 # GDAL MCP
 
-**Python-native geospatial tools for AI agents via Model Context Protocol**
+**Democratizing geospatial analysis through conversational AI**
 
-GDAL MCP is an open-source MCP server that exposes powerful geospatial operations through FastMCP. Instead of shelling out to GDAL CLI, it uses Python-native libraries (Rasterio, PyProj, pyogrio, Shapely) for direct, type-safe geospatial processing.
+GDAL MCP is a production-ready MCP server that exposes powerful geospatial operations through natural language interaction. Built with empathy for domain experts who need GDAL's capabilities without the CLI complexity.
 
+**🎉 Historic Milestone (2025-09-30):** First successful live tool invocation - GDAL operations are now conversational!
+
+[![CI](https://github.com/JordanGunn/gdal-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/JordanGunn/gdal-mcp/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Tests](https://img.shields.io/badge/tests-15%2F15%20passing-brightgreen.svg)](#testing)
+[![FastMCP 2.0](https://img.shields.io/badge/FastMCP-2.0-blue.svg)](https://github.com/jlowin/fastmcp)
+
+## 🌟 Vision
+
+**Bridging the gap between geospatial domain experts and powerful tools.**
+
+Instead of requiring analysts to master:
+- Command-line interfaces
+- Python programming
+- System configuration
+- GDAL syntax
+
+**Users can now ask in natural language:**
+- "Show me the metadata for this raster"
+- "Convert this to Cloud-Optimized GeoTIFF with compression"
+- "Reproject this DEM to Web Mercator using cubic resampling"
+
+The AI agent uses GDAL MCP under the hood - properly, safely, with production-quality code.
 
 ## 🚀 Features
 
-- **Python-Native Stack**: Uses Rasterio, PyProj, pyogrio, and Shapely—no CLI shelling
-- **5 Core Tools**: Raster info/convert/reproject/stats + vector info (MVP per ADR-0005)
-- **Type-Safe**: Pydantic models for all inputs/outputs with JSON schema auto-generation
-- **FastMCP Framework**: JSON-RPC 2.0 over stdio or HTTP transport
-- **ADR-Compliant**: Explicit resampling, structured outputs, resource references
-- **Comprehensive Tests**: 15/15 tests passing with pytest fixtures
-- **Docker Ready**: Multi-stage build with GDAL 3.8.0 base
+- **✅ Production-Ready**: First live tool invocation successful (2025-09-30)
+- **Python-Native Stack**: Rasterio, PyProj, pyogrio, Shapely (no GDAL CLI dependency)
+- **5 Core Tools**: `raster_info`, `raster_convert`, `raster_reproject`, `raster_stats`, `vector_info`
+- **Type-Safe**: Pydantic models with auto-generated JSON schemas
+- **Workspace Security**: PathValidationMiddleware for secure file access (ADR-0022)
+- **Context Support**: Real-time LLM feedback during long operations (ADR-0020)
+- **FastMCP 2.0**: Native configuration, middleware, Context API
+- **CI/CD Pipeline**: GitHub Actions with quality gates, test matrix, PyPI publishing
+- **Comprehensive Tests**: 23/23 tests passing across Python 3.10-3.12
+- **ADR-Documented**: 22 architecture decisions guiding development
 
 ## 📦 Installation
 
@@ -51,7 +74,7 @@ See [QUICKSTART.md](QUICKSTART.md) for detailed setup instructions.
 
 ### Raster Tools
 
-#### `raster.info`
+#### `raster_info`
 Inspect raster metadata using Rasterio.
 
 **Input**: `uri` (str), optional `band` (int)
@@ -69,7 +92,7 @@ Inspect raster metadata using Rasterio.
 }
 ```
 
-#### `raster.convert`
+#### `raster_convert`
 Convert raster formats with compression, tiling, and overviews.
 
 **Input**: `uri` (str), `output` (str), optional `options` (ConversionOptions)
@@ -77,14 +100,12 @@ Convert raster formats with compression, tiling, and overviews.
 **Options**:
 - `driver`: Output format (GTiff, COG, PNG, JPEG, etc.)
 - `compression`: lzw, deflate, zstd, jpeg, packbits, none
-- `tiled`: Boolean (default True)
-- `blockxsize/blockysize`: Tile dimensions (default 256)
-- `overviews`: List of levels (e.g., [2, 4, 8, 16])
-- `creation_options`: Dict of additional driver options
+- `tiled`: Create tiled output (default: True)
+- `blockxsize`/`blockysize`: Tile dimensions (default: 256×256)
+- `overviews`: List of overview levels (e.g., [2, 4, 8, 16])
+- `overview_resampling`: nearest, bilinear, cubic, average, mode
 
-**Output**: `ConversionResult` with ResourceRef and file size
-
-**Example**: Convert to COG with compression
+**Example**: Convert to Cloud-Optimized GeoTIFF with compression
 ```python
 {
   "uri": "/data/input.tif",
@@ -92,86 +113,85 @@ Convert raster formats with compression, tiling, and overviews.
   "options": {
     "driver": "COG",
     "compression": "deflate",
-    "overviews": [2, 4, 8]
+    "overviews": [2, 4, 8, 16]
   }
 }
 ```
 
-#### `raster.reproject`
-Reproject rasters to new CRS with explicit resampling (ADR-0011).
+#### `raster_reproject`
+Reproject raster to new CRS with explicit resampling method (ADR-0011 requirement).
 
 **Input**: `uri` (str), `output` (str), `params` (ReprojectionParams)
 
-**Params**:
-- `dst_crs`: Target CRS (e.g., "EPSG:3857")
-- `resampling`: **Required** - nearest, bilinear, cubic, lanczos, etc.
-- `src_crs`: Optional override
-- `resolution`: Optional (x_res, y_res) tuple
-- `width/height`: Optional output dimensions
-- `bounds`: Optional (left, bottom, right, top)
-- `nodata`: Optional nodata override
+**Required Params**:
+- `dst_crs`: Target CRS (e.g., "EPSG:3857", "EPSG:4326")
+- `resampling`: Resampling method (nearest, bilinear, cubic, lanczos, etc.)
 
-**Output**: `ReprojectionResult` with ResourceRef, transform, and bounds
+**Optional Params**:
+- `src_crs`: Override source CRS if missing/incorrect
+- `resolution`: Target pixel size as (x, y) tuple
+- `width`/`height`: Explicit output dimensions
+- `bounds`: Crop to extent (left, bottom, right, top)
 
-**Example**: Reproject to Web Mercator with bilinear resampling
+**Example**: Reproject DEM to Web Mercator with cubic resampling
 ```python
 {
-  "uri": "/data/input.tif",
-  "output": "/data/reprojected.tif",
+  "uri": "/data/dem.tif",
+  "output": "/data/dem_webmercator.tif",
   "params": {
     "dst_crs": "EPSG:3857",
-    "resampling": "bilinear"
+    "resampling": "cubic"
   }
 }
 ```
 
-#### `raster.stats`
-Compute comprehensive statistics with NumPy.
+#### `raster_stats`
+Compute comprehensive statistics for raster bands.
 
 **Input**: `uri` (str), optional `params` (RasterStatsParams)
 
-**Params**:
+**Optional Params**:
 - `bands`: List of band indices (None = all bands)
-- `include_histogram`: Boolean (default False)
-- `histogram_bins`: 2-1024 bins (default 256)
-- `percentiles`: List of percentiles (default [25, 50, 75])
-- `sample_size`: Optional sampling for large rasters
+- `include_histogram`: Generate histogram (default: False)
+- `histogram_bins`: Number of bins (default: 256)
+- `percentiles`: Compute specific percentiles (e.g., [25, 50, 75])
+- `sample_size`: Sample random pixels for large rasters
 
 **Output**: `RasterStatsResult` with per-band statistics:
 - min, max, mean, std, median
-- Percentiles (configurable)
-- Valid/nodata pixel counts
-- Optional histogram
+- percentile_25, percentile_75
+- valid_count, nodata_count
+- Optional histogram bins
 
-**Example**: Compute stats with histogram
+**Example**: Compute statistics with histogram for band 1
 ```python
 {
-  "uri": "/data/example.tif",
+  "uri": "/data/landsat.tif",
   "params": {
+    "bands": [1],
     "include_histogram": true,
-    "histogram_bins": 128,
-    "percentiles": [10, 50, 90]
+    "percentiles": [10, 25, 50, 75, 90]
   }
 }
 ```
 
 ### Vector Tools
 
-#### `vector.info`
-Inspect vector metadata using pyogrio (or fiona fallback).
+#### `vector_info`
+Inspect vector dataset metadata using pyogrio (with fiona fallback).
 
 **Input**: `uri` (str)
 
 **Output**: `VectorInfo` with:
-- Driver, CRS, bounds
-- Geometry types
-- Field schema (name, type)
-- Feature count
+- Driver (e.g., "ESRI Shapefile", "GeoJSON", "GPKG")
+- CRS, layer count, geometry types
+- Feature count, field schema
+- Spatial bounds
 
-**Example**: Get metadata for a GeoJSON
+**Example**: Get metadata for Shapefile
 ```python
 {
-  "uri": "/data/boundaries.geojson"
+  "uri": "/data/parcels.shp"
 }
 ```
 
@@ -190,7 +210,7 @@ uv run pytest test/ --cov=src --cov-report=term-missing
 uv run pytest test/test_raster_tools.py -v
 ```
 
-**Current Status**: ✅ 15/15 tests passing
+**Current Status**: ✅ 23/23 tests passing
 
 Test fixtures create tiny synthetic datasets (10×10 rasters, 3-feature vectors) for fast validation.
 
@@ -215,7 +235,7 @@ See [QUICKSTART.md](QUICKSTART.md) for full instructions. Quick version:
 ```
 
 2. Restart Claude Desktop
-3. Test with: "Use raster.info to inspect /path/to/raster.tif"
+3. Test with: "Use raster_info to inspect /path/to/raster.tif"
 
 ## 🏗️ Architecture
 
@@ -264,7 +284,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 **MVP Complete** ✅:
 - ✅ Raster tools (info, convert, reproject, stats)
 - ✅ Vector info tool
-- ✅ Comprehensive tests (15/15)
+- ✅ Comprehensive tests (23/23)
 - ✅ Docker deployment
 - ✅ MCP client integration
 

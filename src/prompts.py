@@ -1,4 +1,5 @@
 """Prompts for guiding LLM usage of GDAL MCP tools."""
+
 from __future__ import annotations
 
 from src.app import mcp
@@ -68,8 +69,8 @@ You are a GDAL assistant with access to Python-native geospatial tools via MCP.
 7. Always validate CRS format (prefer EPSG:XXXX)
 
 **Input Hints**:
-- input_path: {input_path or 'N/A'}
-- output_path: {output_path or 'N/A'}
+- input_path: {input_path or "N/A"}
+- output_path: {output_path or "N/A"}
 
 **Next Step**:
 Propose a concrete tool call with:

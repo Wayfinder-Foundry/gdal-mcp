@@ -1,4 +1,5 @@
 """Raster info tool using Python-native Rasterio."""
+
 from __future__ import annotations
 
 import rasterio
@@ -10,7 +11,7 @@ from src.models.raster.info import Info
 
 
 async def _info(
-    uri: str, 
+    uri: str,
     band: int | None = None,
     ctx: Context | None = None,
 ) -> Info:
@@ -23,13 +24,13 @@ async def _info(
 
     Returns:
         Info: Structured raster metadata with JSON schema.
-    
+
     Raises:
         ToolError: If raster cannot be opened or band index is invalid.
     """
     if ctx:
         await ctx.info(f"📂 Opening raster: {uri}")
-    
+
     # Per ADR-0013: wrap in rasterio.Env for per-request config isolation
     try:
         with rasterio.Env():
@@ -39,7 +40,7 @@ async def _info(
                         f"✓ Driver: {ds.driver}, Size: {ds.width}x{ds.height}, "
                         f"Bands: {ds.count}, CRS: {ds.crs}"
                     )
-                
+
                 # Validate band if provided
                 if band is not None:
                     if band < 1 or band > ds.count:
@@ -96,7 +97,7 @@ async def _info(
                     overview_levels=ov_levels,
                     tags=ds.tags() or {},
                 )
-    
+
     except rasterio.errors.RasterioIOError as e:
         raise ToolError(
             f"Cannot open raster at '{uri}'. "
@@ -129,8 +130,8 @@ async def _info(
     ),
 )
 async def info(
-    uri: str, 
-    band: int | None = None, 
+    uri: str,
+    band: int | None = None,
     ctx: Context | None = None,
 ) -> Info:
     """MCP tool wrapper for raster info."""

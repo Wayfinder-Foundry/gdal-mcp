@@ -1,4 +1,5 @@
 """Configuration management for GDAL MCP server."""
+
 from __future__ import annotations
 
 import logging
@@ -12,10 +13,10 @@ _workspaces_cache: list[Path] | None = None
 
 def get_workspaces() -> list[Path]:
     """Load allowed workspace directories from environment variable.
-    
+
     Reads GDAL_MCP_WORKSPACES environment variable (colon-separated paths).
     Configuration via fastmcp.json (FastMCP native):
-    
+
         {
           "deployment": {
             "env": {
@@ -23,9 +24,9 @@ def get_workspaces() -> list[Path]:
             }
           }
         }
-    
+
     Or via MCP client config (Claude Desktop, Cursor, etc.):
-    
+
         {
           "mcpServers": {
             "gdal-mcp": {
@@ -36,31 +37,29 @@ def get_workspaces() -> list[Path]:
             }
           }
         }
-    
+
     Returns:
         List of allowed workspace directories (resolved to absolute paths).
         Empty list means no restrictions (all paths allowed).
-    
+
     Examples:
         # Set via environment variable
         export GDAL_MCP_WORKSPACES="/data/projects:/home/user/gis"
-        
+
         # Or in fastmcp.json
         {"deployment": {"env": {"GDAL_MCP_WORKSPACES": "/data:/home/user/gis"}}}
     """
     global _workspaces_cache
-    
+
     # Return cached value if already loaded
     if _workspaces_cache is not None:
         return _workspaces_cache
-    
+
     # Read from environment variable
     env_workspaces = os.getenv("GDAL_MCP_WORKSPACES")
     if env_workspaces:
         workspaces = [
-            Path(ws.strip()).resolve()
-            for ws in env_workspaces.split(":")
-            if ws.strip()
+            Path(ws.strip()).resolve() for ws in env_workspaces.split(":") if ws.strip()
         ]
         logger.info(
             f"✓ Loaded {len(workspaces)} workspace(s) from GDAL_MCP_WORKSPACES: "
@@ -68,7 +67,7 @@ def get_workspaces() -> list[Path]:
         )
         _workspaces_cache = workspaces
         return workspaces
-    
+
     # No configuration - allow all (with warning)
     logger.warning(
         "⚠️  No workspace configuration found. ALL PATHS ARE ALLOWED.\n"

@@ -1,14 +1,24 @@
 # GDAL MCP Quickstart
 
-This guide shows how to run the Python-native GDAL MCP server and connect it to an MCP client like Claude Desktop.
+This guide shows how to run the Python-native GDAL MCP server and connect it to an MCP client like Claude Desktop or Cascade.
 
 ## Installation Methods
 
-### Method 1: uvx (Recommended for Development)
+### Method 1: uvx (Recommended)
 
+**Once published to PyPI:**
 ```bash
-# Install and run via uvx (no installation required)
-uvx --from . gdal-mcp --transport stdio
+# Install and run via uvx (no local installation required)
+uvx --from gdal-mcp gdal --transport stdio
+```
+
+**During development (from local wheel):**
+```bash
+# Build the wheel
+uv build
+
+# Run from local wheel
+uvx --from dist/gdal_mcp-0.0.1-py3-none-any.whl gdal --transport stdio
 ```
 
 ### Method 2: Docker
@@ -18,24 +28,39 @@ uvx --from . gdal-mcp --transport stdio
 docker build -t gdal-mcp .
 
 # Run with stdio transport (for MCP clients)
-docker run -i gdal-mcp --transport stdio
+docker run -i gdal --transport stdio
 
 # Run with HTTP transport (for testing)
-docker run -p 8000:8000 gdal-mcp --transport http --port 8000
+docker run -p 8000:8000 gdal --transport http --port 8000
 ```
 
-### Method 3: Local Installation
+### Method 3: Local Development with uv
 
 ```bash
-# Install with uv
-uv pip install -e .
+# Clone the repository
+git clone https://github.com/JordanGunn/gdal-mcp.git
+cd gdal-mcp
 
-# Or with pip
-pip install -e .
+# Install with uv
+uv sync
 
 # Run the server
-gdal-mcp --transport stdio
+uv run gdal --transport stdio
 ```
+
+## Workspace Configuration
+
+**IMPORTANT:** GDAL MCP uses workspace scoping for security (ADR-0022). You must configure `GDAL_MCP_WORKSPACES` to allow file access.
+
+```bash
+# Set allowed workspace directories (colon-separated on Linux/macOS)
+export GDAL_MCP_WORKSPACES="/path/to/data:/another/path/to/rasters"
+
+# Windows (semicolon-separated)
+set GDAL_MCP_WORKSPACES="C:\data;C:\rasters"
+```
+
+Without this configuration, the server will reject all file operations for security.
 
 ## Connecting to Claude Desktop
 
@@ -53,14 +78,35 @@ gdal-mcp --transport stdio
       "command": "uvx",
       "args": [
         "--from",
-        "gdal-mcp",
-        "gdal-mcp",
+        "gdal",
+        "gdal",
         "--transport",
         "stdio"
       ],
       "env": {
-        "GDAL_CACHEMAX": "512",
-        "CPL_VSIL_CURL_ALLOWED_EXTENSIONS": ".tif,.tiff,.vrt,.geojson,.json,.shp"
+        "GDAL_MCP_WORKSPACES": "/path/to/your/geospatial/data"
+      }
+    }
+  }
+}
+```
+
+**For local development (before PyPI publish):**
+```json
+{
+  "mcpServers": {
+    "gdal-mcp": {
+      "command": "/home/user/.local/bin/uv",
+      "args": [
+        "run",
+        "--with",
+        "/path/to/gdal-mcp/dist/gdal_mcp-0.0.1-py3-none-any.whl",
+        "gdal",
+        "--transport",
+        "stdio"
+      ],
+      "env": {
+        "GDAL_MCP_WORKSPACES": "/path/to/your/geospatial/data"
       }
     }
   }
@@ -72,104 +118,212 @@ gdal-mcp --transport stdio
 4. **Test the connection**:
    - Open Claude Desktop
    - Look for the MCP server indicator (🔌 icon)
-   - Try a command like: "Use the raster.info tool to inspect this GeoTIFF: /path/to/file.tif"
+   - Try a command like: "Use the raster_info tool to inspect this GeoTIFF: /path/to/file.tif"
+
+## Connecting to Cascade AI
+
+For Cascade (Windsurf IDE), configure in `~/.codeium/mcp_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "gdal-mcp": {
+      "command": "/home/user/.local/bin/uv",
+      "args": [
+        "run",
+        "--with",
+        "/path/to/gdal-mcp/dist/gdal_mcp-0.0.1-py3-none-any.whl",
+        "gdal"
+      ],
+      "env": {
+        "GDAL_MCP_WORKSPACES": "/path/to/your/geospatial/data"
+      }
+    }
+  }
+}
+```
+
+**Note:** Use `uv run --with <wheel-path>` instead of `uvx` for local development to avoid caching issues.
 
 ## Available Tools
 
 ### Raster Tools
 
-- **raster.info** - Inspect raster metadata (CRS, bounds, transform, bands, nodata)
-- **raster.stats** - Compute statistics (min/max/mean/std/percentiles/histogram)
-- **raster.convert** - Convert formats with compression, tiling, and overviews
-- **raster.reproject** - Reproject to new CRS with explicit resampling
+#### 1. `raster_info` - Inspect Raster Metadata
+
+Get comprehensive metadata about a raster file:
+
+```
+Natural language: "Show me the metadata for dem.tif"
+
+Tool call:
+{
+  "uri": "/data/dem.tif"
+}
+
+Output: CRS, bounds, dimensions, bands, data type, nodata value, etc.
+```
+
+#### 2. `raster_convert` - Convert Raster Formats
+
+Convert to Cloud-Optimized GeoTIFF with compression:
+
+```
+Natural language: "Convert landsat.tif to Cloud-Optimized GeoTIFF with deflate compression"
+
+Tool call:
+{
+  "uri": "/data/landsat.tif",
+  "output": "/data/landsat_cog.tif",
+  "options": {
+    "driver": "COG",
+    "compression": "deflate",
+    "overviews": [2, 4, 8, 16]
+  }
+}
+```
+
+#### 3. `raster_reproject` - Reproject Rasters
+
+Reproject to Web Mercator (EPSG:3857):
+
+```
+Natural language: "Reproject dem.tif to Web Mercator using cubic resampling"
+
+Tool call:
+{
+  "uri": "/data/dem.tif",
+  "output": "/data/dem_webmercator.tif",
+  "params": {
+    "dst_crs": "EPSG:3857",
+    "resampling": "cubic"
+  }
+}
+```
+
+**Note:** Resampling method is **required** (ADR-0011). Choose:
+- `nearest`: For categorical data (land cover, classification)
+- `bilinear` or `cubic`: For continuous data (elevation, temperature)
+
+#### 4. `raster_stats` - Compute Statistics
+
+Get comprehensive statistics for bands:
+
+```
+Natural language: "Compute statistics with histogram for landsat.tif band 1"
+
+Tool call:
+{
+  "uri": "/data/landsat.tif",
+  "params": {
+    "bands": [1],
+    "include_histogram": true,
+    "percentiles": [10, 25, 50, 75, 90]
+  }
+}
+
+Output: min, max, mean, std, median, percentiles, histogram
+```
 
 ### Vector Tools
 
-- **vector.info** - Inspect vector metadata (CRS, geometry types, fields, bounds)
+#### 5. `vector_info` - Inspect Vector Metadata
 
-## Example Usage
+Get metadata about vector datasets:
 
-### Inspect a raster
-```python
-# Via MCP client
-"Use raster.info to inspect example.tif"
+```
+Natural language: "Show me information about parcels.shp"
 
-# Returns: RasterInfo with driver, CRS, bounds, transform, etc.
+Tool call:
+{
+  "uri": "/data/parcels.shp"
+}
+
+Output: driver, CRS, geometry types, feature count, fields, bounds
 ```
 
-### Compute raster statistics
-```python
-# Via MCP client
-"Use raster.stats on example.tif with histogram enabled"
+## Example Workflows
 
-# Returns: RasterStatsResult with min/max/mean/std/percentiles/histogram
+### 1. Inspect and Convert a Raster
+
+```
+User: "I have a GeoTIFF at /data/aerial.tif. Show me its metadata and convert it to a Cloud-Optimized GeoTIFF."
+
+AI uses:
+1. raster_info - Get metadata
+2. raster_convert - Convert to COG with compression and overviews
 ```
 
-### Convert with compression
-```python
-# Via MCP client
-"Use raster.convert to convert input.tif to output_cog.tif with driver=COG and compression=deflate"
+### 2. Reproject and Analyze a DEM
 
-# Returns: ConversionResult with ResourceRef to output file
+```
+User: "Reproject /data/dem.tif to UTM Zone 10N and compute elevation statistics."
+
+AI uses:
+1. raster_reproject - Reproject to EPSG:32610 (UTM 10N)
+2. raster_stats - Compute min/max/mean elevation with percentiles
 ```
 
-### Reproject to Web Mercator
-```python
-# Via MCP client
-"Use raster.reproject to reproject input.tif to EPSG:3857 with bilinear resampling, save to output.tif"
+### 3. Multi-Band Satellite Analysis
 
-# Returns: ReprojectionResult with ResourceRef and metadata
 ```
+User: "For landsat.tif, show me statistics for bands 1-3 with histograms."
 
-## Testing the Server
-
-### Test with HTTP transport
-
-```bash
-# Start server on port 8000
-gdal-mcp --transport http --port 8000
-
-# In another terminal, test the tools endpoint
-curl http://localhost:8000/tools
-
-# Test a tool call
-curl -X POST http://localhost:8000/call-tool \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "raster.info",
-    "arguments": {
-      "uri": "/path/to/raster.tif"
-    }
-  }'
-```
-
-### Test with stdio (for debugging)
-
-```bash
-# Run and provide JSON-RPC input via stdin
-gdal-mcp --transport stdio
+AI uses:
+raster_stats with bands=[1,2,3], include_histogram=true
+Returns statistics and histograms for each band
 ```
 
 ## Troubleshooting
 
-**GDAL not found**: Ensure GDAL libraries are installed
-- Ubuntu/Debian: `sudo apt-get install gdal-bin libgdal-dev`
-- macOS: `brew install gdal`
-- Windows: Install OSGeo4W or use Docker
+### "Access denied: Path outside allowed workspaces"
 
-**Python dependencies missing**: Install dev dependencies
+**Solution:** Configure `GDAL_MCP_WORKSPACES` environment variable:
+
 ```bash
-uv pip install -e ".[dev]"
+# Add to your shell profile (~/.bashrc, ~/.zshrc, etc.)
+export GDAL_MCP_WORKSPACES="/path/to/data"
+
+# Or set in MCP client config (see examples above)
 ```
 
-**MCP connection failed**: Check Claude Desktop logs
-- macOS: `~/Library/Logs/Claude/mcp*.log`
-- Windows: `%APPDATA%\Claude\logs\mcp*.log`
+### "Tool not found" or tools have dots (raster.info)
 
-**Permission errors**: Ensure the server has read access to input files and write access to output directories
+**Solution:** Ensure you're using the latest version. Tool names changed from dots to underscores (v0.1.0+):
+- OLD: `raster.info` ❌
+- NEW: `raster_info` ✅
+
+Rebuild the wheel or reinstall:
+```bash
+uv build
+uvx --from dist/gdal_mcp-0.0.1-py3-none-any.whl gdal-mcp
+```
+
+### Server not connecting to MCP client
+
+**Checklist:**
+1. ✅ Server runs successfully with `--help` flag
+2. ✅ `GDAL_MCP_WORKSPACES` is configured
+3. ✅ MCP client config points to correct wheel path
+4. ✅ MCP client restarted after config changes
+5. ✅ Using `uv run --with` for local dev (not `uvx`)
+
+**Test server manually:**
+```bash
+# Should show server initialization
+uv run gdal --transport stdio
+```
 
 ## Next Steps
 
-- See [README.md](README.md) for full documentation
-- See [CONTRIBUTING.md](CONTRIBUTING.md) for development guide
-- See [docs/](docs/) for architecture and ADRs
+- Read [CONTRIBUTING.md](CONTRIBUTING.md) to contribute tools or features
+- Review [docs/ADR/](docs/ADR/) for architecture decisions
+- Check [docs/design/](docs/design/) for design documentation
+- See [.github/workflows/README.md](.github/workflows/README.md) for CI/CD info
+
+## Resources
+
+- **Repository**: https://github.com/JordanGunn/gdal-mcp
+- **Issues**: https://github.com/JordanGunn/gdal-mcp/issues
+- **FastMCP Docs**: https://github.com/jlowin/fastmcp
+- **MCP Specification**: https://modelcontextprotocol.io/

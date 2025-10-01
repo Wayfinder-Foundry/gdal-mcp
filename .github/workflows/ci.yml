@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop, feat-* ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  quality-gates:
+    name: Quality Gates
+    uses: ./.github/workflows/quality.yml
+    with:
+      python-version: '3.12'
+  
+  test-matrix:
+    name: Test Matrix
+    needs: quality-gates
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+    uses: ./.github/workflows/test.yml
+    with:
+      python-version: ${{ matrix.python-version }}
+  
+  build:
+    name: Build
+    needs: [quality-gates, test-matrix]
+    uses: ./.github/workflows/build.yml
+    with:
+      python-version: '3.12'

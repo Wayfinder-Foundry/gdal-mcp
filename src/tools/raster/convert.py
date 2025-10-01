@@ -1,4 +1,5 @@
 """Raster conversion tool using Python-native Rasterio."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -29,7 +30,7 @@ async def _convert(
 
     Returns:
         Result: Metadata about the converted raster with ResourceRef.
-    
+
     Raises:
         ToolError: If raster cannot be opened or conversion fails.
     """
@@ -55,7 +56,7 @@ async def _convert(
                         f"{src.count} bands, {src.dtypes[0] if src.dtypes else 'unknown'}"
                     )
                     await ctx.report_progress(0, 100)
-                
+
                 # Build output profile from source
                 profile = src.profile.copy()
 
@@ -70,7 +71,11 @@ async def _convert(
                 # Apply compression if specified
                 if options.compression:
                     # Handle both enum and string (Pydantic may convert enum to string)
-                    compress_value = options.compression.name if hasattr(options.compression, 'name') else options.compression
+                    compress_value = (
+                        options.compression.name
+                        if hasattr(options.compression, "name")
+                        else options.compression
+                    )
                     profile["compress"] = compress_value
                     if ctx:
                         await ctx.debug(f"Applying compression: {compress_value}")
@@ -84,16 +89,18 @@ async def _convert(
 
                 if ctx:
                     await ctx.info(f"📝 Writing output: {output}")
-                
+
                 # Write output dataset
                 with rasterio.open(output, "w", **profile) as dst:
                     # Copy all bands with progress reporting
                     for band_idx in range(1, src.count + 1):
                         if ctx:
-                            progress = int((band_idx / src.count) * 80)  # Reserve 20% for overviews
+                            progress = int(
+                                (band_idx / src.count) * 80
+                            )  # Reserve 20% for overviews
                             await ctx.report_progress(progress, 100)
                             await ctx.debug(f"Copying band {band_idx}/{src.count}")
-                        
+
                         data = src.read(band_idx)
                         dst.write(data, band_idx)
 
@@ -112,7 +119,7 @@ async def _convert(
             if options.overviews:
                 if ctx:
                     await ctx.info(f"🔨 Building overviews: {options.overviews}")
-                
+
                 with rasterio.open(output, "r+") as dst:
                     # Map resampling string to Resampling enum
                     resampling_map = {
@@ -130,7 +137,7 @@ async def _convert(
 
                     dst.build_overviews(options.overviews, resampling_method)
                     overviews_built = options.overviews
-                
+
                 if ctx:
                     await ctx.debug(f"✓ Overviews built: {overviews_built}")
 
@@ -152,9 +159,12 @@ async def _convert(
                 driver=options.driver,
                 meta={
                     "compression": (
-                        options.compression.name if hasattr(options.compression, 'name') 
+                        options.compression.name
+                        if hasattr(options.compression, "name")
                         else options.compression
-                    ) if options.compression else None,
+                    )
+                    if options.compression
+                    else None,
                     "tiled": options.tiled,
                 },
             )
@@ -164,13 +174,16 @@ async def _convert(
                 output=resource_ref,
                 driver=options.driver,
                 compression=(
-                    options.compression.name if hasattr(options.compression, 'name')
+                    options.compression.name
+                    if hasattr(options.compression, "name")
                     else options.compression
-                ) if options.compression else None,
+                )
+                if options.compression
+                else None,
                 size_bytes=size_bytes,
                 overviews_built=overviews_built,
             )
-    
+
     except rasterio.errors.RasterioIOError as e:
         raise ToolError(
             f"Cannot open source raster at '{uri}'. "
@@ -185,13 +198,9 @@ async def _convert(
             f"(2) you have write permissions to the directory."
         ) from e
     except OSError as e:
-        raise ToolError(
-            f"Failed to write output file '{output}': {str(e)}"
-        ) from e
+        raise ToolError(f"Failed to write output file '{output}': {str(e)}") from e
     except Exception as e:
-        raise ToolError(
-            f"Unexpected error during conversion: {str(e)}"
-        ) from e
+        raise ToolError(f"Unexpected error during conversion: {str(e)}") from e
 
 
 @mcp.tool(

@@ -1,4 +1,5 @@
 """Common models and enums shared across raster and vector operations."""
+
 from __future__ import annotations
 
 from enum import Enum

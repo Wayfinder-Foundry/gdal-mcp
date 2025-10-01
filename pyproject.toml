@@ -43,7 +43,7 @@ dev = [
 
 [project.scripts]
 # Main server entrypoint
-"gdal-mcp" = "src.__main__:main"
+"gdal" = "src.__main__:main"
 
 [project.urls]
 Homepage = "https://github.com/JordanGunn/gdal-mcp"

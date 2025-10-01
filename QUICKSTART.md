@@ -9,7 +9,7 @@ This guide shows how to run the Python-native GDAL MCP server and connect it to 
 **Once published to PyPI:**
 ```bash
 # Install and run via uvx (no local installation required)
-uvx --from gdal-mcp gdal-mcp --transport stdio
+uvx --from gdal-mcp gdal --transport stdio
 ```
 
 **During development (from local wheel):**
@@ -18,7 +18,7 @@ uvx --from gdal-mcp gdal-mcp --transport stdio
 uv build
 
 # Run from local wheel
-uvx --from dist/gdal_mcp-0.0.1-py3-none-any.whl gdal-mcp --transport stdio
+uvx --from dist/gdal_mcp-0.0.1-py3-none-any.whl gdal --transport stdio
 ```
 
 ### Method 2: Docker
@@ -28,10 +28,10 @@ uvx --from dist/gdal_mcp-0.0.1-py3-none-any.whl gdal-mcp --transport stdio
 docker build -t gdal-mcp .
 
 # Run with stdio transport (for MCP clients)
-docker run -i gdal-mcp --transport stdio
+docker run -i gdal --transport stdio
 
 # Run with HTTP transport (for testing)
-docker run -p 8000:8000 gdal-mcp --transport http --port 8000
+docker run -p 8000:8000 gdal --transport http --port 8000
 ```
 
 ### Method 3: Local Development with uv
@@ -45,7 +45,7 @@ cd gdal-mcp
 uv sync
 
 # Run the server
-uv run gdal-mcp --transport stdio
+uv run gdal --transport stdio
 ```
 
 ## Workspace Configuration
@@ -78,8 +78,8 @@ Without this configuration, the server will reject all file operations for secur
       "command": "uvx",
       "args": [
         "--from",
-        "gdal-mcp",
-        "gdal-mcp",
+        "gdal",
+        "gdal",
         "--transport",
         "stdio"
       ],
@@ -101,7 +101,7 @@ Without this configuration, the server will reject all file operations for secur
         "run",
         "--with",
         "/path/to/gdal-mcp/dist/gdal_mcp-0.0.1-py3-none-any.whl",
-        "gdal-mcp",
+        "gdal",
         "--transport",
         "stdio"
       ],
@@ -133,7 +133,7 @@ For Cascade (Windsurf IDE), configure in `~/.codeium/mcp_config.json`:
         "run",
         "--with",
         "/path/to/gdal-mcp/dist/gdal_mcp-0.0.1-py3-none-any.whl",
-        "gdal-mcp"
+        "gdal"
       ],
       "env": {
         "GDAL_MCP_WORKSPACES": "/path/to/your/geospatial/data"
@@ -311,7 +311,7 @@ uvx --from dist/gdal_mcp-0.0.1-py3-none-any.whl gdal-mcp
 **Test server manually:**
 ```bash
 # Should show server initialization
-uv run gdal-mcp --transport stdio
+uv run gdal --transport stdio
 ```
 
 ## Next Steps

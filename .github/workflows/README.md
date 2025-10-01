@@ -1,58 +1,124 @@
 # GitHub Actions Workflows
 
-This directory contains GitHub Actions workflows for CI/CD automation.
+This directory contains GitHub Actions workflows for CI/CD automation using a **modular, reusable workflow architecture**.
+
+## Architecture
+
+Workflows are organized into **reusable components** that can be called from main orchestrator workflows:
+
+```
+.github/workflows/
+├── ci.yml              # Main CI orchestrator (calls quality, test, build)
+├── quality.yml         # Reusable: Lint & type check (ruff, mypy)
+├── test.yml            # Reusable: Test suite (pytest)
+├── build.yml           # Reusable: Build & verify wheel
+├── publish.yml         # PyPI publishing on releases
+└── README.md           # This file
+```
+
+**Benefits of Modular Design:**
+- ✅ **Easy to maintain**: Each workflow has a single responsibility
+- ✅ **Reusable**: Can be called from multiple orchestrators
+- ✅ **Testable**: Can be triggered individually via workflow_dispatch
+- ✅ **Scalable**: Add new workflows without bloating main CI file
+
+---
 
 ## Workflows
 
-### 🔍 **CI Workflow** (`ci.yml`)
+### 🎯 **CI Orchestrator** (`ci.yml`)
+
+**Main CI pipeline that coordinates all quality checks.**
 
 **Triggers:**
 - Push to `main`, `develop`, or `feat-*` branches
 - Pull requests to `main` or `develop`
 - Manual dispatch
 
-**Jobs:**
-
-1. **Quality Gates** (Lint & Type Check)
-   - Runs `ruff` for linting and formatting checks
-   - Runs `mypy` for type checking
-   - Fails fast if code quality issues detected
-
-2. **Test Suite** (Matrix: Python 3.10, 3.11, 3.12)
-   - Runs full pytest suite on multiple Python versions
-   - Uploads coverage reports for Python 3.12
-   - Ensures cross-version compatibility
-
-3. **Build Distribution**
-   - Builds wheel using `uv build`
-   - Verifies wheel can be installed
-   - Tests CLI entrypoint (`gdal-mcp --help`)
-   - Uploads wheel as artifact (30-day retention)
-
-**When it runs:** Every push and pull request
+**Flow:**
+1. **Quality Gates** → Runs `quality.yml` (Python 3.12)
+2. **Test Matrix** → Runs `test.yml` in parallel (Python 3.10, 3.11, 3.12)
+3. **Build** → Runs `build.yml` (Python 3.12)
 
 **Expected duration:** ~3-5 minutes
 
 ---
 
-### 📦 **Publish Workflow** (`publish.yml`)
+### 🔍 **Quality Gates** (`quality.yml`)
+
+**Reusable workflow for code quality checks.**
+
+**Jobs:**
+- Lint with `ruff check`
+- Format check with `ruff format --check`
+- Type check with `mypy src/`
+
+**When called from CI:** Uses Python 3.12 (configurable)
+
+**Can also be called independently:**
+```yaml
+uses: ./.github/workflows/quality.yml
+with:
+  python-version: '3.12'
+```
+
+---
+
+### 🧪 **Test Suite** (`test.yml`)
+
+**Reusable workflow for running pytest tests.**
+
+**Jobs:**
+- Runs full pytest suite with verbose output
+- Uploads coverage reports (when Python 3.12)
+- Artifact retention: 30 days
+
+**When called from CI:** Runs for Python 3.10, 3.11, 3.12 in matrix
+
+**Can be called independently:**
+```yaml
+uses: ./.github/workflows/test.yml
+with:
+  python-version: '3.11'
+```
+
+---
+
+### 📦 **Build** (`build.yml`)
+
+**Reusable workflow for building and verifying distributions.**
+
+**Jobs:**
+- Build wheel with `uv build`
+- Verify installation with `uv pip install dist/*.whl`
+- Test CLI entrypoint: `gdal --help`
+- Upload wheel artifact (30-day retention)
+
+**Can be called independently:**
+```yaml
+uses: ./.github/workflows/build.yml
+with:
+  python-version: '3.12'
+```
+
+---
+
+### 🚀 **Publish** (`publish.yml`)
+
+**Automatic PyPI publishing on releases.**
 
 **Triggers:**
 - GitHub release published
 - Manual dispatch (for testing)
 
 **Jobs:**
-
-1. **Publish to PyPI**
-   - Builds source distribution and wheel
-   - Publishes to PyPI using trusted publishing (OIDC)
-   - Uploads release artifacts (90-day retention)
+1. Build distributions (wheel + sdist)
+2. Publish to PyPI using trusted publishing (OIDC)
+3. Upload release artifacts (90-day retention)
 
 **Requirements:**
 - PyPI trusted publishing configured (see setup below)
-- GitHub release created with semantic version tag (e.g., `v0.1.0`)
-
-**When it runs:** When you create a GitHub release
+- GitHub release with semantic version tag (e.g., `v0.1.0`)
 
 **Expected duration:** ~2-3 minutes
 
@@ -77,12 +143,6 @@ To enable automatic publishing to PyPI without API tokens:
      - Environment: (leave empty)
 
 3. **No API tokens needed!** GitHub Actions uses OIDC to authenticate.
-
-**Alternative (API Token Method):**
-If you prefer using API tokens:
-- Create PyPI API token
-- Add to GitHub Secrets as `PYPI_API_TOKEN`
-- Update `publish.yml` to use token authentication
 
 ---
 
@@ -113,7 +173,7 @@ git push origin v0.1.0
 
 After publishing, users can install via:
 ```bash
-uvx --from gdal-mcp gdal-mcp
+uvx --from gdal-mcp gdal
 ```
 
 ---
@@ -124,17 +184,17 @@ Before pushing, test locally:
 
 ```bash
 # Quality gates
-uv run ruff check .
-uv run ruff format --check .
+uv run ruff check . --fix
+uv run ruff format .
 uv run mypy src/
 
 # Tests
 uv run pytest test/ -v
 
-# Build
+# Build and verify
 uv build
 uv pip install dist/*.whl
-gdal-mcp --help
+gdal --help
 ```
 
 ---
@@ -150,26 +210,76 @@ Add to README.md:
 
 ---
 
+## Modular Workflow Pattern
+
+**Why Reusable Workflows?**
+
+GitHub Actions supports [reusable workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows) which allow:
+
+1. **Single Responsibility**: Each workflow does one thing well
+2. **Composition**: Build complex pipelines from simple components
+3. **Reusability**: Same quality checks across multiple triggers
+4. **Maintainability**: Update logic in one place
+
+**Example: Using quality.yml independently**
+
+Create a PR quality check workflow:
+```yaml
+name: PR Quality
+on: pull_request
+
+jobs:
+  quality:
+    uses: ./.github/workflows/quality.yml
+    with:
+      python-version: '3.12'
+```
+
+---
+
 ## Troubleshooting
 
-**CI fails on lint:**
-- Run `uv run ruff check . --fix` locally
-- Run `uv run ruff format .` locally
-- Commit fixes
+### CI fails on lint
 
-**CI fails on type check:**
-- Run `uv run mypy src/` locally
-- Fix type errors
-- Commit fixes
+**Solution:** Run locally and fix:
+```bash
+uv run ruff check . --fix
+uv run ruff format .
+```
 
-**Publish fails:**
+### CI fails on type check
+
+**Solution:** Run locally and fix:
+```bash
+uv run mypy src/
+```
+
+### Build fails: "gdal --help" not found
+
+**Solution:** Ensure `pyproject.toml` has correct script entry:
+```toml
+[project.scripts]
+"gdal" = "src.__main__:main"
+```
+
+### Publish fails
+
+**Solutions:**
 - Ensure PyPI trusted publishing is configured
 - Check release tag follows semantic versioning (vX.Y.Z)
 - Verify version in `pyproject.toml` matches tag
 
-**Build artifact not appearing:**
-- Check workflow logs for build errors
-- Artifacts expire after 30/90 days (configurable)
+---
+
+## Workflow Files Summary
+
+| File | Type | Purpose | Triggered By |
+|------|------|---------|--------------|
+| `ci.yml` | Orchestrator | Main CI pipeline | Push, PR, manual |
+| `quality.yml` | Reusable | Lint & type check | Called by ci.yml |
+| `test.yml` | Reusable | Run pytest suite | Called by ci.yml |
+| `build.yml` | Reusable | Build & verify | Called by ci.yml |
+| `publish.yml` | Standalone | PyPI publishing | GitHub release |
 
 ---
 
@@ -179,18 +289,19 @@ If you're coming from GitLab CI:
 
 | GitLab CI | GitHub Actions |
 |-----------|----------------|
-| `.gitlab-ci.yml` | `.github/workflows/*.yml` |
+| `.gitlab-ci.yml` | `.github/workflows/ci.yml` |
+| `include: local:` | `uses: ./.github/workflows/` |
+| `extends:` | Reusable workflows |
 | `stages:` | `jobs:` with `needs:` |
 | `script:` | `run:` |
-| `artifacts:` | `actions/upload-artifact@v4` |
-| `dependencies:` | `needs:` |
-| `only/except` | `on:` with filters |
-| `cache:` | `actions/cache@v4` |
-| Variables | `env:` or secrets |
-| CI/CD variables | GitHub Secrets |
+| Variables | `inputs:` in reusable workflows |
 
-**Key differences:**
-- GitHub Actions uses marketplace actions (reusable components)
-- Jobs run in parallel by default (use `needs:` for dependencies)
-- Matrix builds are native (`strategy.matrix`)
-- Artifacts are separate from job outputs
+**Key difference:** GitHub Actions reusable workflows are **separate files** rather than inherited job templates, making them more modular and easier to reason about.
+
+---
+
+## Resources
+
+- **Reusable Workflows**: https://docs.github.com/en/actions/using-workflows/reusing-workflows
+- **Workflow Syntax**: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
+- **Security Hardening**: https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions

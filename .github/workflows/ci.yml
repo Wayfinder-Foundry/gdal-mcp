@@ -5,114 +5,28 @@ on:
     branches: [ main, develop, feat-* ]
   pull_request:
     branches: [ main, develop ]
-  workflow_dispatch:  # Allow manual trigger
+  workflow_dispatch:
 
 jobs:
   quality-gates:
-    name: Quality Gates (Lint & Type Check)
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
-        with:
-          version: "latest"
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      
-      - name: Install dependencies
-        run: |
-          uv pip install --system -e ".[dev]"
-      
-      - name: Run ruff (linter)
-        run: |
-          uv run ruff check .
-      
-      - name: Run ruff (formatter check)
-        run: |
-          uv run ruff format --check .
-      
-      - name: Run mypy (type checker)
-        run: |
-          uv run mypy src/
-
-  test:
-    name: Test Suite
-    runs-on: ubuntu-latest
+    name: Quality Gates
+    uses: ./.github/workflows/quality.yml
+    with:
+      python-version: '3.12'
+  
+  test-matrix:
+    name: Test Matrix
     needs: quality-gates
-    
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
-        with:
-          version: "latest"
-      
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      
-      - name: Install dependencies
-        run: |
-          uv pip install --system -e ".[dev]"
-      
-      - name: Run pytest
-        run: |
-          uv run pytest test/ -v --tb=short
-      
-      - name: Upload coverage reports
-        if: matrix.python-version == '3.12'
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: htmlcov/
-          retention-days: 30
-
+        python-version: ['3.10', '3.11', '3.12']
+    uses: ./.github/workflows/test.yml
+    with:
+      python-version: ${{ matrix.python-version }}
+  
   build:
-    name: Build Distribution
-    runs-on: ubuntu-latest
-    needs: [quality-gates, test]
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
-        with:
-          version: "latest"
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      
-      - name: Build wheel
-        run: |
-          uv build
-      
-      - name: Verify wheel
-        run: |
-          ls -lh dist/
-          uv pip install --system dist/*.whl
-          gdal-mcp --help
-      
-      - name: Upload wheel artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-package-distributions
-          path: dist/
-          retention-days: 30
+    name: Build
+    needs: [quality-gates, test-matrix]
+    uses: ./.github/workflows/build.yml
+    with:
+      python-version: '3.12'

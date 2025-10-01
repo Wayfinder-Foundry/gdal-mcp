@@ -47,7 +47,7 @@ The AI agent uses GDAL MCP under the hood - properly, safely, with production-qu
 
 ```bash
 # Run directly without installation
-uvx --from gdal-mcp gdal-mcp --transport stdio
+uvx --from gdal-mcp gdal --transport stdio
 ```
 
 ### Method 2: Docker
@@ -55,7 +55,7 @@ uvx --from gdal-mcp gdal-mcp --transport stdio
 ```bash
 # Build and run
 docker build -t gdal-mcp .
-docker run -i gdal-mcp --transport stdio
+docker run -i gdal --transport stdio
 ```
 
 ### Method 3: Local Development
@@ -65,7 +65,7 @@ docker run -i gdal-mcp --transport stdio
 git clone https://github.com/JordanGunn/gdal-mcp.git
 cd gdal-mcp
 uv sync
-uv run gdal-mcp --transport stdio
+uv run gdal --transport stdio
 ```
 
 See [QUICKSTART.md](QUICKSTART.md) for detailed setup instructions.
@@ -225,7 +225,7 @@ See [QUICKSTART.md](QUICKSTART.md) for full instructions. Quick version:
   "mcpServers": {
     "gdal-mcp": {
       "command": "uvx",
-      "args": ["--from", "gdal-mcp", "gdal-mcp", "--transport", "stdio"],
+      "args": ["--from", "gdal", "gdal", "--transport", "stdio"],
       "env": {
         "GDAL_CACHEMAX": "512"
       }

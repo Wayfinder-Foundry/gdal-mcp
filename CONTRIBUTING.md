@@ -51,7 +51,7 @@ uv run mypy src/
 uv run pytest test/ -v
 
 # Test CLI
-uv run gdal-mcp --help
+uv run gdal --help
 ```
 
 ---

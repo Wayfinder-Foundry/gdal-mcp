@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 try:
-    import pyogrio
+    import pyogrio  # noqa: F401
     HAS_PYOGRIO = True
 except ImportError:
     HAS_PYOGRIO = False
-    import fiona
+    import fiona  # noqa: F401
 
 from src.app import mcp
 from src.models.vector import VectorInfo

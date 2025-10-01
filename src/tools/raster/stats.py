@@ -67,6 +67,14 @@ async def compute_raster_stats(
                     valid_data = valid_data[sampled_indices]
 
                 # Compute basic statistics
+                min_val: float | None
+                max_val: float | None
+                mean_val: float | None
+                std_val: float | None
+                median_val: float | None
+                p25_val: float | None
+                p75_val: float | None
+                
                 if valid_count > 0:
                     min_val = float(np.min(valid_data))
                     max_val = float(np.max(valid_data))
@@ -78,8 +86,8 @@ async def compute_raster_stats(
                     percentile_dict = dict(zip(params.percentiles, percentile_values))
                     
                     median_val = float(percentile_dict.get(50.0, np.median(valid_data)))
-                    p25_val = float(percentile_dict.get(25.0)) if 25.0 in percentile_dict else None
-                    p75_val = float(percentile_dict.get(75.0)) if 75.0 in percentile_dict else None
+                    p25_val = float(percentile_dict[25.0]) if 25.0 in percentile_dict else None
+                    p75_val = float(percentile_dict[75.0]) if 75.0 in percentile_dict else None
                 else:
                     min_val = max_val = mean_val = std_val = None
                     median_val = p25_val = p75_val = None

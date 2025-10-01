@@ -104,7 +104,10 @@ async def convert_raster(
             size=size_bytes,
             driver=options.driver,
             meta={
-                "compression": options.compression.value if hasattr(options.compression, 'value') else options.compression if options.compression else None,
+                "compression": (
+                    options.compression.value if hasattr(options.compression, 'value') 
+                    else options.compression
+                ) if options.compression else None,
                 "tiled": options.tiled,
             },
         )
@@ -113,7 +116,10 @@ async def convert_raster(
         return ConversionResult(
             output=resource_ref,
             driver=options.driver,
-            compression=options.compression.value if hasattr(options.compression, 'value') else options.compression if options.compression else None,
+            compression=(
+                options.compression.value if hasattr(options.compression, 'value')
+                else options.compression
+            ) if options.compression else None,
             size_bytes=size_bytes,
             overviews_built=overviews_built,
         )

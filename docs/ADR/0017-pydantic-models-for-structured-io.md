@@ -81,13 +81,15 @@ class RasterInfo(BaseModel):
 ```
 
 ### Example: tool usage
+
 ```python
-from src.models.raster import RasterInfo
+from src.models.raster import Info
+
 
 @mcp.tool
-async def raster_info(uri: str) -> RasterInfo:
+async def raster_info(uri: str) -> Info:
     with rasterio.open(uri) as ds:
-        return RasterInfo(
+        return Info(
             path=uri,
             driver=ds.driver,
             # ... populate fields

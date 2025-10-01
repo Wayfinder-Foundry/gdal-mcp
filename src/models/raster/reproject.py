@@ -1,19 +1,20 @@
 """Raster reprojection models."""
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
+from rasterio.enums import Resampling
 
-from src.models.common import ResamplingMethod, ResourceRef
+from src.models.resourceref import ResourceRef
 
 
-class ReprojectionParams(BaseModel):
+class Params(BaseModel):
     """Parameters for raster reprojection."""
 
     dst_crs: str = Field(
-        description="Destination CRS (e.g., EPSG:4326, EPSG:3857)",
+        description="Destination CRS (e.g., 'EPSG:4326', 'EPSG:3857')",
         pattern=r"^(EPSG:\d+|[A-Z]+:.+)$",
     )
-    resampling: ResamplingMethod = Field(
+    resampling: Resampling = Field(
         description="Resampling method (per ADR-0011: explicit required)",
     )
     src_crs: str | None = Field(
@@ -43,11 +44,10 @@ class ReprojectionParams(BaseModel):
         description="NoData value for output (preserves source nodata if None)",
     )
 
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict()
 
 
-class ReprojectionResult(BaseModel):
+class Result(BaseModel):
     """Result of a raster reprojection operation."""
 
     output: ResourceRef = Field(description="Reference to the output raster file")

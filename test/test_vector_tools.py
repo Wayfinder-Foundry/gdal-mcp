@@ -5,13 +5,13 @@ import pytest
 from pathlib import Path
 
 # Import the core logic function (not the @mcp.tool wrapped version)
-from src.tools.vector.info import get_vector_info
+from src.tools.vector.info import _info
 
 
 @pytest.mark.asyncio
 async def test_vector_info_geojson(tiny_vector_geojson: Path):
     """Test vector.info on a GeoJSON file."""
-    result = await get_vector_info(str(tiny_vector_geojson))
+    result = await _info(str(tiny_vector_geojson))
     
     assert result.path == str(tiny_vector_geojson)
     assert result.driver in ["GeoJSON", "ESRI Shapefile"]  # Driver may vary
@@ -25,7 +25,7 @@ async def test_vector_info_geojson(tiny_vector_geojson: Path):
 @pytest.mark.asyncio
 async def test_vector_info_fields(tiny_vector_geojson: Path):
     """Test vector.info field extraction."""
-    result = await get_vector_info(str(tiny_vector_geojson))
+    result = await _info(str(tiny_vector_geojson))
     
     field_names = [field[0] for field in result.fields]
     assert "name" in field_names
@@ -35,7 +35,7 @@ async def test_vector_info_fields(tiny_vector_geojson: Path):
 @pytest.mark.asyncio
 async def test_vector_info_bounds(tiny_vector_geojson: Path):
     """Test vector.info bounds extraction."""
-    result = await get_vector_info(str(tiny_vector_geojson))
+    result = await _info(str(tiny_vector_geojson))
     
     if result.bounds:
         assert len(result.bounds) == 4

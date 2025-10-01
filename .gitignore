@@ -66,5 +66,10 @@ test_data/
 
 src/.idea
 .idea
+.windsurf
+.vscode
+conport_export
+context_portal
+dist
 
 .mcp-config.json

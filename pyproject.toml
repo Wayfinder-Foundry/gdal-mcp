@@ -28,6 +28,8 @@ dependencies = [
   "pyproj>=3.6",
   "shapely>=2.0",
   "pyogrio>=0.7",
+  "fiona>=1.10.1",
+  "geopandas>=1.1.1",
 ]
 
 [project.optional-dependencies]
@@ -42,8 +44,6 @@ dev = [
 [project.scripts]
 # Main server entrypoint
 "gdal-mcp" = "src.__main__:main"
-# Benchmark CLI
-"gdal-mcp-bench" = "src.bench:main"
 
 [project.urls]
 Homepage = "https://github.com/JordanGunn/gdal-mcp"
@@ -77,3 +77,8 @@ disable_error_code = ["call-arg"]
 init_forbid_extra = true
 init_typed = true
 warn_required_dynamic_aliases = true
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+]

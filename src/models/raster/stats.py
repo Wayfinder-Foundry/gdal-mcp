@@ -4,7 +4,7 @@ from __future__ import annotations
 from pydantic import BaseModel, Field
 
 
-class HistogramBin(BaseModel):
+class Histogram(BaseModel):
     """Single histogram bin."""
 
     min_value: float = Field(description="Minimum value for this bin")
@@ -12,7 +12,7 @@ class HistogramBin(BaseModel):
     count: int = Field(ge=0, description="Number of pixels in this bin")
 
 
-class BandStatistics(BaseModel):
+class Band(BaseModel):
     """Statistics for a single raster band."""
 
     band: int = Field(ge=1, description="Band index (1-based)")
@@ -25,13 +25,13 @@ class BandStatistics(BaseModel):
     percentile_75: float | None = Field(None, description="75th percentile")
     valid_count: int = Field(ge=0, description="Number of valid (non-nodata) pixels")
     nodata_count: int = Field(ge=0, description="Number of nodata pixels")
-    histogram: list[HistogramBin] = Field(
+    histogram: list[Histogram] = Field(
         default_factory=list,
         description="Histogram bins (optional)",
     )
 
 
-class RasterStatsParams(BaseModel):
+class Params(BaseModel):
     """Parameters for raster statistics computation."""
 
     bands: list[int] | None = Field(
@@ -59,11 +59,11 @@ class RasterStatsParams(BaseModel):
     )
 
 
-class RasterStatsResult(BaseModel):
+class Result(BaseModel):
     """Result of raster statistics computation."""
 
     path: str = Field(description="Path to the raster dataset")
-    band_stats: list[BandStatistics] = Field(
+    band_stats: list[Band] = Field(
         description="Per-band statistics"
     )
     total_pixels: int = Field(ge=0, description="Total number of pixels per band")

@@ -3,24 +3,22 @@ from __future__ import annotations
 
 import pytest
 from pathlib import Path
+from rasterio.enums import Resampling, Compression
 
 # Import the core logic functions (not the @mcp.tool wrapped versions)
-from src.tools.raster.info import get_raster_info
-from src.tools.raster.convert import convert_raster
-from src.tools.raster.reproject import reproject_raster
-from src.tools.raster.stats import compute_raster_stats
-from src.models.raster import (
-    ConversionOptions,
-    ReprojectionParams,
-    RasterStatsParams,
-)
-from src.models.common import Compression, ResamplingMethod
+from src.tools.raster.info import _info
+from src.tools.raster.convert import _convert
+from src.tools.raster.reproject import _reproject
+from src.tools.raster.stats import _stats
+from src.models.raster.convert import Options as ConvertOptions
+from src.models.raster.reproject import Params as ReprojectParams
+from src.models.raster.stats import Params as StatsParams
 
 
 @pytest.mark.asyncio
 async def test_raster_info_basic(tiny_raster_gtiff: Path):
     """Test raster.info on a simple GeoTIFF."""
-    result = await get_raster_info(str(tiny_raster_gtiff))
+    result = await _info(str(tiny_raster_gtiff))
     
     assert result.path == str(tiny_raster_gtiff)
     assert result.driver == "GTiff"
@@ -37,7 +35,7 @@ async def test_raster_info_basic(tiny_raster_gtiff: Path):
 @pytest.mark.asyncio
 async def test_raster_info_rgb(tiny_raster_rgb: Path):
     """Test raster.info on a 3-band RGB raster."""
-    result = await get_raster_info(str(tiny_raster_rgb))
+    result = await _info(str(tiny_raster_rgb))
     
     assert result.count == 3
     assert result.width == 10
@@ -49,7 +47,7 @@ async def test_raster_convert_basic(tiny_raster_gtiff: Path, test_data_dir: Path
     """Test raster.convert with default options."""
     output_path = test_data_dir / "converted.tif"
     
-    result = await convert_raster(
+    result = await _convert(
         uri=str(tiny_raster_gtiff),
         output=str(output_path),
     )
@@ -65,13 +63,13 @@ async def test_raster_convert_with_compression(tiny_raster_gtiff: Path, test_dat
     """Test raster.convert with LZW compression."""
     output_path = test_data_dir / "converted_lzw.tif"
     
-    options = ConversionOptions(
+    options = ConvertOptions(
         driver="GTiff",
-        compression=Compression.LZW,
+        compression=Compression.lzw,
         tiled=True,
     )
     
-    result = await convert_raster(
+    result = await _convert(
         uri=str(tiny_raster_gtiff),
         output=str(output_path),
         options=options,
@@ -86,12 +84,12 @@ async def test_raster_convert_with_overviews(tiny_raster_gtiff: Path, test_data_
     """Test raster.convert with overview building."""
     output_path = test_data_dir / "converted_overviews.tif"
     
-    options = ConversionOptions(
+    options = ConvertOptions(
         overviews=[2, 4],
-        overview_resampling="average",
+        overview_resampling=Resampling.average,
     )
     
-    result = await convert_raster(
+    result = await _convert(
         uri=str(tiny_raster_gtiff),
         output=str(output_path),
         options=options,
@@ -105,12 +103,12 @@ async def test_raster_reproject_basic(tiny_raster_gtiff: Path, test_data_dir: Pa
     """Test raster.reproject to Web Mercator."""
     output_path = test_data_dir / "reprojected.tif"
     
-    params = ReprojectionParams(
+    params = ReprojectParams(
         dst_crs="EPSG:3857",
-        resampling=ResamplingMethod.NEAREST,
+        resampling=Resampling.nearest,
     )
     
-    result = await reproject_raster(
+    result = await _reproject(
         uri=str(tiny_raster_gtiff),
         output=str(output_path),
         params=params,
@@ -129,13 +127,13 @@ async def test_raster_reproject_with_resolution(tiny_raster_gtiff: Path, test_da
     """Test raster.reproject with explicit resolution."""
     output_path = test_data_dir / "reprojected_res.tif"
     
-    params = ReprojectionParams(
+    params = ReprojectParams(
         dst_crs="EPSG:4326",
-        resampling=ResamplingMethod.BILINEAR,
+        resampling=Resampling.bilinear,
         resolution=(0.5, 0.5),  # Half-degree pixels
     )
     
-    result = await reproject_raster(
+    result = await _reproject(
         uri=str(tiny_raster_gtiff),
         output=str(output_path),
         params=params,
@@ -148,7 +146,7 @@ async def test_raster_reproject_with_resolution(tiny_raster_gtiff: Path, test_da
 @pytest.mark.asyncio
 async def test_raster_stats_basic(tiny_raster_gtiff: Path):
     """Test raster.stats on a simple raster."""
-    result = await compute_raster_stats(str(tiny_raster_gtiff))
+    result = await _stats(str(tiny_raster_gtiff))
     
     assert result.path == str(tiny_raster_gtiff)
     assert result.total_pixels == 100
@@ -166,7 +164,7 @@ async def test_raster_stats_basic(tiny_raster_gtiff: Path):
 @pytest.mark.asyncio
 async def test_raster_stats_with_nodata(tiny_raster_with_nodata: Path):
     """Test raster.stats with nodata handling."""
-    result = await compute_raster_stats(str(tiny_raster_with_nodata))
+    result = await _stats(str(tiny_raster_with_nodata))
     
     band_stat = result.band_stats[0]
     assert band_stat.nodata_count == 4  # Top-left 2x2 corner
@@ -176,12 +174,12 @@ async def test_raster_stats_with_nodata(tiny_raster_with_nodata: Path):
 @pytest.mark.asyncio
 async def test_raster_stats_with_histogram(tiny_raster_gtiff: Path):
     """Test raster.stats with histogram generation."""
-    params = RasterStatsParams(
+    params = StatsParams(
         include_histogram=True,
         histogram_bins=10,
     )
     
-    result = await compute_raster_stats(str(tiny_raster_gtiff), params)
+    result = await _stats(str(tiny_raster_gtiff), params)
     
     band_stat = result.band_stats[0]
     assert len(band_stat.histogram) == 10
@@ -191,11 +189,11 @@ async def test_raster_stats_with_histogram(tiny_raster_gtiff: Path):
 @pytest.mark.asyncio
 async def test_raster_stats_multiple_bands(tiny_raster_rgb: Path):
     """Test raster.stats on multi-band raster."""
-    params = RasterStatsParams(
+    params = StatsParams(
         bands=[1, 2, 3],
     )
     
-    result = await compute_raster_stats(str(tiny_raster_rgb), params)
+    result = await _stats(str(tiny_raster_rgb), params)
     
     assert len(result.band_stats) == 3
     assert result.band_stats[0].band == 1
@@ -206,11 +204,11 @@ async def test_raster_stats_multiple_bands(tiny_raster_rgb: Path):
 @pytest.mark.asyncio
 async def test_raster_stats_percentiles(tiny_raster_gtiff: Path):
     """Test raster.stats with custom percentiles."""
-    params = RasterStatsParams(
+    params = StatsParams(
         percentiles=[10.0, 50.0, 90.0],
     )
     
-    result = await compute_raster_stats(str(tiny_raster_gtiff), params)
+    result = await _stats(str(tiny_raster_gtiff), params)
     
     band_stat = result.band_stats[0]
     assert band_stat.median is not None

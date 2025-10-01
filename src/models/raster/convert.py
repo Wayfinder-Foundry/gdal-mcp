@@ -1,12 +1,13 @@
 """Raster conversion models."""
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
+from rasterio.enums import Compression
 
-from src.models.common import Compression, ResourceRef
+from src.models.resourceref import ResourceRef
 
 
-class ConversionOptions(BaseModel):
+class Options(BaseModel):
     """Options for raster format conversion."""
 
     driver: str = Field(
@@ -15,7 +16,12 @@ class ConversionOptions(BaseModel):
     )
     compression: Compression | None = Field(
         None,
-        description="Compression method (none, lzw, deflate, zstd, jpeg, packbits)",
+        description=(
+            "Compression method. Common options: deflate (universal, lossless), "
+            "lzw (GeoTIFF, good for categorical), zstd (modern, fast, requires GDAL 3.4+), "
+            "jpeg (lossy, RGB only), none (no compression). "
+            "Driver compatibility varies - deflate works with most formats."
+        ),
     )
     tiled: bool = Field(
         default=True,
@@ -48,11 +54,10 @@ class ConversionOptions(BaseModel):
         description="Additional driver-specific creation options",
     )
 
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict()
 
 
-class ConversionResult(BaseModel):
+class Result(BaseModel):
     """Result of a raster conversion operation."""
 
     output: ResourceRef = Field(description="Reference to the output raster file")

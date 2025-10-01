@@ -1,241 +1,282 @@
----
-type: product_context
-title: GDAL MCP Overview
-tags: [gdal, mcp, server, docs]
----
-
 # GDAL MCP
 
-GDAL MCP is an open‑source server implementing the Model Context Protocol (MCP). It wraps the command‑line tools from the Geospatial Data Abstraction Library (GDAL) and exposes them as MCP tools so AI agents can perform geospatial operations in a safe, user‑approved manner.
+**Python-native geospatial tools for AI agents via Model Context Protocol**
 
-## Features
+GDAL MCP is an open-source MCP server that exposes powerful geospatial operations through FastMCP. Instead of shelling out to GDAL CLI, it uses Python-native libraries (Rasterio, PyProj, pyogrio, Shapely) for direct, type-safe geospatial processing.
 
-- Implements the GDAL 3.11 unified CLI as MCP tools (initial set): `info`, `convert`, `reproject` (raster).
-- JSON‑RPC 2.0 communication via FastMCP (stdio or HTTP transport).
-- Human‑in‑the‑loop confirmation for every tool execution.
-- Modular wrappers with typed signatures and clear error surfacing.
-- File‑producing tools publish results as `file://` resources.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Tests](https://img.shields.io/badge/tests-15%2F15%20passing-brightgreen.svg)](#testing)
 
-## Installation
+## 🚀 Features
 
-### Prerequisites
+- **Python-Native Stack**: Uses Rasterio, PyProj, pyogrio, and Shapely—no CLI shelling
+- **5 Core Tools**: Raster info/convert/reproject/stats + vector info (MVP per ADR-0005)
+- **Type-Safe**: Pydantic models for all inputs/outputs with JSON schema auto-generation
+- **FastMCP Framework**: JSON-RPC 2.0 over stdio or HTTP transport
+- **ADR-Compliant**: Explicit resampling, structured outputs, resource references
+- **Comprehensive Tests**: 15/15 tests passing with pytest fixtures
+- **Docker Ready**: Multi-stage build with GDAL 3.8.0 base
 
-- Python 3.10+.
-- GDAL 3.11+ CLI available on PATH (unified `gdal` command). For Debian/Ubuntu: `sudo apt install gdal-bin`.
+## 📦 Installation
 
-### Steps
+### Method 1: uvx (Recommended)
 
-1. Clone this repository:
+```bash
+# Run directly without installation
+uvx --from gdal-mcp gdal-mcp --transport stdio
+```
 
-   ```bash
-   git clone https://github.com/JordanGunn/gdal-mcp.git
-   cd gdal-mcp
-   ```
+### Method 2: Docker
 
-2. Install deps (recommended: [uv](https://docs.astral.sh/uv/)):
+```bash
+# Build and run
+docker build -t gdal-mcp .
+docker run -i gdal-mcp --transport stdio
+```
 
-   ```bash
-   uv sync
-   ```
+### Method 3: Local Development
 
-3. Run the server (stdio or HTTP):
+```bash
+# Clone and install
+git clone https://github.com/JordanGunn/gdal-mcp.git
+cd gdal-mcp
+uv sync
+uv run gdal-mcp --transport stdio
+```
 
-   ```bash
-   # stdio (typical for editor integrations)
-   uv run gdal-mcp serve --transport stdio
+See [QUICKSTART.md](QUICKSTART.md) for detailed setup instructions.
 
-   # HTTP
-   uv run gdal-mcp serve --transport http --port 8000
-   ```
+## 🔧 Available Tools
 
-   Or via Python module:
+### Raster Tools
 
-   ```bash
-   uv run python -m gdal_mcp serve --transport stdio
-   ```
+#### `raster.info`
+Inspect raster metadata using Rasterio.
 
-   The server listens for JSON‑RPC requests implementing the Model Context Protocol.
+**Input**: `uri` (str), optional `band` (int)
 
-> **Note:** Many MCP servers are distributed via `npx` or `uv/uvx` packages for Node.js or Deno. This project now uses the MCP Python SDK and `uv` for dependency management and execution.
-ployment with FastAPI and Uvicorn.
+**Output**: `RasterInfo` with:
+- Driver, CRS, bounds, transform
+- Width, height, band count, dtype
+- NoData value, overview levels, tags
 
-## Configuration
-
-You can customise server behaviour through a simple JSON configuration file. Create a `config.json` in the project root:
-
-```json
+**Example**: Get metadata for a GeoTIFF
+```python
 {
-  "workdir": "/tmp/gdal-mcp-workdir",
-  "whitelist": ["/data/datasets"],
-  "max_timeout": 3600,
-  "port": 8000
+  "uri": "/data/example.tif",
+  "band": 1
 }
 ```
 
-- `workdir` – directory where output files will be stored.
-- `whitelist` – list of directories that the server is allowed to read from.
-- `max_timeout` – maximum execution time (seconds) for GDAL commands.
-- `port` – TCP port for the server.
+#### `raster.convert`
+Convert raster formats with compression, tiling, and overviews.
 
-To run the server with this configuration, set the environment variable `GDAL_MCP_CONFIG` to the path of your JSON file before starting .
+**Input**: `uri` (str), `output` (str), optional `options` (ConversionOptions)
 
-## MCP tools
+**Options**:
+- `driver`: Output format (GTiff, COG, PNG, JPEG, etc.)
+- `compression`: lzw, deflate, zstd, jpeg, packbits, none
+- `tiled`: Boolean (default True)
+- `blockxsize/blockysize`: Tile dimensions (default 256)
+- `overviews`: List of levels (e.g., [2, 4, 8, 16])
+- `creation_options`: Dict of additional driver options
 
-The server exposes the following tools via `tools/list` and `tools/call`:
+**Output**: `ConversionResult` with ResourceRef and file size
 
-| Tool name | Description |
-| --- | --- |
-| `gdalinfo` | Prints summary information about a raster dataset (metadata, geolocation, statistics). |
-| `gdal_translate` | Converts raster data between formats, and can subset, resample or rescale pixels. |
-| `gdalwarp` | Reprojects and warps raster images; can mosaic multiple inputs and apply ground control points. |
-| `gdalbuildvrt` | Builds a virtual mosaic (VRT) from a list of input rasters. |
-| `gdal_rasterize` | Burns vector geometries into raster band(s). |
-| `gdal2xyz` | Converts a raster dataset into x/y/z points, supporting multiple bands and nodata handling. |
-| `gdal_merge` | Mosaics a set of images that share the same coordinate system and number of bands. |
-| `gdal_polygonize` | Creates vector polygons from connected regions of pixels with the same value. |
-
-For detailed JSON Schemas, architecture notes, and testing guidance see [`docs/design/`](docs/design/index.md).
-
-### HTTP / JSON‑RPC Usage (FastMCP HTTP)
-
-The FastMCP streamable HTTP transport mounts a **single endpoint** (default: `/mcp`) that handles all JSON‑RPC 2.0 requests. In stateless mode (enabled in this project) you do **not** need an initialization handshake or a session header for quick tool invocations.
-
-#### Transports
-
-| Transport | How to run | Notes |
-|-----------|------------|-------|
-| stdio | `uv run gdal-mcp serve --transport stdio` | Best for editor integrations |
-| http | `uv run gdal-mcp serve --transport http --port 8000` | Single `/mcp` endpoint; supports streaming + JSON responses |
-
-#### Accept Header
-
-The streamable HTTP transport negotiates streaming; we keep `json_response=True` but some versions still expect you to advertise support for both content types. Include:
-
-```
-Accept: application/json, text/event-stream
+**Example**: Convert to COG with compression
+```python
+{
+  "uri": "/data/input.tif",
+  "output": "/data/output_cog.tif",
+  "options": {
+    "driver": "COG",
+    "compression": "deflate",
+    "overviews": [2, 4, 8]
+  }
+}
 ```
 
-#### Stateless vs Session Mode
+#### `raster.reproject`
+Reproject rasters to new CRS with explicit resampling (ADR-0011).
 
-We initialize FastMCP with `stateless_http=True`, so each request is independent and you can omit `mcp-session-id`. If you disable stateless mode later, you must:
-1. Send `initialize` with a `mcp-session-id` header.
-2. (Optionally) send `notifications/initialized`.
-3. Then issue `tools/list` / `tools/call` with the same session ID.
+**Input**: `uri` (str), `output` (str), `params` (ReprojectionParams)
 
-#### List Tools
+**Params**:
+- `dst_crs`: Target CRS (e.g., "EPSG:3857")
+- `resampling`: **Required** - nearest, bilinear, cubic, lanczos, etc.
+- `src_crs`: Optional override
+- `resolution`: Optional (x_res, y_res) tuple
+- `width/height`: Optional output dimensions
+- `bounds`: Optional (left, bottom, right, top)
+- `nodata`: Optional nodata override
+
+**Output**: `ReprojectionResult` with ResourceRef, transform, and bounds
+
+**Example**: Reproject to Web Mercator with bilinear resampling
+```python
+{
+  "uri": "/data/input.tif",
+  "output": "/data/reprojected.tif",
+  "params": {
+    "dst_crs": "EPSG:3857",
+    "resampling": "bilinear"
+  }
+}
+```
+
+#### `raster.stats`
+Compute comprehensive statistics with NumPy.
+
+**Input**: `uri` (str), optional `params` (RasterStatsParams)
+
+**Params**:
+- `bands`: List of band indices (None = all bands)
+- `include_histogram`: Boolean (default False)
+- `histogram_bins`: 2-1024 bins (default 256)
+- `percentiles`: List of percentiles (default [25, 50, 75])
+- `sample_size`: Optional sampling for large rasters
+
+**Output**: `RasterStatsResult` with per-band statistics:
+- min, max, mean, std, median
+- Percentiles (configurable)
+- Valid/nodata pixel counts
+- Optional histogram
+
+**Example**: Compute stats with histogram
+```python
+{
+  "uri": "/data/example.tif",
+  "params": {
+    "include_histogram": true,
+    "histogram_bins": 128,
+    "percentiles": [10, 50, 90]
+  }
+}
+```
+
+### Vector Tools
+
+#### `vector.info`
+Inspect vector metadata using pyogrio (or fiona fallback).
+
+**Input**: `uri` (str)
+
+**Output**: `VectorInfo` with:
+- Driver, CRS, bounds
+- Geometry types
+- Field schema (name, type)
+- Feature count
+
+**Example**: Get metadata for a GeoJSON
+```python
+{
+  "uri": "/data/boundaries.geojson"
+}
+```
+
+## 🧪 Testing
+
+Run the comprehensive test suite:
 
 ```bash
-curl -X POST http://localhost:8000/mcp \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json, text/event-stream' \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "1",
-    "method": "tools/list",
-    "params": {}
-  }'
+# All tests with pytest
+uv run pytest test/ -v
+
+# With coverage
+uv run pytest test/ --cov=src --cov-report=term-missing
+
+# Specific test file
+uv run pytest test/test_raster_tools.py -v
 ```
 
-#### Call `info`
+**Current Status**: ✅ 15/15 tests passing
 
-```bash
-curl -X POST http://localhost:8000/mcp \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json, text/event-stream' \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "2",
-    "method": "tools/call",
-    "params": {
-      "name": "info",
-      "arguments": { "path": "test/data/sample.tif", "format": "json" }
+Test fixtures create tiny synthetic datasets (10×10 rasters, 3-feature vectors) for fast validation.
+
+## 🔌 Connecting to Claude Desktop
+
+See [QUICKSTART.md](QUICKSTART.md) for full instructions. Quick version:
+
+1. Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+
+```json
+{
+  "mcpServers": {
+    "gdal-mcp": {
+      "command": "uvx",
+      "args": ["--from", "gdal-mcp", "gdal-mcp", "--transport", "stdio"],
+      "env": {
+        "GDAL_CACHEMAX": "512"
+      }
     }
-  }'
+  }
+}
 ```
 
-#### Call `convert`
+2. Restart Claude Desktop
+3. Test with: "Use raster.info to inspect /path/to/raster.tif"
 
-```bash
-curl -X POST http://localhost:8000/mcp \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json, text/event-stream' \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "3",
-    "method": "tools/call",
-    "params": {
-      "name": "convert",
-      "arguments": { "input": "test/data/sample.tif", "output": "out.tif", "output_format": "GTiff" }
+## 🏗️ Architecture
 
-#### Call `reproject`
+**Python-Native Stack** (ADR-0017):
+- **Rasterio** - Raster I/O and manipulation
+- **PyProj** - CRS operations and transformations
+- **pyogrio** - High-performance vector I/O (fiona fallback)
+- **Shapely** - Geometry operations
+- **NumPy** - Array operations and statistics
+- **Pydantic** - Type-safe models with JSON schema
 
-```bash
-curl -X POST http://localhost:8000/mcp \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json, text/event-stream' \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "4",
-    "method": "tools/call",
-    "params": {
-      "name": "reproject",
-      "arguments": { "input": "test/data/sample.tif", "output": "reproj.tif", "dst_crs": "EPSG:4326" }
-    }
-  }'
-```
-    }
-  }'
-```
+**Design Principles** (see [docs/design/](docs/design/)):
+- ADR-0007: Structured outputs with Pydantic
+- ADR-0011: Explicit resampling methods
+- ADR-0012: Large outputs via ResourceRef
+- ADR-0013: Per-request config isolation
+- ADR-0017: Python-native over CLI shelling
 
-#### Session Mode Example (if you disable `stateless_http`)
+## 📚 Documentation
 
-```bash
-# 1. Initialize
-curl -X POST http://localhost:8000/mcp \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json, text/event-stream' \
-  -H 'mcp-session-id: demo-1' \
-  -d '{
-    "jsonrpc":"2.0",
-    "id":"init-1",
-    "method":"initialize",
-    "params": { "protocolVersion":"2024-11-05", "capabilities": {"tools":{}}, "clientInfo":{"name":"curl","version":"0.0.1"}}
-  }'
+- [QUICKSTART.md](QUICKSTART.md) - Setup and usage guide
+- [CONTRIBUTING.md](CONTRIBUTING.md) - Development guide
+- [docs/design/](docs/design/) - Architecture and design docs
+- [docs/ADR/](docs/ADR/) - Architecture Decision Records
 
-# 2. List tools in the same session
-curl -X POST http://localhost:8000/mcp \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json, text/event-stream' \
-  -H 'mcp-session-id: demo-1' \
-  -d '{"jsonrpc":"2.0","id":"2","method":"tools/list","params":{}}'
-```
+## 🤝 Contributing
 
-#### Common Errors
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for:
+- Development setup
+- Code style guide (Ruff + mypy)
+- Testing requirements (pytest + fixtures)
+- ADR process
 
-| Message | Cause | Fix |
-|---------|-------|-----|
-| Not Acceptable: Client must accept both application/json and text/event-stream | Missing or incomplete Accept header | Add `-H 'Accept: application/json, text/event-stream'` |
-| Missing session ID | Server running in stateful mode | Add `mcp-session-id` header or enable `stateless_http=True` |
-| No valid session ID provided | Invalid / missing session header in stateful mode | Ensure consistent, non-empty `mcp-session-id` |
-| Command not found: gdalinfo | GDAL binaries not in PATH | Install GDAL (e.g. `brew install gdal`) |
+## 📝 License
 
-### Resources
+MIT License - see [LICENSE](LICENSE) for details.
 
-File‑producing tools return a `resource_uri` (`file://...`) and register it with the server so clients can list/read it via the MCP resources API.
+## 🙏 Acknowledgments
 
-## Contributing
+- Built with [FastMCP](https://github.com/jlowin/fastmcp)
+- Powered by [Rasterio](https://github.com/rasterio/rasterio) and [GDAL](https://gdal.org)
+- Inspired by the [Model Context Protocol](https://modelcontextprotocol.io)
 
-Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on contributing, reporting bugs, and running tests.
+## 🔮 Roadmap
 
-## Code of Conduct
+**MVP Complete** ✅:
+- ✅ Raster tools (info, convert, reproject, stats)
+- ✅ Vector info tool
+- ✅ Comprehensive tests (15/15)
+- ✅ Docker deployment
+- ✅ MCP client integration
 
-Please note that this project adheres to the [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
+**Next Steps**:
+- Vector reprojection and conversion
+- Spatial analysis operations
+- Multi-layer support
+- Benchmark suite (ADR-0015)
+- Performance optimizations
 
-## License
+---
 
-This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.
+**Status**: MVP Ready for Public Release 🚀
 
-## Acknowledgments
-
-- GDAL – https://gdal.org
-- Model Context Protocol – thanks to the MCP community for developing the specification.
+Built with ❤️ for the geospatial AI community.

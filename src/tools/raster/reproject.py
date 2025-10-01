@@ -1,4 +1,5 @@
 """Raster reprojection tool using Python-native Rasterio."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -30,7 +31,7 @@ async def _reproject(
 
     Returns:
         Result: Metadata about the reprojected raster with ResourceRef.
-    
+
     Raises:
         ToolError: If raster cannot be opened or reprojection fails.
     """
@@ -48,15 +49,25 @@ async def _reproject(
                 src_crs = params.src_crs if params.src_crs else src.crs
                 if src_crs is None:
                     raise ToolError(
-                        "Source CRS not found in raster '" + uri + "' and not provided in params. "
+                        "Source CRS not found in raster '"
+                        + uri
+                        + "' and not provided in params. "
                         "Please specify src_crs parameter with the coordinate system "
                         "(e.g., 'EPSG:4326')."
                     )
 
                 if ctx:
                     await ctx.info(
-                        "✓ Source: " + src_crs + ", " + str(src.width) + "x" + str(src.height) + ", "
-                        + str(src.count) + " bands, " + (src.dtypes[0] if src.dtypes else 'unknown')
+                        "✓ Source: "
+                        + src_crs
+                        + ", "
+                        + str(src.width)
+                        + "x"
+                        + str(src.height)
+                        + ", "
+                        + str(src.count)
+                        + " bands, "
+                        + (src.dtypes[0] if src.dtypes else "unknown")
                     )
                     await ctx.report_progress(0, 100)
 
@@ -72,7 +83,11 @@ async def _reproject(
                     "gauss": Resampling.gauss,
                 }
                 # Handle both enum and string (Pydantic may convert enum to string)
-                resampling_str = params.resampling.name if hasattr(params.resampling, 'name') else params.resampling
+                resampling_str = (
+                    params.resampling.name
+                    if hasattr(params.resampling, "name")
+                    else params.resampling
+                )
                 resampling_method = resampling_map.get(
                     resampling_str, Resampling.nearest
                 )
@@ -80,7 +95,7 @@ async def _reproject(
                 # Calculate destination transform and dimensions
                 if ctx:
                     await ctx.info("📐 Calculating output transform and dimensions...")
-                
+
                 if params.resolution:
                     # Use specified resolution
                     dst_transform, dst_width, dst_height = calculate_default_transform(
@@ -114,7 +129,13 @@ async def _reproject(
 
                 if ctx:
                     await ctx.info(
-                        "✓ Output: " + params.dst_crs + ", " + str(dst_width) + "x" + str(dst_height) + " pixels"
+                        "✓ Output: "
+                        + params.dst_crs
+                        + ", "
+                        + str(dst_width)
+                        + "x"
+                        + str(dst_height)
+                        + " pixels"
                     )
                     await ctx.report_progress(10, 100)
 
@@ -141,14 +162,20 @@ async def _reproject(
                     for band_idx in range(1, src.count + 1):
                         # Progress: 10% setup, 80% reprojection (distributed across bands), 10% finalize
                         progress_start = 10 + int(((band_idx - 1) / src.count) * 80)
-                        
+
                         if ctx:
                             await ctx.report_progress(progress_start, 100)
                             await ctx.debug(
-                                "Reprojecting band " + str(band_idx) + "/" + str(src.count) + " "
-                                + "(" + resampling_str + " resampling)"
+                                "Reprojecting band "
+                                + str(band_idx)
+                                + "/"
+                                + str(src.count)
+                                + " "
+                                + "("
+                                + resampling_str
+                                + " resampling)"
                             )
-                        
+
                         rio_reproject(
                             source=rasterio.band(src, band_idx),
                             destination=rasterio.band(dst, band_idx),
@@ -176,7 +203,11 @@ async def _reproject(
             if ctx:
                 await ctx.report_progress(100, 100)
                 await ctx.info(
-                    "✓ Reprojection complete: " + output + " (" + str(size_bytes) + " bytes)"
+                    "✓ Reprojection complete: "
+                    + output
+                    + " ("
+                    + str(size_bytes)
+                    + " bytes)"
                 )
 
             # Build ResourceRef per ADR-0012
@@ -188,7 +219,9 @@ async def _reproject(
                 meta={
                     "src_crs": str(src_crs),
                     "dst_crs": params.dst_crs,
-                    "resampling": params.resampling.name if hasattr(params.resampling, 'name') else params.resampling,
+                    "resampling": params.resampling.name
+                    if hasattr(params.resampling, "name")
+                    else params.resampling,
                 },
             )
 
@@ -197,7 +230,9 @@ async def _reproject(
                 output=resource_ref,
                 src_crs=str(src_crs),
                 dst_crs=params.dst_crs,
-                resampling=params.resampling.name if hasattr(params.resampling, 'name') else params.resampling,
+                resampling=params.resampling.name
+                if hasattr(params.resampling, "name")
+                else params.resampling,
                 transform=[
                     dst_transform.a,
                     dst_transform.b,
@@ -208,9 +243,14 @@ async def _reproject(
                 ],
                 width=dst_width,
                 height=dst_height,
-                bounds=(dst_bounds.left, dst_bounds.bottom, dst_bounds.right, dst_bounds.top),
+                bounds=(
+                    dst_bounds.left,
+                    dst_bounds.bottom,
+                    dst_bounds.right,
+                    dst_bounds.top,
+                ),
             )
-    
+
     except rasterio.errors.RasterioIOError as e:
         raise ToolError(
             "Cannot open source raster at '" + uri + "'. "
@@ -238,9 +278,7 @@ async def _reproject(
             "(2) processing the raster in tiles, or (3) using a system with more RAM."
         ) from e
     except Exception as e:
-        raise ToolError(
-            "Unexpected error during reprojection: " + str(e)
-        ) from e
+        raise ToolError("Unexpected error during reprojection: " + str(e)) from e
 
 
 @mcp.tool(

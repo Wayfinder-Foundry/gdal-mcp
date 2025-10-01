@@ -1,4 +1,5 @@
 """Raster statistics tool using Python-native Rasterio + NumPy."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -24,7 +25,7 @@ async def _stats(
 
     Returns:
         Result: Per-band statistics with optional histogram.
-    
+
     Raises:
         ToolError: If raster cannot be opened or parameters are invalid.
     """
@@ -44,7 +45,7 @@ async def _stats(
                         f"✓ Size: {src.width}x{src.height}, Bands: {src.count}, "
                         f"Dtype: {src.dtypes[0] if src.dtypes else 'unknown'}"
                     )
-                
+
                 # Determine which bands to process
                 if params.bands is None:
                     band_indices = list(range(1, src.count + 1))
@@ -61,15 +62,17 @@ async def _stats(
 
                 total_pixels = src.width * src.height
                 band_stats_list = []
-                
+
                 if ctx:
-                    await ctx.info(f"Computing statistics for {len(band_indices)} band(s)...")
+                    await ctx.info(
+                        f"Computing statistics for {len(band_indices)} band(s)..."
+                    )
                     await ctx.report_progress(0, len(band_indices))
 
                 for band_num, band_idx in enumerate(band_indices, 1):
                     if ctx:
                         await ctx.debug(f"Processing band {band_idx}...")
-                    
+
                     # Read band data (masked if nodata is set)
                     if src.nodata is not None:
                         data = src.read(band_idx, masked=True)
@@ -90,7 +93,9 @@ async def _stats(
                                 f"Sampling {params.sample_size} pixels from {valid_count}"
                             )
                         # Random sampling for performance
-                        rng = np.random.default_rng(42)  # Fixed seed for reproducibility
+                        rng = np.random.default_rng(
+                            42
+                        )  # Fixed seed for reproducibility
                         sampled_indices = rng.choice(
                             valid_count, size=params.sample_size, replace=False
                         )
@@ -104,7 +109,7 @@ async def _stats(
                     median_val: float | None
                     p25_val: float | None
                     p75_val: float | None
-                    
+
                     if valid_count > 0:
                         min_val = float(np.min(valid_data))
                         max_val = float(np.max(valid_data))
@@ -112,12 +117,26 @@ async def _stats(
                         std_val = float(np.std(valid_data))
 
                         # Compute percentiles
-                        percentile_values = np.percentile(valid_data, params.percentiles)
-                        percentile_dict = dict(zip(params.percentiles, percentile_values))
-                        
-                        median_val = float(percentile_dict.get(50.0, np.median(valid_data)))
-                        p25_val = float(percentile_dict[25.0]) if 25.0 in percentile_dict else None
-                        p75_val = float(percentile_dict[75.0]) if 75.0 in percentile_dict else None
+                        percentile_values = np.percentile(
+                            valid_data, params.percentiles
+                        )
+                        percentile_dict = dict(
+                            zip(params.percentiles, percentile_values)
+                        )
+
+                        median_val = float(
+                            percentile_dict.get(50.0, np.median(valid_data))
+                        )
+                        p25_val = (
+                            float(percentile_dict[25.0])
+                            if 25.0 in percentile_dict
+                            else None
+                        )
+                        p75_val = (
+                            float(percentile_dict[75.0])
+                            if 75.0 in percentile_dict
+                            else None
+                        )
                     else:
                         min_val = max_val = mean_val = std_val = None
                         median_val = p25_val = p75_val = None
@@ -156,7 +175,7 @@ async def _stats(
                         histogram=histogram_bins,
                     )
                     band_stats_list.append(band_stats)
-                    
+
                     if ctx:
                         await ctx.report_progress(band_num, len(band_indices))
 
@@ -169,7 +188,7 @@ async def _stats(
                     band_stats=band_stats_list,
                     total_pixels=total_pixels,
                 )
-    
+
     except rasterio.errors.RasterioIOError as e:
         raise ToolError(
             f"Cannot open raster at '{uri}'. "
@@ -184,9 +203,7 @@ async def _stats(
             f"For example: params.sample_size = 1000000 (1 million pixels)."
         ) from e
     except Exception as e:
-        raise ToolError(
-            f"Unexpected error while computing statistics: {str(e)}"
-        ) from e
+        raise ToolError(f"Unexpected error while computing statistics: {str(e)}") from e
 
 
 @mcp.tool(

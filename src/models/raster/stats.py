@@ -1,4 +1,5 @@
 """Raster statistics models."""
+
 from __future__ import annotations
 
 from pydantic import BaseModel, Field
@@ -63,7 +64,5 @@ class Result(BaseModel):
     """Result of raster statistics computation."""
 
     path: str = Field(description="Path to the raster dataset")
-    band_stats: list[Band] = Field(
-        description="Per-band statistics"
-    )
+    band_stats: list[Band] = Field(description="Per-band statistics")
     total_pixels: int = Field(ge=0, description="Total number of pixels per band")

@@ -1,4 +1,5 @@
 """Validation script to test GDAL MCP server startup and tool registration."""
+
 from __future__ import annotations
 
 import asyncio
@@ -11,7 +12,7 @@ async def validate_server():
     """Validate server can start and list tools."""
     print("🔍 Validating GDAL MCP Server...")
     print("=" * 60)
-    
+
     # List registered tools
     tools = await mcp._list_tools()
     print("\n✅ Server loaded successfully")
@@ -19,21 +20,21 @@ async def validate_server():
     print("\n🔧 Available tools:")
     for tool in tools:
         # FunctionTool objects have name and description attributes
-        name = getattr(tool, 'name', 'Unknown')
-        desc = getattr(tool, 'description', 'No description')
+        name = getattr(tool, "name", "Unknown")
+        desc = getattr(tool, "description", "No description")
         print(f"  - {name}: {desc[:60]}...")
-    
+
     # List prompts
     try:
         prompts = await mcp._list_prompts()
         print(f"\n📝 Prompts registered: {len(prompts)}")
         for prompt in prompts:
-            prompt_name = getattr(prompt, 'name', 'Unknown')
-            prompt_desc = getattr(prompt, 'description', 'No description')
+            prompt_name = getattr(prompt, "name", "Unknown")
+            prompt_desc = getattr(prompt, "description", "No description")
             print(f"  - {prompt_name}: {prompt_desc[:60]}...")
     except Exception as e:
         print(f"\n⚠️  Could not list prompts: {e}")
-    
+
     print("\n" + "=" * 60)
     print("✨ Server validation complete!")
     print("\n🎯 MVP Tools:")
@@ -56,5 +57,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ Validation failed: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)

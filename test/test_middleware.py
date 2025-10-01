@@ -1,4 +1,5 @@
 """Tests for path validation middleware."""
+
 from __future__ import annotations
 
 import os
@@ -31,8 +32,10 @@ def mock_context():
 @pytest.fixture
 def mock_call_next():
     """Create mock call_next function."""
+
     async def call_next(ctx):
         return {"status": "success"}
+
     return call_next
 
 
@@ -51,9 +54,9 @@ async def test_middleware_allows_when_no_workspaces_configured(
     """Test that middleware allows all paths when no workspaces configured."""
     # No GDAL_MCP_WORKSPACES set - should allow all
     mock_context.message.arguments = {"uri": "/any/path/file.tif"}
-    
+
     result = await middleware.on_call_tool(mock_context, mock_call_next)
-    
+
     assert result == {"status": "success"}
 
 
@@ -65,21 +68,21 @@ async def test_middleware_validates_input_path_within_workspace(
     # Create temp workspace
     workspace = tmp_path / "workspace"
     workspace.mkdir()
-    
+
     # Configure workspace
     os.environ["GDAL_MCP_WORKSPACES"] = str(workspace)
     reset_workspaces_cache()
-    
+
     # Create test file within workspace
     test_file = workspace / "test.tif"
     test_file.touch()
-    
+
     mock_context.message.arguments = {"uri": str(test_file)}
-    
+
     result = await middleware.on_call_tool(mock_context, mock_call_next)
-    
+
     assert result == {"status": "success"}
-    
+
     # Cleanup
     del os.environ["GDAL_MCP_WORKSPACES"]
 
@@ -92,22 +95,22 @@ async def test_middleware_denies_path_outside_workspace(
     # Create temp workspace
     workspace = tmp_path / "workspace"
     workspace.mkdir()
-    
+
     # Configure workspace
     os.environ["GDAL_MCP_WORKSPACES"] = str(workspace)
     reset_workspaces_cache()
-    
+
     # Try to access file outside workspace
     outside_file = tmp_path / "outside.tif"
-    
+
     mock_context.message.arguments = {"uri": str(outside_file)}
-    
+
     with pytest.raises(ToolError) as exc_info:
         await middleware.on_call_tool(mock_context, mock_call_next)
-    
+
     assert "Access denied" in str(exc_info.value)
     assert "outside allowed workspaces" in str(exc_info.value)
-    
+
     # Cleanup
     del os.environ["GDAL_MCP_WORKSPACES"]
 
@@ -119,19 +122,19 @@ async def test_middleware_validates_output_path(
     """Test that middleware validates output paths."""
     workspace = tmp_path / "workspace"
     workspace.mkdir()
-    
+
     os.environ["GDAL_MCP_WORKSPACES"] = str(workspace)
     reset_workspaces_cache()
-    
+
     # Output path within workspace
     output_file = workspace / "output.tif"
-    
+
     mock_context.message.arguments = {"output": str(output_file)}
-    
+
     result = await middleware.on_call_tool(mock_context, mock_call_next)
-    
+
     assert result == {"status": "success"}
-    
+
     # Cleanup
     del os.environ["GDAL_MCP_WORKSPACES"]
 
@@ -143,20 +146,20 @@ async def test_middleware_denies_output_outside_workspace(
     """Test that middleware denies output paths outside workspace."""
     workspace = tmp_path / "workspace"
     workspace.mkdir()
-    
+
     os.environ["GDAL_MCP_WORKSPACES"] = str(workspace)
     reset_workspaces_cache()
-    
+
     # Try to write outside workspace
     outside_output = tmp_path / "outside_output.tif"
-    
+
     mock_context.message.arguments = {"output": str(outside_output)}
-    
+
     with pytest.raises(ToolError) as exc_info:
         await middleware.on_call_tool(mock_context, mock_call_next)
-    
+
     assert "Access denied" in str(exc_info.value)
-    
+
     # Cleanup
     del os.environ["GDAL_MCP_WORKSPACES"]
 
@@ -168,26 +171,26 @@ async def test_middleware_validates_multiple_path_args(
     """Test that middleware validates multiple path arguments."""
     workspace = tmp_path / "workspace"
     workspace.mkdir()
-    
+
     os.environ["GDAL_MCP_WORKSPACES"] = str(workspace)
     reset_workspaces_cache()
-    
+
     # Create input file
     input_file = workspace / "input.tif"
     input_file.touch()
-    
+
     # Output path
     output_file = workspace / "output.tif"
-    
+
     mock_context.message.arguments = {
         "uri": str(input_file),
-        "output": str(output_file)
+        "output": str(output_file),
     }
-    
+
     result = await middleware.on_call_tool(mock_context, mock_call_next)
-    
+
     assert result == {"status": "success"}
-    
+
     # Cleanup
     del os.environ["GDAL_MCP_WORKSPACES"]
 
@@ -197,14 +200,10 @@ async def test_middleware_skips_empty_path_arguments(
     middleware, mock_context, mock_call_next
 ):
     """Test that middleware skips None/empty path arguments."""
-    mock_context.message.arguments = {
-        "uri": None,
-        "output": "",
-        "other_arg": "value"
-    }
-    
+    mock_context.message.arguments = {"uri": None, "output": "", "other_arg": "value"}
+
     result = await middleware.on_call_tool(mock_context, mock_call_next)
-    
+
     assert result == {"status": "success"}
 
 
@@ -215,17 +214,17 @@ async def test_middleware_includes_tool_name_in_error(
     """Test that middleware includes tool name in error messages."""
     workspace = tmp_path / "workspace"
     workspace.mkdir()
-    
+
     os.environ["GDAL_MCP_WORKSPACES"] = str(workspace)
     reset_workspaces_cache()
-    
+
     mock_context.message.name = "raster.info"
     mock_context.message.arguments = {"uri": "/etc/passwd"}
-    
+
     with pytest.raises(ToolError) as exc_info:
         await middleware.on_call_tool(mock_context, mock_call_next)
-    
+
     assert "raster.info" in str(exc_info.value)
-    
+
     # Cleanup
     del os.environ["GDAL_MCP_WORKSPACES"]

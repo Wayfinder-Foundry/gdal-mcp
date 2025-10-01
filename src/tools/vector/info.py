@@ -1,8 +1,10 @@
 """Vector info tool using Python-native pyogrio."""
+
 from __future__ import annotations
 
 try:
     import pyogrio  # noqa: F401
+
     HAS_PYOGRIO = True
 except ImportError:
     HAS_PYOGRIO = False
@@ -27,13 +29,13 @@ async def _info(
 
     Returns:
         Info: Structured vector metadata with JSON schema.
-    
+
     Raises:
         ToolError: If vector dataset cannot be opened.
     """
     if ctx:
         await ctx.info(f"📂 Opening vector dataset: {uri}")
-    
+
     try:
         if HAS_PYOGRIO:
             if ctx:
@@ -43,7 +45,7 @@ async def _info(
             if ctx:
                 await ctx.debug("Using fiona backend (pyogrio not available)")
             return await _info_with_fiona(uri, ctx)
-    
+
     except Exception as e:
         # Catch any backend-specific errors and convert to ToolError
         raise ToolError(
@@ -59,38 +61,38 @@ async def _info(
 async def _info_with_pyogrio(uri: str, ctx: Context | None = None) -> Info:
     """Extract info using pyogrio."""
     import pyogrio
-    
+
     # Read dataset info (metadata only, no features loaded)
     vinfo = pyogrio.read_info(uri)
-    
+
     if ctx:
         await ctx.debug(
             f"✓ Driver: {vinfo.get('driver')}, Features: {vinfo.get('features', 0)}, "
             f"CRS: {vinfo.get('crs')}"
         )
-    
+
     # Extract geometry types from the dataset
     geometry_types = []
     if vinfo.get("geometry_type"):
         geometry_types = [vinfo["geometry_type"]]
-    
+
     # Extract field schema
     fields = []
     if "fields" in vinfo:
         for field_name, field_type in zip(vinfo["fields"], vinfo["dtypes"]):
             fields.append((field_name, str(field_type)))
-    
+
     # Extract bounds (if available)
     bounds_tuple = None
     if "total_bounds" in vinfo and vinfo["total_bounds"] is not None:
         bounds_tuple = tuple(vinfo["total_bounds"])
-    
+
     if ctx:
         await ctx.info(
             f"✓ Metadata extracted: {len(fields)} fields, "
             f"{vinfo.get('features', 0)} features"
         )
-    
+
     # Build VectorInfo model
     return Info(
         path=uri,
@@ -107,34 +109,34 @@ async def _info_with_pyogrio(uri: str, ctx: Context | None = None) -> Info:
 async def _info_with_fiona(uri: str, ctx: Context | None = None) -> Info:
     """Extract info using fiona (fallback)."""
     import fiona
-    
+
     with fiona.open(uri) as src:
         if ctx:
             await ctx.debug(
                 f"✓ Driver: {src.driver}, Features: {len(src)}, CRS: {src.crs}"
             )
-        
+
         # Extract geometry type
         geometry_types = []
         if src.schema.get("geometry"):
             geometry_types = [src.schema["geometry"]]
-        
+
         # Extract field schema
         fields = []
         if "properties" in src.schema:
             for field_name, field_type in src.schema["properties"].items():
                 fields.append((field_name, field_type))
-        
+
         # Extract bounds
         bounds_tuple = None
         if src.bounds:
             bounds_tuple = src.bounds
-        
+
         if ctx:
             await ctx.info(
                 f"✓ Metadata extracted: {len(fields)} fields, {len(src)} features"
             )
-        
+
         # Build VectorInfo model
         return Info(
             path=uri,
@@ -171,7 +173,7 @@ async def _info_with_fiona(uri: str, ctx: Context | None = None) -> Info:
     ),
 )
 async def info(
-    uri: str, 
+    uri: str,
     ctx: Context | None = None,
 ) -> Info:
     """MCP tool wrapper for vector info."""

@@ -11,16 +11,12 @@ from src.models.common import ResourceRef
 from src.models.raster import ConversionOptions, ConversionResult
 
 
-@mcp.tool(
-    name="raster.convert",
-    description="Convert raster format with options for compression, tiling, and overviews.",
-)
-async def raster_convert(
+async def convert_raster(
     uri: str,
     output: str,
     options: ConversionOptions | None = None,
 ) -> ConversionResult:
-    """Convert a raster dataset to a new format with specified options.
+    """Core logic: Convert a raster dataset to a new format.
 
     Args:
         uri: Path/URI to the source raster dataset.
@@ -51,7 +47,9 @@ async def raster_convert(
 
             # Apply compression if specified
             if options.compression:
-                profile["compress"] = options.compression.value
+                # Handle both enum and string (Pydantic may convert enum to string)
+                compress_value = options.compression.value if hasattr(options.compression, 'value') else options.compression
+                profile["compress"] = compress_value
 
             # Apply photometric if specified
             if options.photometric:
@@ -106,7 +104,7 @@ async def raster_convert(
             size=size_bytes,
             driver=options.driver,
             meta={
-                "compression": options.compression.value if options.compression else None,
+                "compression": options.compression.value if hasattr(options.compression, 'value') else options.compression if options.compression else None,
                 "tiled": options.tiled,
             },
         )
@@ -115,7 +113,20 @@ async def raster_convert(
         return ConversionResult(
             output=resource_ref,
             driver=options.driver,
-            compression=options.compression.value if options.compression else None,
+            compression=options.compression.value if hasattr(options.compression, 'value') else options.compression if options.compression else None,
             size_bytes=size_bytes,
             overviews_built=overviews_built,
         )
+
+
+@mcp.tool(
+    name="raster.convert",
+    description="Convert raster format with options for compression, tiling, and overviews.",
+)
+async def raster_convert(
+    uri: str,
+    output: str,
+    options: ConversionOptions | None = None,
+) -> ConversionResult:
+    """MCP tool wrapper for raster conversion."""
+    return await convert_raster(uri, output, options)

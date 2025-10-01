@@ -12,12 +12,8 @@ from src.app import mcp
 from src.models.vector import VectorInfo
 
 
-@mcp.tool(
-    name="vector.info",
-    description="Inspect vector dataset metadata (CRS, geometry types, fields, bounds).",
-)
-async def vector_info(uri: str) -> VectorInfo:
-    """Return structured metadata for a vector dataset.
+async def get_vector_info(uri: str) -> VectorInfo:
+    """Core logic: Return structured metadata for a vector dataset.
 
     Args:
         uri: Path/URI to the vector dataset (Shapefile, GeoPackage, GeoJSON, etc.).
@@ -101,3 +97,12 @@ async def _info_with_fiona(uri: str) -> VectorInfo:
             fields=fields,
             bounds=bounds_tuple,
         )
+
+
+@mcp.tool(
+    name="vector.info",
+    description="Inspect vector dataset metadata (CRS, geometry types, fields, bounds).",
+)
+async def vector_info(uri: str) -> VectorInfo:
+    """MCP tool wrapper for vector info."""
+    return await get_vector_info(uri)

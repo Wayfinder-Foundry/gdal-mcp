@@ -8,15 +8,11 @@ from src.app import mcp
 from src.models.raster import RasterStatsParams, RasterStatsResult, BandStatistics, HistogramBin
 
 
-@mcp.tool(
-    name="raster.stats",
-    description="Compute detailed statistics for raster bands including min/max/mean/std/percentiles/histogram.",
-)
-async def raster_stats(
+async def compute_raster_stats(
     uri: str,
     params: RasterStatsParams | None = None,
 ) -> RasterStatsResult:
-    """Compute comprehensive statistics for a raster dataset.
+    """Core logic: Compute comprehensive statistics for a raster dataset.
 
     Args:
         uri: Path/URI to the raster dataset.
@@ -125,3 +121,15 @@ async def raster_stats(
                 band_stats=band_stats_list,
                 total_pixels=total_pixels,
             )
+
+
+@mcp.tool(
+    name="raster.stats",
+    description="Compute detailed statistics for raster bands including min/max/mean/std/percentiles/histogram.",
+)
+async def raster_stats(
+    uri: str,
+    params: RasterStatsParams | None = None,
+) -> RasterStatsResult:
+    """MCP tool wrapper for raster statistics."""
+    return await compute_raster_stats(uri, params)

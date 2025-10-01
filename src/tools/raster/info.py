@@ -7,12 +7,8 @@ from src.app import mcp
 from src.models.raster import RasterInfo
 
 
-@mcp.tool(
-    name="raster.info",
-    description="Inspect a raster dataset and return structured metadata.",
-)
-async def raster_info(uri: str, band: int | None = None) -> RasterInfo:
-    """Return structured metadata for a raster dataset.
+async def get_raster_info(uri: str, band: int | None = None) -> RasterInfo:
+    """Core logic: Return structured metadata for a raster dataset.
 
     Args:
         uri: Path/URI to the raster dataset (file://, local path, VSI-supported).
@@ -73,3 +69,12 @@ async def raster_info(uri: str, band: int | None = None) -> RasterInfo:
                 overview_levels=ov_levels,
                 tags=ds.tags() or {},
             )
+
+
+@mcp.tool(
+    name="raster.info",
+    description="Inspect a raster dataset and return structured metadata.",
+)
+async def raster_info(uri: str, band: int | None = None) -> RasterInfo:
+    """MCP tool wrapper for raster info."""
+    return await get_raster_info(uri, band)

@@ -12,16 +12,12 @@ from src.models.common import ResourceRef
 from src.models.raster import ReprojectionParams, ReprojectionResult
 
 
-@mcp.tool(
-    name="raster.reproject",
-    description="Reproject a raster to a new CRS with explicit resampling method.",
-)
-async def raster_reproject(
+async def reproject_raster(
     uri: str,
     output: str,
     params: ReprojectionParams,
 ) -> ReprojectionResult:
-    """Reproject a raster dataset to a new coordinate reference system.
+    """Core logic: Reproject a raster dataset to a new CRS.
 
     Args:
         uri: Path/URI to the source raster dataset.
@@ -50,8 +46,10 @@ async def raster_reproject(
                 "mode": Resampling.mode,
                 "gauss": Resampling.gauss,
             }
+            # Handle both enum and string (Pydantic may convert enum to string)
+            resampling_str = params.resampling.value if hasattr(params.resampling, 'value') else params.resampling
             resampling_method = resampling_map.get(
-                params.resampling.value, Resampling.nearest
+                resampling_str, Resampling.nearest
             )
 
             # Calculate destination transform and dimensions
@@ -134,7 +132,7 @@ async def raster_reproject(
             meta={
                 "src_crs": str(src_crs),
                 "dst_crs": params.dst_crs,
-                "resampling": params.resampling.value,
+                "resampling": params.resampling.value if hasattr(params.resampling, 'value') else params.resampling,
             },
         )
 
@@ -143,7 +141,7 @@ async def raster_reproject(
             output=resource_ref,
             src_crs=str(src_crs),
             dst_crs=params.dst_crs,
-            resampling=params.resampling.value,
+            resampling=params.resampling.value if hasattr(params.resampling, 'value') else params.resampling,
             transform=[
                 dst_transform.a,
                 dst_transform.b,
@@ -156,3 +154,16 @@ async def raster_reproject(
             height=dst_height,
             bounds=(dst_bounds.left, dst_bounds.bottom, dst_bounds.right, dst_bounds.top),
         )
+
+
+@mcp.tool(
+    name="raster.reproject",
+    description="Reproject a raster to a new CRS with explicit resampling method.",
+)
+async def raster_reproject(
+    uri: str,
+    output: str,
+    params: ReprojectionParams,
+) -> ReprojectionResult:
+    """MCP tool wrapper for raster reprojection."""
+    return await reproject_raster(uri, output, params)

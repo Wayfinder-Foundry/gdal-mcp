@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "gdal-mcp": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "gdal-mcp",
+        "gdal-mcp",
+        "--transport",
+        "stdio"
+      ],
+      "env": {
+        "GDAL_CACHEMAX": "512",
+        "CPL_VSIL_CURL_ALLOWED_EXTENSIONS": ".tif,.tiff,.vrt,.geojson,.json,.shp"
+      }
+    }
+  }
+}

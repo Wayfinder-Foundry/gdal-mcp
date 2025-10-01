@@ -1,43 +1,61 @@
-# Multi-stage build to keep the final image small
-# Stage 1: builder for the Python wheel (optional)
-FROM python:3.12-slim AS builder
+# Multi-stage build for Python-native GDAL MCP
+# Stage 1: builder with GDAL development libraries
+FROM ghcr.io/osgeo/gdal:ubuntu-small-3.8.0 AS builder
+
+# Install Python build tools and GDAL development headers
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        python3-dev \
+        python3-pip \
+        python3-venv \
+        build-essential \
+        libgdal-dev \
+        && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
+
+# Copy project files
 COPY pyproject.toml README.md LICENSE ./
 COPY src/ ./src/
-RUN \
-    pip install \
-      --upgrade pip build && \
-    python -m build \
-      --wheel -n -o /dist
 
-# Stage 2: runtime with GDAL CLI installed
-# Use official GDAL image so the CLI is available without host deps
-FROM osgeo/gdal:ubuntu-small-latest
+# Build wheel with GDAL support
+RUN pip3 install --upgrade pip build && \
+    python3 -m build --wheel -n -o /dist
 
-# System prep
+# Stage 2: runtime with GDAL libraries
+FROM ghcr.io/osgeo/gdal:ubuntu-small-3.8.0
+
+# Environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    GDAL_CACHEMAX=512 \
+    CPL_VSIL_CURL_ALLOWED_EXTENSIONS=".tif,.tiff,.vrt,.geojson,.json,.shp"
 
-# Install Python runtime and our wheel
-RUN \
-    apt-get update && \
-    apt-get install \
-      -y --no-install-recommends \
-      python3 \
-      python3-venv \
-      python3-pip \
-      ca-certificates &&  \
-    rm -rf /var/lib/apt/lists/*
+# Install Python runtime
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        python3 \
+        python3-pip \
+        ca-certificates \
+        && rm -rf /var/lib/apt/lists/*
 
-# Copy prebuilt wheel and install
+# Copy and install prebuilt wheel
 COPY --from=builder /dist/*.whl /tmp/
-RUN pip3 install --no-cache-dir /tmp/*.whl \
-    && rm -f /tmp/*.whl
+RUN pip3 install --no-cache-dir /tmp/*.whl && \
+    rm -f /tmp/*.whl
 
-# Expose HTTP port (optional)
+# Create working directory for data
+WORKDIR /data
+
+# Expose HTTP port
 EXPOSE 8000
 
-# Default: run HTTP transport on port 8000
+# Health check (optional)
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD python3 -c "import sys; sys.exit(0)"
+
+# Default: run stdio transport (for MCP clients)
+# Override with --transport http --port 8000 for HTTP
 ENTRYPOINT ["gdal-mcp"]
-CMD ["--transport", "http", "--port", "8000"]
+CMD ["--transport", "stdio"]

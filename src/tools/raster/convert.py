@@ -1,7 +1,6 @@
 """Raster conversion tool using Python-native Rasterio."""
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 import rasterio

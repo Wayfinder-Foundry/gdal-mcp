@@ -4,7 +4,7 @@ from __future__ import annotations
 from pydantic import BaseModel, Field
 
 
-class VectorInfo(BaseModel):
+class Info(BaseModel):
     """Structured metadata for a vector dataset."""
 
     path: str = Field(description="Path or URI to the vector dataset")

@@ -12,13 +12,13 @@ from fastmcp import Context
 from fastmcp.exceptions import ToolError
 
 from src.app import mcp
-from src.models.vector.info import VectorInfo
+from src.models.vector.info import Info
 
 
 async def _info(
     uri: str,
     ctx: Context | None = None,
-) -> VectorInfo:
+) -> Info:
     """Core logic: Return structured metadata for a vector dataset.
 
     Args:
@@ -26,7 +26,7 @@ async def _info(
         ctx: Optional MCP context for logging and progress reporting.
 
     Returns:
-        VectorInfo: Structured vector metadata with JSON schema.
+        Info: Structured vector metadata with JSON schema.
     
     Raises:
         ToolError: If vector dataset cannot be opened.
@@ -56,7 +56,7 @@ async def _info(
         ) from e
 
 
-async def _info_with_pyogrio(uri: str, ctx: Context | None = None) -> VectorInfo:
+async def _info_with_pyogrio(uri: str, ctx: Context | None = None) -> Info:
     """Extract info using pyogrio."""
     import pyogrio
     
@@ -92,7 +92,7 @@ async def _info_with_pyogrio(uri: str, ctx: Context | None = None) -> VectorInfo
         )
     
     # Build VectorInfo model
-    return VectorInfo(
+    return Info(
         path=uri,
         driver=vinfo.get("driver"),
         crs=str(vinfo["crs"]) if vinfo.get("crs") else None,
@@ -104,7 +104,7 @@ async def _info_with_pyogrio(uri: str, ctx: Context | None = None) -> VectorInfo
     )
 
 
-async def _info_with_fiona(uri: str, ctx: Context | None = None) -> VectorInfo:
+async def _info_with_fiona(uri: str, ctx: Context | None = None) -> Info:
     """Extract info using fiona (fallback)."""
     import fiona
     
@@ -136,7 +136,7 @@ async def _info_with_fiona(uri: str, ctx: Context | None = None) -> VectorInfo:
             )
         
         # Build VectorInfo model
-        return VectorInfo(
+        return Info(
             path=uri,
             driver=src.driver,
             crs=str(src.crs) if src.crs else None,
@@ -173,6 +173,6 @@ async def _info_with_fiona(uri: str, ctx: Context | None = None) -> VectorInfo:
 async def info(
     uri: str, 
     ctx: Context | None = None,
-) -> VectorInfo:
+) -> Info:
     """MCP tool wrapper for vector info."""
     return await _info(uri, ctx)

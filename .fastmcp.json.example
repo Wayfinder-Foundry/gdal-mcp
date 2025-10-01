@@ -1,0 +1,33 @@
+{
+  "$schema": "https://gofastmcp.com/public/schemas/fastmcp.json/v1.json",
+  "_comment": "FastMCP configuration for GDAL MCP server. Copy to fastmcp.json and customize.",
+  
+  "source": {
+    "type": "filesystem",
+    "path": "src/__main__.py",
+    "entrypoint": "mcp",
+    "_comment": "Points to the FastMCP instance in src/__main__.py"
+  },
+  
+  "environment": {
+    "type": "uv",
+    "python": ">=3.10",
+    "project": ".",
+    "_comment": "Uses uv for dependency management. Reads from pyproject.toml."
+  },
+  
+  "deployment": {
+    "transport": "stdio",
+    "log_level": "INFO",
+    "env": {
+      "_comment_workspaces": "SECURITY: Configure allowed workspace directories (colon-separated paths).",
+      "_example_workspaces": "GDAL_MCP_WORKSPACES=/data/projects:/home/user/gis:/mnt/shared/geospatial",
+      
+      "_comment_unrestricted": "DEVELOPMENT: Leave GDAL_MCP_WORKSPACES unset to allow all paths (not recommended for production)",
+      
+      "_comment_interpolation": "You can use ${VAR} syntax to interpolate environment variables:",
+      "_example_interpolation": "GDAL_MCP_WORKSPACES=/data/${PROJECT_NAME}:/home/${USER}/gis"
+    },
+    "_comment_transport": "Use 'stdio' for Claude Desktop/Cursor, 'http' for web deployment"
+  }
+}

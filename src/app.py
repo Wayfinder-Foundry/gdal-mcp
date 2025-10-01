@@ -11,6 +11,11 @@ warnings.filterwarnings(
 )
 
 from fastmcp import FastMCP
+from src.middleware import PathValidationMiddleware
 
 # Single FastMCP instance shared across tool modules
 mcp = FastMCP("GDAL MCP", mask_error_details=True)
+
+# Add path validation middleware for workspace scoping (ADR-0022)
+# This automatically validates all file paths against allowed workspaces
+mcp.add_middleware(PathValidationMiddleware())

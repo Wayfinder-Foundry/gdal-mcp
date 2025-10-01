@@ -17,6 +17,7 @@ keywords = ["gdal", "mcp", "fastmcp", "geospatial", "cli"]
 # Runtime dependencies: FastMCP for MCP server, lightweight libs for docs ingestion & CLI UX.
 dependencies = [
   "fastmcp>=2.0,<3.0",
+  "pydantic>=2.0",
   "typer>=0.12",
   "rich>=13.0",
   "pyyaml>=6.0",
@@ -39,16 +40,14 @@ dev = [
 ]
 
 [project.scripts]
-# Main server entrypoint (will start the FastMCP server; stub for now)
-"gdal-mcp" = "gdal_mcp.__main__:main"
-# Docs ingestion CLI (idempotent ConPort exporter)
-"gdal-mcp-ingest" = "gdal_mcp.ingest:app"
-# Benchmark CLI (perf harness; stub for now)
-"gdal-mcp-bench" = "gdal_mcp.bench:main"
+# Main server entrypoint
+"gdal-mcp" = "src.__main__:main"
+# Benchmark CLI
+"gdal-mcp-bench" = "src.bench:main"
 
 [project.urls]
 Homepage = "https://github.com/JordanGunn/gdal-mcp"
 Documentation = "https://github.com/JordanGunn/gdal-mcp"
 
 [tool.hatch.build.targets.wheel]
-packages = [{ include = "gdal_mcp", from = "src" }]
+packages = ["src"]

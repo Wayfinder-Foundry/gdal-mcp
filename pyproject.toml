@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "gdal-mcp"
-version = "0.0.1"
+version = "0.1.0"
 description = "FastMCP server for Python-native GDAL ops (Rasterio/PyProj/pyogrio|Fiona/Shapely)"
 readme = "README.md"
 requires-python = ">=3.10"

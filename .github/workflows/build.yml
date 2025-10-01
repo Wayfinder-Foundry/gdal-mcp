@@ -35,7 +35,7 @@ jobs:
       - name: Verify wheel
         run: |
           ls -lh dist/
-          uv pip install --system dist/*.whl
+          pip install dist/*.whl
           gdal --help
       
       - name: Upload wheel artifact

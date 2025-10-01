@@ -34,12 +34,12 @@ jobs:
       
       - name: Run ruff (linter)
         run: |
-          uv run ruff check .
+          ruff check .
       
       - name: Run ruff (formatter check)
         run: |
-          uv run ruff format --check .
+          ruff format --check .
       
       - name: Run mypy (type checker)
         run: |
-          uv run mypy src/
+          mypy src/

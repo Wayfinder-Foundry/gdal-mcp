@@ -33,7 +33,7 @@ jobs:
       
       - name: Run pytest
         run: |
-          uv run pytest test/ -v --tb=short
+          pytest test/ -v --tb=short
       
       - name: Upload coverage reports
         if: inputs.python-version == '3.12'

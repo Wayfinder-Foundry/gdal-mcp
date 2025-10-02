@@ -2,7 +2,7 @@
 
 **Status**: Proposed (Future Implementation)  
 **Date**: 2025-09-30  
-**Deciders**: Jordan Gunn, Cascade AI  
+**Deciders**: Jordan Godau  
 **Tags**: #performance #dask #rioxarray #scalability #future
 
 ## Context

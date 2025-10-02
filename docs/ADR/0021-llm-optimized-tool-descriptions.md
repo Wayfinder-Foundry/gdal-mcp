@@ -2,7 +2,7 @@
 
 **Status**: Accepted  
 **Date**: 2025-09-30  
-**Deciders**: Jordan Gunn, Cascade AI  
+**Deciders**: Jordan Godau
 **Tags**: #mcp #llm #discoverability #tool-design
 
 ## Context

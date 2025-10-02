@@ -1,8 +1,8 @@
 # ADR-0021: LLM-Optimized Tool Descriptions and Metadata
 
 **Status**: Accepted  
-**Date**: 2025-09-30  
-**Deciders**: Jordan Godau
+**Date**: 2025-09-30 
+**Deciders**: Jordan Godau 
 **Tags**: #mcp #llm #discoverability #tool-design
 
 ## Context

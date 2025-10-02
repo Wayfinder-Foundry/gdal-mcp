@@ -2,7 +2,7 @@
 
 **Status**: Accepted  
 **Date**: 2025-09-30  
-**Deciders**: Jordan Gunn, Cascade AI  
+**Deciders**: Jordan Godau  
 **Tags**: #security #access-control #mcp #workspaces
 
 ## Context

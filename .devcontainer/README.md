@@ -58,6 +58,19 @@ The first time you open the devcontainer:
   - Runs the test suite
   - Creates necessary directories
 
+### Verify Setup
+After the container is ready, you can verify everything is working:
+```bash
+bash .devcontainer/verify-setup.sh
+```
+
+This will check:
+- System tools (Python, Git, UV, etc.)
+- Python dependencies (Rasterio, PyProj, etc.)
+- Dev tools (pytest, mypy, ruff)
+- GDAL MCP CLI functionality
+- Test suite execution
+
 ## Development Workflow
 
 ### Running the MCP Server

@@ -15,6 +15,31 @@ GDAL MCP aims to **democratize access to geospatial analysis** by removing the t
 
 ## Getting Started
 
+### Option 1: Dev Container (Recommended)
+
+The fastest way to get started is using the provided devcontainer configuration:
+
+**Requirements:**
+- [Visual Studio Code](https://code.visualstudio.com/)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop)
+- [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+
+**Steps:**
+1. Fork and clone the repository
+2. Open in VS Code
+3. Click "Reopen in Container" when prompted (or use Command Palette: "Dev Containers: Reopen in Container")
+4. Wait for setup to complete (3-5 minutes first time)
+
+**What you get:**
+- Pre-configured environment with GDAL, Python, and all dependencies
+- VS Code extensions for Python development (Ruff, MyPy, etc.)
+- Automated setup script that runs tests and quality checks
+- Port forwarding for HTTP server testing
+
+See [`.devcontainer/README.md`](.devcontainer/README.md) for detailed documentation.
+
+### Option 2: Local Setup
+
 ### 1. Fork and Clone
 
 ```bash

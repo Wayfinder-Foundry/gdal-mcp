@@ -69,7 +69,7 @@ uv sync
 uv run gdal --transport stdio
 ```
 
-See [QUICKSTART.md](QUICKSTART.md) for detailed setup instructions.
+See [QUICKSTART.md](docs/QUICKSTART.md) for detailed setup instructions.
 
 ## 🔧 Available Tools
 
@@ -217,7 +217,7 @@ Test fixtures create tiny synthetic datasets (10×10 rasters, 3-feature vectors)
 
 ## 🔌 Connecting to Claude Desktop
 
-See [QUICKSTART.md](QUICKSTART.md) for full instructions. Quick version:
+See [QUICKSTART.md](docs/QUICKSTART.md) for full instructions. Quick version:
 
 1. Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
 
@@ -257,14 +257,14 @@ See [QUICKSTART.md](QUICKSTART.md) for full instructions. Quick version:
 
 ## 📚 Documentation
 
-- [QUICKSTART.md](QUICKSTART.md) - Setup and usage guide
-- [CONTRIBUTING.md](CONTRIBUTING.md) - Development guide
+- [QUICKSTART.md](docs/QUICKSTART.md) - Setup and usage guide
+- [CONTRIBUTING.md](docs/CONTRIBUTING.md) - Development guide
 - [docs/design/](docs/design/) - Architecture and design docs
 - [docs/ADR/](docs/ADR/) - Architecture Decision Records
 
 ## 🤝 Contributing
 
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for:
+We welcome contributions! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for:
 - Development setup
 - Code style guide (Ruff + mypy)
 - Testing requirements (pytest + fixtures)

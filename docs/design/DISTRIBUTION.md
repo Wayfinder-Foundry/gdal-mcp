@@ -8,24 +8,6 @@ tags: [distribution, uvx, docker, product_context]
 
 Shipping the GDAL MCP consistently across environments is as important as implementing the tools themselves. This plan highlights two first-class distribution paths—`uvx` and Docker—alongside release automation and repository structure guidance.
 
-## Repository Layout
-
-The project keeps a familiar open-source layout to welcome contributors and automation【352695461642380†L160-L169】:
-
-```
-gdal-mcp/
-├── README.md             # Overview and quick-start guides
-├── LICENSE               # MIT licence
-├── CONTRIBUTING.md       # Contribution process
-├── CODE_OF_CONDUCT.md    # Community expectations
-├── docs/                 # Design notes (this folder) and usage docs
-├── gdal_mcp/             # FastMCP server implementation and tool wrappers
-├── test/                 # Unit and integration coverage and fixtures
-└── pyproject.toml        # Project metadata for uv/uvx and packaging
-```
-
-This structure makes it straightforward to package the project with modern Python tooling while keeping documentation close to the code.
-
 ## `uvx` Distribution
 
 `uvx` offers a zero-install launcher for Python applications. By publishing the GDAL MCP as a Python package, users can execute the server directly with `uvx gdal-mcp` without pre-installing dependencies.

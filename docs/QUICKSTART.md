@@ -319,7 +319,7 @@ uv run gdal --transport stdio
 - Read [CONTRIBUTING.md](CONTRIBUTING.md) to contribute tools or features
 - Review [docs/ADR/](docs/ADR/) for architecture decisions
 - Check [docs/design/](docs/design/) for design documentation
-- See [.github/workflows/README.md](.github/workflows/README.md) for CI/CD info
+- See [.github/workflows/README.md](../.github/workflows/README.md) for CI/CD info
 
 ## Resources
 

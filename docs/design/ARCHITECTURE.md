@@ -17,34 +17,6 @@ Core runtime pieces include:
 3. **Resource publication.** File‑producing tools register outputs as file:// resources (via `mcp.add_resource(FileResource(...))`). Currently implemented in `convert()` and `reproject()`. `info()` does not produce files and returns structured output only.
 4. **Consent & safety.** All executions rely on host‑side user approval (FastMCP confirmation). Logging goes to stderr only.
 
-## Module Layout (current)
-
-```
-gdal_mcp/
-├── __init__.py
-├── __main__.py           # Typer CLI: `gdal-mcp serve --transport [stdio|http]`
-├── app.py                # Shared FastMCP instance `mcp`
-├── server.py             # Loader: imports tool modules so @mcp.tool registers
-├── utils.py              # Async GDAL subprocess helper (run_gdal)
-├── ingest.py             # Docs → conport_export/ emitter
-├── bench.py              # Minimal bench harness (reproject smoke)
-└── tools/
-    ├── __init__.py       # Imports submodules to register tools
-    ├── raster/
-    ├   ├── info.py           # raster.info()
-    ├   ├── convert.py        # raster.convert()
-    ├   └── reproject.py      # raster.reproject()
-    ├── vector/
-        ├── info.py           # vector.info()
-        ├── convert.py        # vector.convert()
-        └── reproject.py      # vector.reproject() 
-```
-
-- `__main__.py` exposes the `serve` command and starts FastMCP with the chosen transport.
-- `server.py` imports `gdal_mcp.tools` so all `@mcp.tool` functions register at import time.
-- `utils.py` centralizes subprocess execution and error capture for GDAL CLI calls.
-- `tools/` are hierarchical modules, but MCP tool names are flat: `info`, `convert`, `reproject`.
-
 ## Execution Lifecycle
 
 1. Client connects and negotiates capabilities (handled by FastMCP).

@@ -37,6 +37,7 @@ class GlossaryEntry(TypedDict):
     category: GlossaryCategory
     example: str | None
 
+
 _GLOSSARY_ENTRIES: list[GlossaryEntry] = [
     # ───── Core Concepts ──────────────────────────────────────────────
     {
@@ -60,8 +61,7 @@ _GLOSSARY_ENTRIES: list[GlossaryEntry] = [
     {
         "term": "Datum",
         "definition": (
-            "Reference model of the Earth's shape and size used to anchor "
-            "spatial coordinates."
+            "Reference model of the Earth's shape and size used to anchor " "spatial coordinates."
         ),
         "category": GlossaryCategory.CORE,
         "example": "Example: NAD83 and WGS84 are both datums.",
@@ -96,8 +96,7 @@ _GLOSSARY_ENTRIES: list[GlossaryEntry] = [
     {
         "term": "DEM",
         "definition": (
-            "Digital Elevation Model: a raster storing elevation values "
-            "relative to sea level."
+            "Digital Elevation Model: a raster storing elevation values " "relative to sea level."
         ),
         "category": GlossaryCategory.ANALYSIS,
         "example": "Example: SRTM or Copernicus DEM tiles.",
@@ -106,8 +105,7 @@ _GLOSSARY_ENTRIES: list[GlossaryEntry] = [
     {
         "term": "Resampling",
         "definition": (
-            "Interpolation of pixel values when changing raster resolution, "
-            "grid, or CRS."
+            "Interpolation of pixel values when changing raster resolution, " "grid, or CRS."
         ),
         "category": GlossaryCategory.PROCESSING,
         "example": "Methods include nearest-neighbor, bilinear, and cubic interpolation.",
@@ -121,8 +119,7 @@ _GLOSSARY_ENTRIES: list[GlossaryEntry] = [
     {
         "term": "Mosaic",
         "definition": (
-            "Combining multiple rasters into a seamless dataset "
-            "aligned to a common grid."
+            "Combining multiple rasters into a seamless dataset " "aligned to a common grid."
         ),
         "category": GlossaryCategory.PROCESSING,
         "example": "Example: Stitching several DEM tiles into one composite raster.",
@@ -149,8 +146,7 @@ _GLOSSARY_ENTRIES: list[GlossaryEntry] = [
     {
         "term": "GeoPackage",
         "definition": (
-            "Modern SQLite-based geospatial container for rasters, vectors, "
-            "and metadata."
+            "Modern SQLite-based geospatial container for rasters, vectors, " "and metadata."
         ),
         "category": GlossaryCategory.FORMAT,
         "example": "Single-file alternative to Shapefile supporting SQL and large data.",

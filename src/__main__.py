@@ -24,7 +24,7 @@ def _default(
     port: int = typer.Option(8000, help="Port for HTTP transport"),
     log_level: str = typer.Option("INFO", help="Logging level"),
 ) -> None:
-    """Default entry runs the server when no subcommand is provided."""
+    """Run the GDAL MCP server or execute subcommands."""
     if ctx.invoked_subcommand is not None:
         return
     _setup_logging(log_level)
@@ -35,7 +35,6 @@ def _default(
     else:
         raise typer.BadParameter("transport must be 'stdio' or 'http'")
 
-
 @app.command(help="Run the GDAL MCP server")
 def serve(
     transport: str = typer.Option("stdio", "--transport", help="Transport: stdio or http"),
@@ -43,6 +42,7 @@ def serve(
     port: int = typer.Option(8000, help="Port for HTTP transport"),
     log_level: str = typer.Option("INFO", help="Logging level"),
 ) -> None:
+    """Start the GDAL MCP server with specified transport."""
     _setup_logging(log_level)
     if transport == "stdio":
         mcp.run()
@@ -52,7 +52,8 @@ def serve(
         raise typer.BadParameter("transport must be 'stdio' or 'http'")
 
 
-def main() -> None:  # console_script entrypoint
+def main() -> None:
+    """Console script entrypoint for gdal-mcp."""
     app()
 
 

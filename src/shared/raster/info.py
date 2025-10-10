@@ -39,7 +39,6 @@ def extract_raster_info(
                     ds.transform.e,
                     ds.transform.f,
                 ]
-                bounds = (ds.bounds.left, ds.bounds.bottom, ds.bounds.right, ds.bounds.top)
                 dtype_str = ds.dtypes[0] if ds.dtypes else None
 
                 return {
@@ -51,14 +50,15 @@ def extract_raster_info(
                     "count": ds.count,
                     "dtype": dtype_str,
                     "transform": transform,
-                    "bounds": bounds,
                     "nodata": ds.nodata,
                     "overview_levels": ov_levels,
                     "tags": ds.tags() or {},
                 }
     except rasterio.errors.RasterioIOError as e:
-        raise ToolError(
-            f"Cannot open raster at '{path}'. Please ensure the file exists and is a valid raster format."
-        ) from e
+        msg = (
+            f"Cannot open raster at '{path}'. "
+            "Please ensure the file exists and is a valid raster format."
+        )
+        raise ToolError(msg) from e
     except Exception as e:
         raise ToolError(f"Unexpected error while reading raster metadata: {str(e)}") from e

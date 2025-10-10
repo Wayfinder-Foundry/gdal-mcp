@@ -1,6 +1,6 @@
-"""
-Server module that exposes the shared FastMCP instance and ensures
-all tool modules are imported so their @mcp.tool functions register.
+"""Server module that exposes the shared FastMCP instance.
+
+Ensures all tool modules are imported so their @mcp.tool functions register.
 """
 
 from __future__ import annotations

@@ -7,7 +7,7 @@ from typing import Any
 from fastmcp.exceptions import ToolError
 
 from src.app import mcp
-from src.shared.metadata.format import read_format_metadata
+from src.shared.metadata.format_detection import read_format_metadata
 
 
 @mcp.resource("metadata://{file}/format")

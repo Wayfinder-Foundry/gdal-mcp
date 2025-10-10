@@ -8,6 +8,6 @@ Resources provide read-only information for AI planning:
 """
 
 from src.resources import catalog, reference
-from src.resources.metadata import format, raster, statistics, vector
+from src.resources.metadata import format_detection, raster, statistics, vector
 
-__all__ = ["catalog", "reference", "format", "raster", "vector", "statistics"]
+__all__ = ["catalog", "reference", "format_detection", "raster", "vector", "statistics"]

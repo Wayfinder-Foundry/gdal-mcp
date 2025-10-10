@@ -1,5 +1,5 @@
-"""Shared helpers for metadata resources."""
+"""Shared metadata extraction logic."""
 
-from .format import read_format_metadata
+from .format_detection import read_format_metadata
 
 __all__ = ["read_format_metadata"]

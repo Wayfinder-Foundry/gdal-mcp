@@ -1,3 +1,5 @@
+"""Format detection and metadata extraction for geospatial datasets."""
+
 from __future__ import annotations
 
 from pathlib import Path

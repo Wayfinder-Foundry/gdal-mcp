@@ -7,6 +7,10 @@ import rasterio
 from fastmcp import Context
 from fastmcp.exceptions import ToolError
 
+# Standard percentile values
+PERCENTILE_25 = 25.0
+PERCENTILE_75 = 75.0
+
 
 def stats(
     path: str,
@@ -71,8 +75,16 @@ def stats(
                             float(p): float(v) for p, v in zip(percentiles, perc_vals, strict=False)
                         }
                         median_val = float(perc_map.get(50.0, np.median(valid_data)))
-                        p25_val = float(perc_map.get(25.0)) if 25.0 in perc_map else None
-                        p75_val = float(perc_map.get(75.0)) if 75.0 in perc_map else None
+                        p25_val = (
+                            float(perc_map.get(PERCENTILE_25))
+                            if PERCENTILE_25 in perc_map
+                            else None
+                        )
+                        p75_val = (
+                            float(perc_map.get(PERCENTILE_75))
+                            if PERCENTILE_75 in perc_map
+                            else None
+                        )
                     else:
                         min_val = max_val = mean_val = std_val = median_val = None
                         p25_val = p75_val = None

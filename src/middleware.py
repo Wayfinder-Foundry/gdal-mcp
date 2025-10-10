@@ -45,7 +45,9 @@ class PathValidationMiddleware(Middleware):
     # Arguments that represent output file paths (write operations)
     OUTPUT_PATH_ARGS = {"output", "destination", "dest", "target"}
 
-    async def on_call_tool(self, context: MiddlewareContext, call_next) -> Any:
+    async def on_call_tool(
+        self, context: MiddlewareContext, call_next: Any
+    ) -> Any:
         """Intercept tool calls to validate path arguments.
 
         Args:
@@ -159,13 +161,16 @@ def validate_path(path: str, workspaces: list[Path] | None = None) -> Path:
 
     # Path is outside all allowed workspaces - DENY
     workspace_list = "\n".join(f"  • {ws}" for ws in workspaces)
-    raise ToolError(
-        f"Access denied: Path '{path}' (resolves to '{resolved}') is outside allowed workspaces.\n\n"
+    msg = (
+        f"Access denied: Path '{path}' (resolves to '{resolved}') "
+        f"is outside allowed workspaces.\n\n"
         f"Allowed workspace directories:\n{workspace_list}\n\n"
         f"To allow this path, add its parent directory to GDAL_MCP_WORKSPACES:\n"
-        f'  export GDAL_MCP_WORKSPACES="{":".join(str(w) for w in workspaces)}:{resolved.parent}"\n\n'
-        f"See docs/ADR/0022-workspace-scoping-and-access-control.md for configuration details."
+        f'  export GDAL_MCP_WORKSPACES="{":".join(str(w) for w in workspaces)}:'
+        f'{resolved.parent}"\n\n'
+        f"See docs/ADR/0022-workspace-scoping-and-access-control.md for details."
     )
+    raise ToolError(msg)
 
 
 def validate_output_path(path: str, workspaces: list[Path] | None = None) -> Path:
@@ -198,12 +203,13 @@ def validate_output_path(path: str, workspaces: list[Path] | None = None) -> Pat
             # Validate parent directory is also within workspace
             try:
                 validate_path(str(parent), workspaces)
-            except ToolError:
-                raise ToolError(
+            except ToolError as e:
+                msg = (
                     f"Cannot create output file '{path}': "
                     f"Parent directory '{parent}' does not exist and cannot be created "
                     f"(outside allowed workspaces)."
                 )
+                raise ToolError(msg) from e
 
         raise ToolError(
             f"Cannot create output file '{path}': "

@@ -43,8 +43,7 @@ _GLOSSARY_ENTRIES: list[GlossaryEntry] = [
     {
         "term": "CRS",
         "definition": (
-            "Coordinate Reference System describing how 2D or 3D data maps to "
-            "the Earth's surface."
+            "Coordinate Reference System describing how 2D or 3D data maps to the Earth's surface."
         ),
         "category": GlossaryCategory.CORE,
         "example": "Example: EPSG:4326 (WGS 84) defines global latitude/longitude coordinates.",
@@ -61,7 +60,7 @@ _GLOSSARY_ENTRIES: list[GlossaryEntry] = [
     {
         "term": "Datum",
         "definition": (
-            "Reference model of the Earth's shape and size used to anchor " "spatial coordinates."
+            "Reference model of the Earth's shape and size used to anchor spatial coordinates."
         ),
         "category": GlossaryCategory.CORE,
         "example": "Example: NAD83 and WGS84 are both datums.",
@@ -87,8 +86,7 @@ _GLOSSARY_ENTRIES: list[GlossaryEntry] = [
     {
         "term": "Band",
         "definition": (
-            "Single variable layer in a raster dataset; "
-            "multi-band rasters hold multiple variables."
+            "Single variable layer in a raster dataset; multi-band rasters hold multiple variables."
         ),
         "category": GlossaryCategory.DATA,
         "example": "Example: RGB imagery contains 3 bands (Red, Green, Blue).",
@@ -96,7 +94,7 @@ _GLOSSARY_ENTRIES: list[GlossaryEntry] = [
     {
         "term": "DEM",
         "definition": (
-            "Digital Elevation Model: a raster storing elevation values " "relative to sea level."
+            "Digital Elevation Model: a raster storing elevation values relative to sea level."
         ),
         "category": GlossaryCategory.ANALYSIS,
         "example": "Example: SRTM or Copernicus DEM tiles.",
@@ -105,7 +103,7 @@ _GLOSSARY_ENTRIES: list[GlossaryEntry] = [
     {
         "term": "Resampling",
         "definition": (
-            "Interpolation of pixel values when changing raster resolution, " "grid, or CRS."
+            "Interpolation of pixel values when changing raster resolution, grid, or CRS."
         ),
         "category": GlossaryCategory.PROCESSING,
         "example": "Methods include nearest-neighbor, bilinear, and cubic interpolation.",
@@ -119,7 +117,7 @@ _GLOSSARY_ENTRIES: list[GlossaryEntry] = [
     {
         "term": "Mosaic",
         "definition": (
-            "Combining multiple rasters into a seamless dataset " "aligned to a common grid."
+            "Combining multiple rasters into a seamless dataset aligned to a common grid."
         ),
         "category": GlossaryCategory.PROCESSING,
         "example": "Example: Stitching several DEM tiles into one composite raster.",
@@ -146,7 +144,7 @@ _GLOSSARY_ENTRIES: list[GlossaryEntry] = [
     {
         "term": "GeoPackage",
         "definition": (
-            "Modern SQLite-based geospatial container for rasters, vectors, " "and metadata."
+            "Modern SQLite-based geospatial container for rasters, vectors, and metadata."
         ),
         "category": GlossaryCategory.FORMAT,
         "example": "Single-file alternative to Shapefile supporting SQL and large data.",

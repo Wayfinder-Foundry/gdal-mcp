@@ -45,9 +45,7 @@ class PathValidationMiddleware(Middleware):
     # Arguments that represent output file paths (write operations)
     OUTPUT_PATH_ARGS = {"output", "destination", "dest", "target"}
 
-    async def on_call_tool(
-        self, context: MiddlewareContext, call_next: Any
-    ) -> Any:
+    async def on_call_tool(self, context: MiddlewareContext, call_next: Any) -> Any:
         """Intercept tool calls to validate path arguments.
 
         Args:

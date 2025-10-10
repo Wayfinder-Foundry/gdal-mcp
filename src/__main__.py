@@ -35,6 +35,7 @@ def _default(
     else:
         raise typer.BadParameter("transport must be 'stdio' or 'http'")
 
+
 @app.command(help="Run the GDAL MCP server")
 def serve(
     transport: str = typer.Option("stdio", "--transport", help="Transport: stdio or http"),

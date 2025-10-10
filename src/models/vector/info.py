@@ -10,9 +10,7 @@ class Info(BaseModel):
 
     path: str = Field(description="Path or URI to the vector dataset")
     driver: str | None = Field(None, description="GDAL/OGR driver name (e.g., GPKG)")
-    crs: str | None = Field(
-        None, description="Coordinate reference system (e.g., EPSG:4326)"
-    )
+    crs: str | None = Field(None, description="Coordinate reference system (e.g., EPSG:4326)")
     layer_count: int | None = Field(None, ge=1, description="Number of layers")
     geometry_types: list[str] = Field(
         default_factory=list,

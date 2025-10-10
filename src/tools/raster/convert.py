@@ -5,13 +5,13 @@ from __future__ import annotations
 from pathlib import Path
 
 import rasterio
-from rasterio.enums import Resampling
 from fastmcp import Context
 from fastmcp.exceptions import ToolError
+from rasterio.enums import Resampling
 
 from src.app import mcp
-from src.models.resourceref import ResourceRef
 from src.models.raster.convert import Options, Result
+from src.models.resourceref import ResourceRef
 
 
 async def _convert(
@@ -95,9 +95,7 @@ async def _convert(
                     # Copy all bands with progress reporting
                     for band_idx in range(1, src.count + 1):
                         if ctx:
-                            progress = int(
-                                (band_idx / src.count) * 80
-                            )  # Reserve 20% for overviews
+                            progress = int((band_idx / src.count) * 80)  # Reserve 20% for overviews
                             await ctx.report_progress(progress, 100)
                             await ctx.debug(f"Copying band {band_idx}/{src.count}")
 
@@ -147,9 +145,7 @@ async def _convert(
 
             if ctx:
                 await ctx.report_progress(100, 100)
-                await ctx.info(
-                    f"✓ Conversion complete: {output} ({size_bytes:,} bytes)"
-                )
+                await ctx.info(f"✓ Conversion complete: {output} ({size_bytes:,} bytes)")
 
             # Build ResourceRef per ADR-0012
             resource_ref = ResourceRef(
@@ -216,8 +212,10 @@ async def _convert(
         "compression (lzw, deflate, zstd, jpeg, packbits, none), tiled (bool, default True), "
         "blockxsize/blockysize (tile dimensions, default 256x256), photometric (RGB, YCBCR), "
         "overviews (list of levels like [2, 4, 8, 16]), overview_resampling "
-        "(nearest, bilinear, cubic, average, mode), creation_options (dict of driver-specific options). "
-        "OUTPUT: ConversionResult with ResourceRef (output file URI, path, size, driver, metadata), "
+        "(nearest, bilinear, cubic, average, mode), "
+        "creation_options (dict of driver-specific options). "
+        "OUTPUT: ConversionResult with ResourceRef "
+        "(output file URI, path, size, driver, metadata), "
         "driver name, compression method used, size_bytes, and overviews_built list. "
         "SIDE EFFECTS: Creates new file at output path. "
         "NOTE: COG driver automatically creates optimized cloud-friendly GeoTIFFs."

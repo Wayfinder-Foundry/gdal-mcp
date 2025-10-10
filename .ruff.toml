@@ -1,0 +1,46 @@
+# .ruff.toml
+line-length = 100
+target-version = "py311"
+
+[format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+skip-magic-trailing-comma = false
+docstring-code-format = true
+
+[lint]
+select = ["F", "E", "W", "I", "UP", "D", "B", "C4", "A", "ANN", "PLR"]
+ignore = [
+  # Docstrings: prefer Numpy style, avoid prescriptive nitpicks.
+  "D100", "D203", "D212", "D213", "D406", "D407", "D413",
+  # Annotations: soften for self/cls/__init__/Any at boundaries.
+  "ANN101", "ANN102", "ANN204", "ANN401",
+  # Pylint-ish complexity rules we don't want as blockers.
+  "PLR0913", "PLR0912", "PLR0915",
+]
+
+[lint.pydocstyle]
+convention = "numpy"
+
+[lint.isort]
+known-first-party = ["src"]
+combine-as-imports = true
+
+[lint.flake8-annotations]
+suppress-dummy-args = true
+allow-star-arg-any = true
+mypy-init-return = true
+
+[lint.flake8-bugbear]
+extend-immutable-calls = ["attr.evolve"]  # tweak to your stack, or remove
+
+[lint.pylint]
+max-branches = 20
+max-returns = 8
+max-args = 10
+
+[lint.per-file-ignores]
+"tests/**/*" = ["D", "ANN", "PLR2004", "A001"]
+"test/**/*" = ["D", "ANN", "PLR2004", "A001"]
+"**/__init__.py" = ["D"]

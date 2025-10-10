@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import warnings
+
 from fastmcp import FastMCP
+
 from src.middleware import PathValidationMiddleware
 
 # Suppress Pydantic v1 deprecation warnings from FastMCP dependency

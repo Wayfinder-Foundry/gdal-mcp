@@ -58,9 +58,7 @@ def get_workspaces() -> list[Path]:
     # Read from environment variable
     env_workspaces = os.getenv("GDAL_MCP_WORKSPACES")
     if env_workspaces:
-        workspaces = [
-            Path(ws.strip()).resolve() for ws in env_workspaces.split(":") if ws.strip()
-        ]
+        workspaces = [Path(ws.strip()).resolve() for ws in env_workspaces.split(":") if ws.strip()]
         logger.info(
             f"✓ Loaded {len(workspaces)} workspace(s) from GDAL_MCP_WORKSPACES: "
             f"{', '.join(str(w) for w in workspaces)}"

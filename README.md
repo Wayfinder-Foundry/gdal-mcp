@@ -5,6 +5,7 @@
 GDAL MCP is a production-ready MCP server that exposes powerful geospatial operations through natural language interaction. Built with empathy for domain experts who need GDAL's capabilities without the CLI complexity.
 
 **🎉 Milestone (2025-09-30):** First successful live tool invocation - GDAL operations are now conversational!
+**🚀 Update (2025-10-10):** Phase 2A resource suite shipped (metadata/catalog/reference) – unlocking autonomous geospatial reasoning workflows.
 
 [![CI](https://github.com/Wayfinder-Foundry/gdal-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/Wayfinder-Foundry/gdal-mcp/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -32,6 +33,9 @@ The AI agent uses GDAL MCP under the hood - properly, safely, with production-qu
 ## 🚀 Features
 
 - **✅ Production-Ready**: First live tool invocation successful (2025-09-30)
+- **🧭 Resource Discovery (0.2.0)**: `catalog://workspace/{all|raster|vector}/{subpath}` resources expose the active workspace so agents can plan without manual file listings.
+- **🔍 Metadata Intelligence (0.2.0)**: `metadata://{file}/format` surfaces driver/format details alongside existing raster/vector metadata.
+- **📚 Reference Library (0.2.0)**: CRS, resampling, compression, and glossary resources provide curated knowledge for agents (`reference://crs/common/{coverage}`, etc.).
 - **Python-Native Stack**: Rasterio, PyProj, pyogrio, Shapely (no GDAL CLI dependency)
 - **5 Core Tools**: `raster_info`, `raster_convert`, `raster_reproject`, `raster_stats`, `vector_info`
 - **Type-Safe**: Pydantic models with auto-generated JSON schemas
@@ -40,7 +44,7 @@ The AI agent uses GDAL MCP under the hood - properly, safely, with production-qu
 - **FastMCP 2.0**: Native configuration, middleware, Context API
 - **CI/CD Pipeline**: GitHub Actions with quality gates, test matrix, PyPI publishing
 - **Comprehensive Tests**: 23/23 tests passing across Python 3.10-3.12
-- **ADR-Documented**: 22 architecture decisions guiding development
+- **ADR-Documented**: 25 architecture decisions guiding development
 
 ## 📦 Installation
 
@@ -211,7 +215,7 @@ uv run pytest test/ --cov=src --cov-report=term-missing
 uv run pytest test/test_raster_tools.py -v
 ```
 
-**Current Status**: ✅ 23/23 tests passing
+**Current Status**: ✅ 36 tests passing (catalog, metadata, reference suites)
 
 Test fixtures create tiny synthetic datasets (10×10 rasters, 3-feature vectors) for fast validation.
 
@@ -289,12 +293,15 @@ MIT License - see [LICENSE](LICENSE) for details.
 - ✅ Docker deployment
 - ✅ MCP client integration
 
+**0.2.0 Achievements**:
+- Phase 2A resources (ADR-0023) delivered: catalog discovery, metadata format inspection, knowledge/reference APIs.
+- Shared reference utilities enable smarter agent planning (resampling heuristics, CRS guidance, compression catalog, glossary).
+- Styleguide and ADR additions (0023–0025) guide future contributions.
+
 **Next Steps**:
-- Vector reprojection and conversion
-- Spatial analysis operations
-- Multi-layer support
-- Benchmark suite (ADR-0015)
-- Performance optimizations
+- Phase 2B discovery enhancements (`catalog://workspace/by-crs/{epsg}`, summaries, additional statistics).
+- Context/history resources for session continuity (ADR-0023 Phase 2C).
+- Expanded spatial analysis tools and workflows powered by new reference knowledge.
 
 ---
 

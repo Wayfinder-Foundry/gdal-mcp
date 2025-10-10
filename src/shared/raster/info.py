@@ -40,6 +40,7 @@ def extract_raster_info(
                     ds.transform.f,
                 ]
                 dtype_str = ds.dtypes[0] if ds.dtypes else None
+                bounds = (ds.bounds.left, ds.bounds.bottom, ds.bounds.right, ds.bounds.top)
 
                 return {
                     "path": path,
@@ -50,6 +51,7 @@ def extract_raster_info(
                     "count": ds.count,
                     "dtype": dtype_str,
                     "transform": transform,
+                    "bounds": bounds,
                     "nodata": ds.nodata,
                     "overview_levels": ov_levels,
                     "tags": ds.tags() or {},

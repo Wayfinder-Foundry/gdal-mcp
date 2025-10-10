@@ -46,8 +46,8 @@ dev = [
 ]
 
 [project.scripts]
-# Console entrypoint (points to your actual package, not "src")
-gdal-mcp = "gdal_mcp.__main__:main"
+# Console entrypoint - CLI renamed to 'gdal' in v0.1.0
+gdal = "gdal_mcp.__main__:main"
 
 [project.urls]
 Homepage = "https://github.com/JordanGunn/gdal-mcp"

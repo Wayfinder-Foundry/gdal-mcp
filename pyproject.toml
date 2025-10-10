@@ -50,8 +50,8 @@ dev = [
 gdal = "src.__main__:main"
 
 [project.urls]
-Homepage = "https://github.com/JordanGunn/gdal-mcp"
-Documentation = "https://github.com/JordanGunn/gdal-mcp"
+Homepage = "https://github.com/Wayfinder-Foundry/gdal-mcp"
+Documentation = "https://github.com/Wayfinder-Foundry/gdal-mcp"
 
 # ──────────────────────────────
 # Hatch / Build configuration

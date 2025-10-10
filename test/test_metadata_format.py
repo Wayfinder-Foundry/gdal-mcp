@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from src.shared.metadata.format import read_format_metadata
+from src.shared.metadata.format_detection import read_format_metadata
 
 
 def test_read_format_metadata_raster(tiny_raster_gtiff: Path) -> None:

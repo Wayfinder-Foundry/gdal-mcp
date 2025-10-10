@@ -16,7 +16,7 @@ repos:
           - types-PyYAML
       - id: mypy
         name: mypy (test)
-        args: ["--config", "mypy.ini", "test"]
+        args: ["--config", "mypy.ini", "--no-namespace-packages", "test"]
         additional_dependencies:
           - pydantic>=2.0
           - types-PyYAML

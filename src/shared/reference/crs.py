@@ -1,0 +1,216 @@
+from __future__ import annotations
+
+COMMON_CRS: list[dict[str, str]] = [
+    {
+        "code": "EPSG:4326",
+        "name": "WGS 84",
+        "coverage": "global",
+        "area": "Worldwide",
+        "notes": "Default GPS/GeoJSON geographic CRS.",
+    },
+    {
+        "code": "EPSG:3857",
+        "name": "WGS 84 / Web Mercator",
+        "coverage": "global",
+        "area": "Worldwide (85°S to 85°N)",
+        "notes": "Web mapping tiles (Google, OSM, Mapbox).",
+    },
+    {
+        "code": "EPSG:6933",
+        "name": "WGS 84 / NSIDC EASE-Grid 2.0 Global",
+        "coverage": "global",
+        "area": "Worldwide",
+        "notes": "Equal-area grid for global climate and MODIS products.",
+    },
+    {
+        "code": "EPSG:54034",
+        "name": "World Cylindrical Equal Area",
+        "coverage": "global",
+        "area": "Worldwide",
+        "notes": "Equal-area cartography and analytics.",
+    },
+    {
+        "code": "ESRI:102001",
+        "name": "NAD83 / Canada Albers Equal Area Conic",
+        "coverage": "north_america",
+        "area": "Canada",
+        "notes": "National mapping; see also EPSG:3579–3582 zone series.",
+    },
+    {
+        "code": "EPSG:3347",
+        "name": "NAD83 / Statistics Canada Lambert",
+        "coverage": "north_america",
+        "area": "Canada",
+        "notes": "Federal datasets (Statistics Canada standard).",
+    },
+    {
+        "code": "EPSG:5070",
+        "name": "NAD83 / Conus Albers",
+        "coverage": "north_america",
+        "area": "Contiguous United States",
+        "notes": "USGS national equal-area projection.",
+    },
+    {
+        "code": "EPSG:4269",
+        "name": "NAD83",
+        "coverage": "north_america",
+        "area": "United States, Canada, Mexico",
+        "notes": "Latitude/longitude reference for North America.",
+    },
+    {
+        "code": "EPSG:3338",
+        "name": "NAD83 / Alaska Albers",
+        "coverage": "north_america",
+        "area": "Alaska",
+        "notes": "Equal-area projection optimized for Alaska.",
+    },
+    {
+        "code": "EPSG:6372",
+        "name": "ITRF92 / LCC Mexico",
+        "coverage": "north_america",
+        "area": "Mexico",
+        "notes": "National mapping CRS (alternative: EPSG:4483).",
+    },
+    {
+        "code": "EPSG:31978",
+        "name": "SIRGAS 2000 / UTM zone 21S",
+        "coverage": "south_america",
+        "area": "Brazil (Northeast)",
+        "notes": "Representative SIRGAS2000 UTM zone; adjust by longitude.",
+    },
+    {
+        "code": "EPSG:5880",
+        "name": "SIRGAS 2000 / Brazil Polyconic",
+        "coverage": "south_america",
+        "area": "Brazil",
+        "notes": "National equal-area projection.",
+    },
+    {
+        "code": "EPSG:5343",
+        "name": "POSGAR 2007 / Argentina 2",
+        "coverage": "south_america",
+        "area": "Argentina",
+        "notes": "POSGAR 2007 projected zone (representative).",
+    },
+    {
+        "code": "EPSG:3035",
+        "name": "ETRS89 / LAEA Europe",
+        "coverage": "europe",
+        "area": "Pan-Europe",
+        "notes": "Eurostat/EEA equal-area standard.",
+    },
+    {
+        "code": "EPSG:3034",
+        "name": "ETRS89 / LCC Europe",
+        "coverage": "europe",
+        "area": "Pan-Europe",
+        "notes": "Alternative European projection (Lambert Conformal Conic).",
+    },
+    {
+        "code": "EPSG:27700",
+        "name": "OSGB 1936 / British National Grid",
+        "coverage": "europe",
+        "area": "Great Britain",
+        "notes": "Ordnance Survey national grid.",
+    },
+    {
+        "code": "EPSG:2154",
+        "name": "RGF93 / Lambert-93",
+        "coverage": "europe",
+        "area": "France",
+        "notes": "National standard for mainland France.",
+    },
+    {
+        "code": "EPSG:25832",
+        "name": "ETRS89 / UTM zone 32N",
+        "coverage": "europe",
+        "area": "Germany, Central Europe",
+        "notes": "Representative UTM zone for central Europe.",
+    },
+    {
+        "code": "ESRI:102022",
+        "name": "Africa Albers Equal Area Conic",
+        "coverage": "africa",
+        "area": "Africa",
+        "notes": "Continental equal-area projection.",
+    },
+    {
+        "code": "EPSG:2054",
+        "name": "Hartebeesthoek94 / Lo 23",
+        "coverage": "africa",
+        "area": "South Africa",
+        "notes": "Representative Gauss conformal zone (Lo series).",
+    },
+    {
+        "code": "EPSG:32636",
+        "name": "WGS 84 / UTM zone 36N",
+        "coverage": "africa",
+        "area": "Egypt, East Africa",
+        "notes": "Common UTM zone for North Africa / Nile corridor.",
+    },
+    {
+        "code": "ESRI:102025",
+        "name": "Asia North Albers Equal Area Conic",
+        "coverage": "asia",
+        "area": "Asia",
+        "notes": "Continental equal-area projection for Asia.",
+    },
+    {
+        "code": "EPSG:4490",
+        "name": "CGCS2000",
+        "coverage": "asia",
+        "area": "China",
+        "notes": "Modern geographic CRS for China; pair with Gauss-Krüger zones.",
+    },
+    {
+        "code": "EPSG:6677",
+        "name": "JGD2011 / JapanPlane Rectangular CS IX",
+        "coverage": "asia",
+        "area": "Japan",
+        "notes": "Representative zone in JGD2011 series (I–XIX).",
+    },
+    {
+        "code": "EPSG:32644",
+        "name": "WGS 84 / UTM zone 44N",
+        "coverage": "asia",
+        "area": "India",
+        "notes": "Typical UTM zone for Indian subcontinent projects.",
+    },
+    {
+        "code": "EPSG:9473",
+        "name": "GDA2020 / AUS Albers",
+        "coverage": "oceania",
+        "area": "Australia",
+        "notes": "National equal-area projection (replaces EPSG:3577).",
+    },
+    {
+        "code": "EPSG:2193",
+        "name": "NZGD2000 / New Zealand Transverse Mercator",
+        "coverage": "oceania",
+        "area": "New Zealand",
+        "notes": "National grid for New Zealand.",
+    },
+    {
+        "code": "EPSG:3413",
+        "name": "WGS 84 / NSIDC Sea Ice Polar Stereographic North",
+        "coverage": "arctic",
+        "area": "Arctic",
+        "notes": "Arctic cryosphere analysis and sea-ice mapping.",
+    },
+    {
+        "code": "EPSG:3031",
+        "name": "WGS 84 / Antarctic Polar Stereographic",
+        "coverage": "antarctic",
+        "area": "Antarctica",
+        "notes": "Antarctic mapping and ice-sheet research.",
+    },
+]
+
+
+def get_common_crs(coverage: str | None = None) -> list[dict[str, str]]:
+    """Return curated list of CRS definitions, optionally filtered by coverage."""
+    result = list(COMMON_CRS)
+    if coverage:
+        lowered = coverage.lower()
+        result = [entry for entry in result if entry.get("coverage", "").lower() == lowered]
+    return result

@@ -272,15 +272,16 @@ def validate_path(path: str, workspaces: list[Path] | None = None) -> Path:
 
 ```python
 # src/tools/raster/info.py
-from src.validation import validate_path
+from src.middleware import validate_path
+
 
 async def _info(uri: str, band: int | None = None, ctx: Context | None = None):
     # Validate before any file access
     validated_path = validate_path(uri)
-    
+
     if ctx:
         await ctx.info(f"📂 Opening raster: {validated_path}")
-    
+
     with rasterio.open(str(validated_path)) as ds:
         ...
 ```

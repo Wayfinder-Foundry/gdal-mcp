@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 import os
-import pytest
 from unittest.mock import MagicMock
 
+import pytest
 from fastmcp.exceptions import ToolError
 from fastmcp.server.middleware import MiddlewareContext
 
-from src.middleware import PathValidationMiddleware
 from src.config import reset_workspaces_cache
+from src.middleware import PathValidationMiddleware
 
 
 @pytest.fixture
@@ -116,9 +116,7 @@ async def test_middleware_denies_path_outside_workspace(
 
 
 @pytest.mark.asyncio
-async def test_middleware_validates_output_path(
-    middleware, mock_context, mock_call_next, tmp_path
-):
+async def test_middleware_validates_output_path(middleware, mock_context, mock_call_next, tmp_path):
     """Test that middleware validates output paths."""
     workspace = tmp_path / "workspace"
     workspace.mkdir()
@@ -196,9 +194,7 @@ async def test_middleware_validates_multiple_path_args(
 
 
 @pytest.mark.asyncio
-async def test_middleware_skips_empty_path_arguments(
-    middleware, mock_context, mock_call_next
-):
+async def test_middleware_skips_empty_path_arguments(middleware, mock_context, mock_call_next):
     """Test that middleware skips None/empty path arguments."""
     mock_context.message.arguments = {"uri": None, "output": "", "other_arg": "value"}
 

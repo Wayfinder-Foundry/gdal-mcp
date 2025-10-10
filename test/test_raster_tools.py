@@ -2,18 +2,20 @@
 
 from __future__ import annotations
 
-import pytest
 from pathlib import Path
-from rasterio.enums import Resampling, Compression
 
-# Import the core logic functions (not the @mcp.tool wrapped versions)
-from src.tools.raster.info import _info
-from src.tools.raster.convert import _convert
-from src.tools.raster.reproject import _reproject
-from src.tools.raster.stats import _stats
+import pytest
+from rasterio.enums import Compression, Resampling
+
 from src.models.raster.convert import Options as ConvertOptions
 from src.models.raster.reproject import Params as ReprojectParams
 from src.models.raster.stats import Params as StatsParams
+from src.tools.raster.convert import _convert
+
+# Import the core logic functions (not the @mcp.tool wrapped versions)
+from src.tools.raster.info import _info
+from src.tools.raster.reproject import _reproject
+from src.tools.raster.stats import _stats
 
 
 @pytest.mark.asyncio
@@ -60,9 +62,7 @@ async def test_raster_convert_basic(tiny_raster_gtiff: Path, test_data_dir: Path
 
 
 @pytest.mark.asyncio
-async def test_raster_convert_with_compression(
-    tiny_raster_gtiff: Path, test_data_dir: Path
-):
+async def test_raster_convert_with_compression(tiny_raster_gtiff: Path, test_data_dir: Path):
     """Test raster.convert with LZW compression."""
     output_path = test_data_dir / "converted_lzw.tif"
 
@@ -83,9 +83,7 @@ async def test_raster_convert_with_compression(
 
 
 @pytest.mark.asyncio
-async def test_raster_convert_with_overviews(
-    tiny_raster_gtiff: Path, test_data_dir: Path
-):
+async def test_raster_convert_with_overviews(tiny_raster_gtiff: Path, test_data_dir: Path):
     """Test raster.convert with overview building."""
     output_path = test_data_dir / "converted_overviews.tif"
 
@@ -128,9 +126,7 @@ async def test_raster_reproject_basic(tiny_raster_gtiff: Path, test_data_dir: Pa
 
 
 @pytest.mark.asyncio
-async def test_raster_reproject_with_resolution(
-    tiny_raster_gtiff: Path, test_data_dir: Path
-):
+async def test_raster_reproject_with_resolution(tiny_raster_gtiff: Path, test_data_dir: Path):
     """Test raster.reproject with explicit resolution."""
     output_path = test_data_dir / "reprojected_res.tif"
 

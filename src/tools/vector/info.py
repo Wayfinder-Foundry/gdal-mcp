@@ -15,47 +15,32 @@ from fastmcp.exceptions import ToolError
 
 from src.app import mcp
 from src.models.vector.info import Info
+from src.shared import vector
 
 
 async def _info(
     uri: str,
     ctx: Context | None = None,
 ) -> Info:
-    """Core logic: Return structured metadata for a vector dataset.
-
-    Args:
-        uri: Path/URI to the vector dataset (Shapefile, GeoPackage, GeoJSON, etc.).
-        ctx: Optional MCP context for logging and progress reporting.
-
-    Returns:
-        Info: Structured vector metadata with JSON schema.
-
-    Raises:
-        ToolError: If vector dataset cannot be opened.
-    """
-    if ctx:
-        await ctx.info(f"📂 Opening vector dataset: {uri}")
-
+    """Return structured metadata for a vector dataset using shared extractor."""
     try:
-        if HAS_PYOGRIO:
-            if ctx:
-                await ctx.debug("Using pyogrio backend")
-            return await _info_with_pyogrio(uri, ctx)
-        else:
-            if ctx:
-                await ctx.debug("Using fiona backend (pyogrio not available)")
-            return await _info_with_fiona(uri, ctx)
-
+        data = vector.info(uri, ctx)
+        return Info(
+            path=data["path"],
+            driver=data.get("driver"),
+            crs=data.get("crs"),
+            layer_count=data.get("layer_count"),
+            geometry_types=list(data.get("geometry_types", [])),
+            feature_count=data.get("feature_count"),
+            fields=[(str(n), str(t)) for n, t in data.get("fields", [])],
+            bounds=tuple(data["bounds"]) if data.get("bounds") is not None else None,
+        )
     except Exception as e:
-        # Catch any backend-specific errors and convert to ToolError
-        raise ToolError(
+        message = (
             f"Cannot open vector dataset at '{uri}'. "
-            f"Please ensure: (1) file exists, (2) file is a valid vector format. "
-            f"Supported formats: Shapefile (.shp), GeoPackage (.gpkg), "
-            f"GeoJSON (.geojson/.json), KML (.kml), CSV (.csv with geometry), "
-            f"and other OGR-supported formats. "
-            f"Original error: {str(e)}"
-        ) from e
+            "Ensure the file exists and is a supported vector format."
+        )
+        raise ToolError(message) from e
 
 
 async def _info_with_pyogrio(uri: str, ctx: Context | None = None) -> Info:
@@ -79,7 +64,7 @@ async def _info_with_pyogrio(uri: str, ctx: Context | None = None) -> Info:
     # Extract field schema
     fields = []
     if "fields" in vinfo:
-        for field_name, field_type in zip(vinfo["fields"], vinfo["dtypes"]):
+        for field_name, field_type in zip(vinfo["fields"], vinfo["dtypes"], strict=False):
             fields.append((field_name, str(field_type)))
 
     # Extract bounds (if available)
@@ -89,8 +74,7 @@ async def _info_with_pyogrio(uri: str, ctx: Context | None = None) -> Info:
 
     if ctx:
         await ctx.info(
-            f"✓ Metadata extracted: {len(fields)} fields, "
-            f"{vinfo.get('features', 0)} features"
+            f"✓ Metadata extracted: {len(fields)} fields, {vinfo.get('features', 0)} features"
         )
 
     # Build VectorInfo model
@@ -112,9 +96,7 @@ async def _info_with_fiona(uri: str, ctx: Context | None = None) -> Info:
 
     with fiona.open(uri) as src:
         if ctx:
-            await ctx.debug(
-                f"✓ Driver: {src.driver}, Features: {len(src)}, CRS: {src.crs}"
-            )
+            await ctx.debug(f"✓ Driver: {src.driver}, Features: {len(src)}, CRS: {src.crs}")
 
         # Extract geometry type
         geometry_types = []
@@ -133,9 +115,7 @@ async def _info_with_fiona(uri: str, ctx: Context | None = None) -> Info:
             bounds_tuple = src.bounds
 
         if ctx:
-            await ctx.info(
-                f"✓ Metadata extracted: {len(fields)} fields, {len(src)} features"
-            )
+            await ctx.info(f"✓ Metadata extracted: {len(fields)} fields, {len(src)} features")
 
         # Build VectorInfo model
         return Info(

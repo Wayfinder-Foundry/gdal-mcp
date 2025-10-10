@@ -1,3 +1,5 @@
+"""Resource reference model for MCP resource URIs."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -13,6 +15,4 @@ class ResourceRef(BaseModel):
     size: int | None = Field(None, ge=0, description="Size in bytes")
     checksum: str | None = Field(None, description="Checksum (e.g., SHA256)")
     driver: str | None = Field(None, description="GDAL driver name")
-    meta: dict[str, Any] = Field(
-        default_factory=dict, description="Additional metadata"
-    )
+    meta: dict[str, Any] = Field(default_factory=dict, description="Additional metadata")

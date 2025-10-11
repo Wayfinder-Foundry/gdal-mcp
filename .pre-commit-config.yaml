@@ -11,12 +11,14 @@ repos:
       - id: mypy
         name: mypy (src)
         args: ["--config", "mypy.ini", "--explicit-package-bases", "src"]
+        pass_filenames: false
         additional_dependencies:
           - pydantic>=2.0
           - types-PyYAML
       - id: mypy
         name: mypy (test)
         args: ["--config", "mypy.ini", "--explicit-package-bases", "test"]
+        pass_filenames: false
         additional_dependencies:
           - pydantic>=2.0
           - types-PyYAML

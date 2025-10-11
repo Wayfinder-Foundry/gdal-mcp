@@ -9,7 +9,7 @@ GDAL MCP is a production-ready MCP server that exposes powerful geospatial opera
 
 [![CI](https://github.com/Wayfinder-Foundry/gdal-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/Wayfinder-Foundry/gdal-mcp/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastMCP 2.0](https://img.shields.io/badge/FastMCP-2.0-blue.svg)](https://github.com/jlowin/fastmcp)
 [![PyPI Downloads](https://static.pepy.tech/personalized-badge/gdal-mcp?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/gdal-mcp)
 
@@ -43,7 +43,7 @@ The AI agent uses GDAL MCP under the hood - properly, safely, with production-qu
 - **Context Support**: Real-time LLM feedback during long operations (ADR-0020)
 - **FastMCP 2.0**: Native configuration, middleware, Context API
 - **CI/CD Pipeline**: GitHub Actions with quality gates, test matrix, PyPI publishing
-- **Comprehensive Tests**: 23/23 tests passing across Python 3.10-3.12
+- **Comprehensive Tests**: 23/23 tests passing across Python 3.11-3.12
 - **ADR-Documented**: 25 architecture decisions guiding development
 
 ## 📦 Installation
@@ -215,7 +215,7 @@ uv run pytest test/ --cov=src --cov-report=term-missing
 uv run pytest test/test_raster_tools.py -v
 ```
 
-**Current Status**: ✅ 36 tests passing (catalog, metadata, reference suites)
+**Current Status**: ✅ 58 tests passing (catalog, metadata, reference, band metadata suites)
 
 Test fixtures create tiny synthetic datasets (10×10 rasters, 3-feature vectors) for fast validation.
 
@@ -299,8 +299,8 @@ MIT License - see [LICENSE](LICENSE) for details.
 - Styleguide and ADR additions (0023–0025) guide future contributions.
 
 **Next Steps**:
-- Phase 2B discovery enhancements (`catalog://workspace/by-crs/{epsg}`, summaries, additional statistics).
-- Context/history resources for session continuity (ADR-0023 Phase 2C).
+- Phase 2C context/history resources (session state, provenance).
+- Phase 2D domain references expansion (terrain analysis guides, advanced format primers).
 - Expanded spatial analysis tools and workflows powered by new reference knowledge.
 
 ---

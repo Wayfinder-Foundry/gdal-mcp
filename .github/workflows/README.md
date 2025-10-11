@@ -37,7 +37,7 @@ Workflows are organized into **reusable components** that can be called from mai
 
 **Flow:**
 1. **Quality Gates** → Runs `quality.yml` (Python 3.12)
-2. **Test Matrix** → Runs `test.yml` in parallel (Python 3.10, 3.11, 3.12)
+2. **Test Matrix** → Runs `test.yml` in parallel (Python 3.11, 3.12)
 3. **Build** → Runs `build.yml` (Python 3.12)
 
 **Expected duration:** ~3-5 minutes
@@ -73,7 +73,7 @@ with:
 - Uploads coverage reports (when Python 3.12)
 - Artifact retention: 30 days
 
-**When called from CI:** Runs for Python 3.10, 3.11, 3.12 in matrix
+**When called from CI:** Runs for Python 3.11, 3.12 in matrix
 
 **Can be called independently:**
 ```yaml

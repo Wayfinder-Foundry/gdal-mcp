@@ -9,7 +9,7 @@ GDAL MCP is a production-ready MCP server that exposes powerful geospatial opera
 
 [![CI](https://github.com/Wayfinder-Foundry/gdal-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/Wayfinder-Foundry/gdal-mcp/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastMCP 2.0](https://img.shields.io/badge/FastMCP-2.0-blue.svg)](https://github.com/jlowin/fastmcp)
 [![PyPI Downloads](https://static.pepy.tech/personalized-badge/gdal-mcp?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/gdal-mcp)
 
@@ -43,7 +43,7 @@ The AI agent uses GDAL MCP under the hood - properly, safely, with production-qu
 - **Context Support**: Real-time LLM feedback during long operations (ADR-0020)
 - **FastMCP 2.0**: Native configuration, middleware, Context API
 - **CI/CD Pipeline**: GitHub Actions with quality gates, test matrix, PyPI publishing
-- **Comprehensive Tests**: 23/23 tests passing across Python 3.10-3.12
+- **Comprehensive Tests**: 23/23 tests passing across Python 3.11-3.12
 - **ADR-Documented**: 25 architecture decisions guiding development
 
 ## 📦 Installation

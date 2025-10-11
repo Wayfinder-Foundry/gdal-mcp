@@ -8,12 +8,11 @@ from pathlib import Path
 import numpy as np
 import pytest
 import rasterio
+from fastmcp.exceptions import ToolError
 from rasterio.crs import CRS
 from rasterio.transform import from_bounds
 
 from src.config import reset_workspaces_cache
-from fastmcp.exceptions import ToolError
-
 from src.shared.catalog import clear_cache
 from src.shared.raster.bands import band_metadata
 

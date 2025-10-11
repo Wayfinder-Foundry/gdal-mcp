@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from fastmcp import Context
@@ -19,6 +19,10 @@ from src.models.workspace_summary import (
 from src.shared.catalog import scan
 from src.shared.metadata.format_detection import read_format_metadata
 
+BYTE = 1024
+MB = BYTE * BYTE
+GB = BYTE * BYTE * BYTE
+
 
 def generate_workspace_summary(*, ctx: Context | None = None) -> WorkspaceSummary:
     """Generate a comprehensive summary of workspace contents.
@@ -32,7 +36,9 @@ def generate_workspace_summary(*, ctx: Context | None = None) -> WorkspaceSummar
     workspaces = get_workspaces()
 
     if ctx:
-        ctx.info(f"[workspace_summary] Scanning {len(workspaces)} workspace(s)")
+        ctx.info(  # type: ignore[unused-coroutine]
+            f"[workspace_summary] Scanning {len(workspaces)} workspace(s)"
+        )
 
     # Scan all datasets
     all_entries = scan(kind="all", ctx=ctx)
@@ -121,11 +127,11 @@ def generate_workspace_summary(*, ctx: Context | None = None) -> WorkspaceSummar
     avg_size = total_size / len(all_entries) if all_entries else 0
     size_statistics = SizeStatistics(
         total_bytes=total_size,
-        total_mb=round(total_size / (1024 * 1024), 2),
-        total_gb=round(total_size / (1024 * 1024 * 1024), 3),
+        total_mb=round(total_size / MB, 2),
+        total_gb=round(total_size / GB, 3),
         average_bytes=round(avg_size, 2),
         largest_file=max_file,
-        largest_size_mb=round(max_size / (1024 * 1024), 2) if max_size > 0 else None,
+        largest_size_mb=round(max_size / MB, 2) if max_size > 0 else None,
     )
 
     return WorkspaceSummary(
@@ -134,7 +140,7 @@ def generate_workspace_summary(*, ctx: Context | None = None) -> WorkspaceSummar
         crs_distribution=crs_distribution,
         format_distribution=format_distribution,
         size_statistics=size_statistics,
-        scan_timestamp=datetime.now(timezone.utc).isoformat(),
+        scan_timestamp=datetime.now(UTC).isoformat(),
         metadata={
             "scan_method": "extension_based_classification",
             "hidden_files_included": False,

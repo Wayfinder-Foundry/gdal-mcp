@@ -6,14 +6,14 @@ from pathlib import Path
 
 from fastmcp import Context
 
-from src.shared.catalog.scanner import CatalogEntry, scan
+from src.shared.catalog.scanner import CatalogEntry, CatalogKind, scan
 from src.shared.metadata.format_detection import read_format_metadata
 
 
 def filter_by_crs(
     *,
     crs_code: str,
-    kind: str = "all",
+    kind: CatalogKind = "all",
     include_hidden: bool = False,
     ctx: Context | None = None,
 ) -> list[CatalogEntry]:
@@ -32,7 +32,7 @@ def filter_by_crs(
     normalized_target = _normalize_crs(crs_code)
 
     if ctx:
-        ctx.info(f"[crs_filter] Filtering catalog for CRS: {normalized_target}")
+        ctx.info(f"[crs_filter] Filtering catalog for CRS: {normalized_target}")  # type: ignore[unused-coroutine]
 
     # Get all entries
     all_entries = scan(kind=kind, include_hidden=include_hidden, ctx=ctx)
@@ -68,7 +68,9 @@ def filter_by_crs(
             continue
 
     if ctx:
-        ctx.info(f"[crs_filter] Found {len(matched_entries)} datasets in {normalized_target}")
+        ctx.info(  # type: ignore[unused-coroutine]
+            f"[crs_filter] Found {len(matched_entries)} datasets in {normalized_target}"
+        )
 
     return matched_entries
 

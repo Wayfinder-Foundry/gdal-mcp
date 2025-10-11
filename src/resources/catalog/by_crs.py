@@ -2,17 +2,19 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from fastmcp import Context
 
 from src.app import mcp
 from src.models.catalog import CatalogResponse
-from src.shared.catalog import filter_by_crs
+from src.shared.catalog import CatalogKind, filter_by_crs
 
 
 @mcp.resource("catalog://workspace/by-crs/{epsg}{?kind,include_hidden}")
 def list_by_crs(
     epsg: str,
-    kind: str = "all",
+    kind: CatalogKind = "all",
     include_hidden: bool = False,
     ctx: Context | None = None,
 ) -> dict:
@@ -42,7 +44,9 @@ def list_by_crs(
         - catalog://workspace/by-crs/EPSG:32610 - UTM Zone 10N datasets
     """
     if ctx:
-        ctx.info(f"[catalog://workspace/by-crs] Filtering for CRS: {epsg}, kind: {kind}")
+        ctx.info(  # type: ignore[unused-coroutine]
+            f"[catalog://workspace/by-crs] Filtering for CRS: {epsg}, kind: {kind}"
+        )
 
     entries = filter_by_crs(
         crs_code=epsg,
@@ -51,8 +55,12 @@ def list_by_crs(
         ctx=ctx,
     )
 
+    response_kind: Literal["raster", "vector", "other"] | None = None
+    if kind != "all":
+        response_kind = kind
+
     response = CatalogResponse(
-        kind=None if kind == "all" else kind,
+        kind=response_kind,
         entries=[entry.to_dict() for entry in entries],
         total=len(entries),
     )

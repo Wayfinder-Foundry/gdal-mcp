@@ -1,28 +1,28 @@
-# GDAL MCP v0.2.0 Release Notes
+# GDAL MCP v0.2.1 Release Notes
 
-**Release Date**: October 10, 2025  
-**Codename**: "Knowledge Infrastructure"
+**Release Date**: October 11, 2025  
+**Codename**: "Directional Awareness"
 
 ---
 
 ## Overview
 
-Version 0.2.0 introduces a comprehensive knowledge infrastructure that enables AI agents to reason about geospatial problems with domain expertise. Building on the solid foundation of v0.1.0's tool execution capabilities, this release adds the contextual awareness and reference data that transform gdal-mcp from a GDAL interface wrapper into a **geospatially-enabled AI assistant**.
+Version 0.2.1 is a hotfix that sharpens the Phase 2B experience delivered in v0.2.0. It refines raster statistics helpers, introduces semantically distinct directional enums, and updates documentation to reflect the changes made since the Phase 2B work landed.
 
 This release directly advances the vision outlined in [VISION.md](docs/VISION.md): creating AI systems that understand spatial problems, compose analytical workflows, and bridge the gap between domain expertise and technical implementation.
 
 ## What's New
 
-Version 0.2.0 adds three categories of resources that provide AI agents with the knowledge to make informed geospatial decisions:
+Version 0.2.0 added three categories of resources that provide AI agents with the knowledge to make informed geospatial decisions. Version 0.2.1 builds on that by tightening the implementation details:
 
 ### 1. **Catalog Resources** - Workspace Awareness
-Agents can now discover and inventory datasets in your workspace without explicit file paths. The catalog system automatically scans configured workspace directories, classifies files by type (raster/vector/other), and provides structured metadata for each dataset. Phase 2B introduces rich workspace summarisation (`catalog://workspace/summary/{dummy}`) and CRS-filtered views (`catalog://workspace/by-crs/{epsg}`) so agents can understand data coverage at a glance and target datasets that already align with a desired projection.
+Agents can now discover and inventory datasets in your workspace without explicit file paths. The catalog system automatically scans configured workspace directories, classifies files by type (raster/vector/other), and provides structured metadata for each dataset. Phase 2B introduced rich workspace summarisation (`catalog://workspace/summary/{dummy}`) and CRS-filtered views (`catalog://workspace/by-crs/{epsg}`) so agents can understand data coverage at a glance and target datasets that already align with a desired projection. Version 0.2.1 ensures `CatalogKind` is exported for downstream code and tests.
 
 ### 2. **Reference Resources** - Domain Knowledge
 Built-in reference data for common geospatial decisions: CRS selection by region, resampling method guidance for different data types, compression options with use-case recommendations, and a geospatial terminology glossary.
 
 ### 3. **Metadata Resources** - Dataset Intelligence
-Agents can inspect dataset characteristics before processing: format detection, driver information, spatial properties, statistical summaries, and now per-band details. The new band-level resource (`metadata://{file}/bands/{dummy}`) exposes descriptions, nodata, colour interpretation, and optional quick statistics for every band. Raster statistics now include extended percentiles and spatial extent in both native CRS and WGS84, improving planning for downstream reprojection or mosaicking tasks.
+Agents can inspect dataset characteristics before processing: format detection, driver information, spatial properties, statistical summaries, and band-level details. The band metadata resource (`metadata://{file}/bands/{dummy}`) exposes descriptions, nodata, colour interpretation, and optional quick statistics for every band. Version 0.2.1 refactors the raster statistics helper into smaller building blocks, exposes reproducible sampling constants, and records spatial extent using the new directional enums.
 
 ## How This Improves the Experience
 

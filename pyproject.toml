@@ -10,7 +10,7 @@ name = "gdal-mcp"
 dynamic = ["version"]
 description = "FastMCP server for Python-native GDAL ops (Rasterio/PyProj/pyogrio|Fiona/Shapely)"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = { file = "LICENSE" }
 authors = [{ name = "GDAL MCP Team" }]
 keywords = ["gdal", "mcp", "fastmcp", "geospatial", "raster", "geomatics", "remote sensing", "GIS", "QGIS"]

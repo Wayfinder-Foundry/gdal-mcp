@@ -9,7 +9,7 @@
 
 Version 0.2.0 introduces a comprehensive knowledge infrastructure that enables AI agents to reason about geospatial problems with domain expertise. Building on the solid foundation of v0.1.0's tool execution capabilities, this release adds the contextual awareness and reference data that transform gdal-mcp from a GDAL interface wrapper into a **geospatially-enabled AI assistant**.
 
-This release directly advances the vision outlined in [VISION.md](docs/design/VISION.md): creating AI systems that understand spatial problems, compose analytical workflows, and bridge the gap between domain expertise and technical implementation.
+This release directly advances the vision outlined in [VISION.md](docs/VISION.md): creating AI systems that understand spatial problems, compose analytical workflows, and bridge the gap between domain expertise and technical implementation.
 
 ## What's New
 
@@ -196,7 +196,7 @@ export GDAL_MCP_WORKSPACES="/path/to/workspace1:/path/to/workspace2"
 
 ## Alignment with Vision
 
-This release directly advances the goals outlined in [VISION.md](docs/design/VISION.md):
+This release directly advances the goals outlined in [VISION.md](docs/VISION.md):
 
 ### From Command Executor to Reasoning Agent
 Version 0.1.0 established reliable tool execution. Version 0.2.0 adds the knowledge infrastructure that enables **agentic reasoning**—agents can now understand context, consult domain knowledge, and make informed decisions rather than simply executing commands.

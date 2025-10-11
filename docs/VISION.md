@@ -338,10 +338,10 @@ This vision will evolve as we learn. Expected to be updated:
 
 ## References
 
-- [README.md](../../README.md) - Current project status
-- [ROADMAP.md](../ROADMAP.md) - Specific implementation plans
+- [README.md](../README.md) - Current project status
+- [ROADMAP.md](ROADMAP.md) - Specific implementation plans
 - [ADR Directory](ADR/) - Technical decision records
-- [CONTRIBUTING.md](../CONTRIBUTING.md) - How to help realize this vision
+- [CONTRIBUTING.md](CONTRIBUTING.md) - How to help realize this vision
 
 ---
 

@@ -311,7 +311,7 @@ A world where geospatial expertise is no longer limited by technical barriers. W
 
 - **Repository**: https://github.com/JordanGunn/gdal-mcp
 - **Documentation**: [docs/](docs/)
-- **Vision**: [docs/design/VISION.md](docs/design/VISION.md)
+- **Vision**: [docs/design/VISION.md](docs/VISION.md)
 - **Architecture**: [docs/design/ARCHITECTURE.md](docs/design/ARCHITECTURE.md)
 - **Prompting Strategy**: [docs/design/PROMPTING.md](docs/design/PROMPTING.md)
 - **Decorator Guide**: [docs/fastmcp/DECORATORS.md](docs/fastmcp/DECORATORS.md)

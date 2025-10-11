@@ -61,11 +61,13 @@ def _try_rasterio(resolved: Path) -> dict[str, Any] | None:
     try:
         with rasterio.Env(), rasterio.open(resolved) as dataset:
             dtype = dataset.dtypes[0] if dataset.count > 0 and dataset.dtypes else None
+            crs_str = str(dataset.crs) if dataset.crs else None
             details = {
                 "band_count": dataset.count,
                 "dtype": dtype,
                 "width": dataset.width,
                 "height": dataset.height,
+                "crs": crs_str,
             }
             return {
                 "category": "raster",

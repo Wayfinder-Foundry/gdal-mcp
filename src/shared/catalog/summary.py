@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import Counter
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from fastmcp import Context
@@ -134,7 +134,7 @@ def generate_workspace_summary(*, ctx: Context | None = None) -> WorkspaceSummar
         crs_distribution=crs_distribution,
         format_distribution=format_distribution,
         size_statistics=size_statistics,
-        scan_timestamp=datetime.now(UTC).isoformat(),
+        scan_timestamp=datetime.now(timezone.utc).isoformat(),
         metadata={
             "scan_method": "extension_based_classification",
             "hidden_files_included": False,

@@ -16,13 +16,13 @@ This release directly advances the vision outlined in [VISION.md](docs/VISION.md
 Version 0.2.0 adds three categories of resources that provide AI agents with the knowledge to make informed geospatial decisions:
 
 ### 1. **Catalog Resources** - Workspace Awareness
-Agents can now discover and inventory datasets in your workspace without explicit file paths. The catalog system automatically scans configured workspace directories, classifies files by type (raster/vector/other), and provides structured metadata for each dataset.
+Agents can now discover and inventory datasets in your workspace without explicit file paths. The catalog system automatically scans configured workspace directories, classifies files by type (raster/vector/other), and provides structured metadata for each dataset. Phase 2B introduces rich workspace summarisation (`catalog://workspace/summary/{dummy}`) and CRS-filtered views (`catalog://workspace/by-crs/{epsg}`) so agents can understand data coverage at a glance and target datasets that already align with a desired projection.
 
 ### 2. **Reference Resources** - Domain Knowledge
 Built-in reference data for common geospatial decisions: CRS selection by region, resampling method guidance for different data types, compression options with use-case recommendations, and a geospatial terminology glossary.
 
 ### 3. **Metadata Resources** - Dataset Intelligence
-Agents can inspect dataset characteristics before processing: format detection, driver information, spatial properties, and statistical summaries. This enables context-aware processing decisions.
+Agents can inspect dataset characteristics before processing: format detection, driver information, spatial properties, statistical summaries, and now per-band details. The new band-level resource (`metadata://{file}/bands/{dummy}`) exposes descriptions, nodata, colour interpretation, and optional quick statistics for every band. Raster statistics now include extended percentiles and spatial extent in both native CRS and WGS84, improving planning for downstream reprojection or mosaicking tasks.
 
 ## How This Improves the Experience
 
@@ -118,18 +118,21 @@ We've introduced a structured URI scheme for organizing knowledge:
 
 ## 📦 What's Included
 
-### New Resources (12 total)
+### New Resources (15 total)
 
-**Catalog Resources (3)**
+**Catalog Resources (5)**
 - Workspace dataset discovery with filtering
 - Hidden file handling
 - Extension-based classification
+- Workspace summaries (counts, formats, CRS distribution, size statistics)
+- CRS-filtered catalog views (`catalog://workspace/by-crs/{epsg}`)
 
-**Metadata Resources (4)**
+**Metadata Resources (5)**
 - Format detection (raster/vector/unknown)
 - Raster metadata extraction
 - Vector metadata extraction
-- Statistics computation
+- Statistics computation (extended percentiles + spatial extent)
+- Band-level metadata (per-band description, nodata, colour interpretation, optional statistics)
 
 **Reference Resources (5)**
 - Common CRS by region (50+ entries)

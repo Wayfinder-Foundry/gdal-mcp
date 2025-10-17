@@ -10,9 +10,7 @@ class Info(BaseModel):
 
     path: str = Field(description="Path or URI to the raster dataset")
     driver: str | None = Field(None, description="GDAL driver name (e.g., GTiff)")
-    crs: str | None = Field(
-        None, description="Coordinate reference system (e.g., EPSG:4326)"
-    )
+    crs: str | None = Field(None, description="Coordinate reference system (e.g., EPSG:4326)")
     width: int = Field(ge=1, description="Raster width in pixels")
     height: int = Field(ge=1, description="Raster height in pixels")
     count: int = Field(ge=1, description="Number of bands")
@@ -26,9 +24,5 @@ class Info(BaseModel):
         description="Bounding box as (left, bottom, right, top)"
     )
     nodata: float | None = Field(None, description="NoData value")
-    overview_levels: list[int] = Field(
-        default_factory=list, description="Overview/pyramid levels"
-    )
-    tags: dict[str, str] = Field(
-        default_factory=dict, description="Raster tags/metadata"
-    )
+    overview_levels: list[int] = Field(default_factory=list, description="Overview/pyramid levels")
+    tags: dict[str, str] = Field(default_factory=dict, description="Raster tags/metadata")

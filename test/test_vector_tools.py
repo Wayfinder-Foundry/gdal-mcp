@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 # Import the core logic function (not the @mcp.tool wrapped version)
 from src.tools.vector.info import _info

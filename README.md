@@ -5,10 +5,11 @@
 GDAL MCP is a production-ready MCP server that exposes powerful geospatial operations through natural language interaction. Built with empathy for domain experts who need GDAL's capabilities without the CLI complexity.
 
 **🎉 Milestone (2025-09-30):** First successful live tool invocation - GDAL operations are now conversational!
+**🚀 Update (2025-10-10):** Phase 2A resource suite shipped (metadata/catalog/reference) – unlocking autonomous geospatial reasoning workflows.
 
-[![CI](https://github.com/JordanGunn/gdal-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/JordanGunn/gdal-mcp/actions/workflows/ci.yml)
+[![CI](https://github.com/Wayfinder-Foundry/gdal-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/Wayfinder-Foundry/gdal-mcp/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastMCP 2.0](https://img.shields.io/badge/FastMCP-2.0-blue.svg)](https://github.com/jlowin/fastmcp)
 [![PyPI Downloads](https://static.pepy.tech/personalized-badge/gdal-mcp?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/gdal-mcp)
 
@@ -32,6 +33,9 @@ The AI agent uses GDAL MCP under the hood - properly, safely, with production-qu
 ## 🚀 Features
 
 - **✅ Production-Ready**: First live tool invocation successful (2025-09-30)
+- **🧭 Resource Discovery (0.2.0)**: `catalog://workspace/{all|raster|vector}/{subpath}` resources expose the active workspace so agents can plan without manual file listings.
+- **🔍 Metadata Intelligence (0.2.0)**: `metadata://{file}/format` surfaces driver/format details alongside existing raster/vector metadata.
+- **📚 Reference Library (0.2.0)**: CRS, resampling, compression, and glossary resources provide curated knowledge for agents (`reference://crs/common/{coverage}`, etc.).
 - **Python-Native Stack**: Rasterio, PyProj, pyogrio, Shapely (no GDAL CLI dependency)
 - **5 Core Tools**: `raster_info`, `raster_convert`, `raster_reproject`, `raster_stats`, `vector_info`
 - **Type-Safe**: Pydantic models with auto-generated JSON schemas
@@ -39,8 +43,8 @@ The AI agent uses GDAL MCP under the hood - properly, safely, with production-qu
 - **Context Support**: Real-time LLM feedback during long operations (ADR-0020)
 - **FastMCP 2.0**: Native configuration, middleware, Context API
 - **CI/CD Pipeline**: GitHub Actions with quality gates, test matrix, PyPI publishing
-- **Comprehensive Tests**: 23/23 tests passing across Python 3.10-3.12
-- **ADR-Documented**: 22 architecture decisions guiding development
+- **Comprehensive Tests**: 23/23 tests passing across Python 3.11-3.12
+- **ADR-Documented**: 25 architecture decisions guiding development
 
 ## 📦 Installation
 
@@ -69,6 +73,7 @@ uv sync
 uv run gdal --transport stdio
 ```
 
+See [QUICKSTART.md](docs/QUICKSTART.md) for detailed setup instructions.
 ### Method 4: Dev Container (For Contributors)
 
 Use VS Code with the provided devcontainer for a pre-configured development environment:
@@ -224,13 +229,13 @@ uv run pytest test/ --cov=src --cov-report=term-missing
 uv run pytest test/test_raster_tools.py -v
 ```
 
-**Current Status**: ✅ 23/23 tests passing
+**Current Status**: ✅ 58 tests passing (catalog, metadata, reference, band metadata suites)
 
 Test fixtures create tiny synthetic datasets (10×10 rasters, 3-feature vectors) for fast validation.
 
 ## 🔌 Connecting to Claude Desktop
 
-See [QUICKSTART.md](QUICKSTART.md) for full instructions. Quick version:
+See [QUICKSTART.md](docs/QUICKSTART.md) for full instructions. Quick version:
 
 1. Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
 
@@ -270,14 +275,14 @@ See [QUICKSTART.md](QUICKSTART.md) for full instructions. Quick version:
 
 ## 📚 Documentation
 
-- [QUICKSTART.md](QUICKSTART.md) - Setup and usage guide
-- [CONTRIBUTING.md](CONTRIBUTING.md) - Development guide
+- [QUICKSTART.md](docs/QUICKSTART.md) - Setup and usage guide
+- [CONTRIBUTING.md](docs/CONTRIBUTING.md) - Development guide
 - [docs/design/](docs/design/) - Architecture and design docs
 - [docs/ADR/](docs/ADR/) - Architecture Decision Records
 
 ## 🤝 Contributing
 
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for:
+We welcome contributions! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for:
 - Development setup
 - Code style guide (Ruff + mypy)
 - Testing requirements (pytest + fixtures)
@@ -302,12 +307,15 @@ MIT License - see [LICENSE](LICENSE) for details.
 - ✅ Docker deployment
 - ✅ MCP client integration
 
+**0.2.0 Achievements**:
+- Phase 2A resources (ADR-0023) delivered: catalog discovery, metadata format inspection, knowledge/reference APIs.
+- Shared reference utilities enable smarter agent planning (resampling heuristics, CRS guidance, compression catalog, glossary).
+- Styleguide and ADR additions (0023–0025) guide future contributions.
+
 **Next Steps**:
-- Vector reprojection and conversion
-- Spatial analysis operations
-- Multi-layer support
-- Benchmark suite (ADR-0015)
-- Performance optimizations
+- Phase 2C context/history resources (session state, provenance).
+- Phase 2D domain references expansion (terrain analysis guides, advanced format primers).
+- Expanded spatial analysis tools and workflows powered by new reference knowledge.
 
 ---
 

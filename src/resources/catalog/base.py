@@ -15,12 +15,14 @@ def collect_entries(
     *,
     ctx: Context | None,
     kind: Literal["all", "raster", "vector"],
+    limit: int | None = None,
     include_hidden: bool = False,
     extensions: Sequence[str] | None = None,
 ) -> CatalogResponse:
     """Collect and format catalog entries for a given dataset kind."""
     entries = scan(
         kind=kind,
+        limit=limit,
         include_hidden=include_hidden,
         allowed_extensions=extensions,
         ctx=ctx,

@@ -9,9 +9,16 @@ from __future__ import annotations
 import src.prompts  # noqa: F401
 
 # Import resource modules to register resources at import time
+import src.resources.catalog.all  # noqa: F401
+import src.resources.catalog.raster  # noqa: F401
+import src.resources.catalog.vector  # noqa: F401
 import src.resources.metadata.raster  # noqa: F401
 import src.resources.metadata.statistics  # noqa: F401
 import src.resources.metadata.vector  # noqa: F401
+import src.resources.reference.compression  # noqa: F401
+import src.resources.reference.crs  # noqa: F401
+import src.resources.reference.glossary  # noqa: F401
+import src.resources.reference.resampling  # noqa: F401
 import src.tools.raster.convert  # noqa: F401
 
 # Import tool modules to register tools at import time

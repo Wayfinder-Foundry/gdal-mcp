@@ -10,7 +10,7 @@ from src.app import mcp
 from src.shared.raster.bands import band_metadata
 
 
-@mcp.resource("metadata://{file}/bands/{_dummy}")
+@mcp.resource("metadata://{file}/bands/{_dummy}{?include_statistics}")
 def get_raster_band_metadata(
     file: str,
     _dummy: str = "info",

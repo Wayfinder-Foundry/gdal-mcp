@@ -1,0 +1,117 @@
+name: Architecture Decision Record (ADR)
+description: Propose a new architectural decision
+title: "[ADR]: "
+labels: ["adr", "architecture", "needs-discussion"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template to propose a new Architecture Decision Record (ADR) for significant technical decisions.
+
+  - type: input
+    id: adr-number
+    attributes:
+      label: Proposed ADR Number
+      description: Next sequential ADR number (check docs/ADR/ for the latest)
+      placeholder: e.g., 0026
+    validations:
+      required: true
+
+  - type: input
+    id: title
+    attributes:
+      label: Decision Title
+      description: Short, descriptive title for the decision
+      placeholder: e.g., "Use PostgreSQL for Spatial Indexing"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What is the issue or problem that motivates this decision?
+      placeholder: Describe the context and problem space...
+    validations:
+      required: true
+
+  - type: textarea
+    id: decision
+    attributes:
+      label: Proposed Decision
+      description: What is the proposed change or approach?
+      placeholder: Describe the decision and approach...
+    validations:
+      required: true
+
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Rationale
+      description: Why is this the right decision? What are the key factors?
+      placeholder: Explain the reasoning behind this decision...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What other options were evaluated? Why were they rejected?
+      placeholder: |
+        1. Alternative A - Rejected because...
+        2. Alternative B - Rejected because...
+    validations:
+      required: true
+
+  - type: textarea
+    id: consequences
+    attributes:
+      label: Consequences
+      description: What are the positive and negative consequences of this decision?
+      placeholder: |
+        **Positive:**
+        - Benefit 1
+        - Benefit 2
+
+        **Negative:**
+        - Trade-off 1
+        - Trade-off 2
+    validations:
+      required: true
+
+  - type: dropdown
+    id: status
+    attributes:
+      label: Status
+      description: Current status of this ADR
+      options:
+        - Proposed
+        - Accepted
+        - Rejected
+        - Superseded
+        - Deprecated
+      default: 0
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Implementation Notes
+      description: Any implementation details, migration steps, or related work
+      placeholder: Describe implementation approach...
+    validations:
+      required: false
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Related ADRs, issues, PRs, or external resources
+      placeholder: |
+        - Related to ADR-0023
+        - See issue #123
+        - Reference: https://...
+    validations:
+      required: false

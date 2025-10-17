@@ -1,0 +1,191 @@
+name: MCP Prompt Addition
+description: Propose a new MCP prompt template for common workflows
+title: "[Prompt]: "
+labels: ["prompt", "enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template to propose a new MCP prompt template for common geospatial workflows.
+
+  - type: input
+    id: prompt-name
+    attributes:
+      label: Prompt Name
+      description: The name of the proposed prompt template
+      placeholder: e.g., "analyze_raster_quality" or "prepare_web_tiles"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: prompt-category
+    attributes:
+      label: Prompt Category
+      description: What category does this prompt belong to?
+      options:
+        - Data Quality Analysis
+        - Format Conversion
+        - Spatial Analysis
+        - Workflow Automation
+        - Troubleshooting
+        - Best Practices
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: purpose
+    attributes:
+      label: Purpose
+      description: What workflow does this prompt enable? What problem does it solve?
+      placeholder: Describe the purpose and use case...
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Prompt Description
+      description: Detailed description of what this prompt guides the agent to do
+      placeholder: Describe the workflow this prompt enables...
+    validations:
+      required: true
+
+  - type: textarea
+    id: prompt-template
+    attributes:
+      label: Prompt Template
+      description: The actual prompt text that would be provided to the agent
+      placeholder: |
+        You are a geospatial data analyst. Analyze the raster dataset at {uri} and:
+        1. Check for data quality issues (nodata values, outliers, gaps)
+        2. Compute comprehensive statistics
+        3. Verify CRS and spatial extent
+        4. Recommend any necessary preprocessing steps
+
+        Provide a structured report with findings and recommendations.
+    validations:
+      required: true
+
+  - type: textarea
+    id: parameters
+    attributes:
+      label: Prompt Parameters
+      description: What parameters/variables does this prompt accept?
+      placeholder: |
+        - `uri` (required): Path to the dataset to analyze
+        - `output_format` (optional): Report format (markdown, json)
+        - `detailed` (optional): Include detailed statistics
+    validations:
+      required: false
+
+  - type: textarea
+    id: expected-workflow
+    attributes:
+      label: Expected Workflow
+      description: What tools/resources should the agent use? What's the expected sequence?
+      placeholder: |
+        1. Call `raster_info` to get basic metadata
+        2. Call `raster_stats` to compute statistics
+        3. Query `metadata://{file}/format` for format details
+        4. Analyze results and generate report
+        5. Provide recommendations
+    validations:
+      required: true
+
+  - type: textarea
+    id: example-usage
+    attributes:
+      label: Example Usage
+      description: Show how a user would invoke this prompt
+      placeholder: |
+        **User Request:**
+        "Analyze the quality of /data/dem.tif"
+
+        **Agent Response:**
+        [Uses prompt template with uri=/data/dem.tif]
+        [Calls tools, analyzes results, provides report]
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-output
+    attributes:
+      label: Expected Output
+      description: What should the agent produce after using this prompt?
+      placeholder: |
+        ```markdown
+        # Raster Quality Analysis: dem.tif
+
+        ## Dataset Overview
+        - Format: GeoTIFF
+        - CRS: EPSG:4326
+        - Dimensions: 1024x1024
+
+        ## Quality Assessment
+        ✓ No nodata values detected
+        ✓ CRS properly defined
+        ⚠ Outliers detected in band 1 (3 pixels > 3σ)
+
+        ## Recommendations
+        1. Consider filtering outliers before analysis
+        2. Reproject to appropriate UTM zone for metric calculations
+        ```
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: related-work
+    attributes:
+      label: Related Work
+      description: Check all that apply
+      options:
+        - label: This prompt uses existing tools
+        - label: This prompt uses existing resources
+        - label: This prompt requires new tools
+        - label: This prompt requires new resources
+        - label: This prompt complements existing prompts
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Workflow Complexity
+      description: How complex is the workflow this prompt enables?
+      options:
+        - Simple - Single tool call
+        - Medium - 2-5 tool calls
+        - Complex - 5+ tool calls or conditional logic
+        - Advanced - Multi-step with branching logic
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How valuable is this prompt to common workflows?
+      options:
+        - Critical - Frequently needed workflow
+        - High - Common use case
+        - Medium - Occasional use case
+        - Low - Niche use case
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Would you be willing to contribute this prompt?
+      options:
+        - label: I'm willing to submit a PR for this prompt
+          required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any other context, related prompts, or references
+      placeholder: Add any other context about the prompt...
+    validations:
+      required: false

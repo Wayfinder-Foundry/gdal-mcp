@@ -1,0 +1,120 @@
+name: Resource Addition
+description: Propose a new MCP resource (catalog, metadata, reference)
+title: "[Resource]: "
+labels: ["resource", "enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template to propose a new MCP resource for the server.
+
+  - type: dropdown
+    id: resource-type
+    attributes:
+      label: Resource Type
+      description: What type of resource is this?
+      options:
+        - Catalog Resource
+        - Metadata Resource
+        - Reference Resource
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: resource-uri
+    attributes:
+      label: Proposed Resource URI
+      description: The URI pattern for this resource
+      placeholder: e.g., "catalog://workspace/by-format/{format}"
+    validations:
+      required: true
+
+  - type: textarea
+    id: purpose
+    attributes:
+      label: Purpose
+      description: What problem does this resource solve? What use case does it enable?
+      placeholder: Describe the purpose and use case...
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Resource Description
+      description: Detailed description of what this resource provides
+      placeholder: Describe what data/information this resource exposes...
+    validations:
+      required: true
+
+  - type: textarea
+    id: schema
+    attributes:
+      label: Response Schema
+      description: What should the response structure look like?
+      placeholder: |
+        ```json
+        {
+          "format": "GeoTIFF",
+          "entries": [...],
+          "total": 42
+        }
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: parameters
+    attributes:
+      label: Parameters
+      description: What parameters does this resource accept?
+      placeholder: |
+        - `format` (required): File format to filter by
+        - `include_hidden` (optional): Include hidden files
+    validations:
+      required: false
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Usage Examples
+      description: Show how agents would use this resource
+      placeholder: |
+        **Example 1:** List all GeoTIFF files
+        URI: `catalog://workspace/by-format/GeoTIFF`
+
+        **Example 2:** Include hidden files
+        URI: `catalog://workspace/by-format/GeoTIFF?include_hidden=true`
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Implementation Notes
+      description: Any implementation details, data sources, or dependencies
+      placeholder: Describe implementation approach...
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: related-work
+    attributes:
+      label: Related Work
+      description: Check all that apply
+      options:
+        - label: This resource complements existing catalog resources
+        - label: This resource complements existing metadata resources
+        - label: This resource complements existing reference resources
+        - label: This resource requires new data sources or dependencies
+        - label: This resource requires updates to existing models
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any other context, related resources, or references
+      placeholder: Add any other context about the resource...
+    validations:
+      required: false

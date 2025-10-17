@@ -74,6 +74,20 @@ uv run gdal --transport stdio
 ```
 
 See [QUICKSTART.md](docs/QUICKSTART.md) for detailed setup instructions.
+### Method 4: Dev Container (For Contributors)
+
+Use VS Code with the provided devcontainer for a pre-configured development environment:
+
+```bash
+# Open in VS Code and select "Reopen in Container"
+# Everything is set up automatically!
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [`.devcontainer/README.md`](.devcontainer/README.md) for details.
+
+---
+
+See [QUICKSTART.md](QUICKSTART.md) for detailed setup instructions.
 
 ## 🔧 Available Tools
 

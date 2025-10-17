@@ -44,7 +44,7 @@ build/
 *.swp
 *.swo
 
-# Test output
+### Test output
 htmlcov/
 .coverage
 .tox/
@@ -54,7 +54,7 @@ coverage.xml
 .cache
 .pytest_cache/
 
-# Test data and temporary files
+### Test data and temporary files
 test_data/
 *.tif
 *.tiff
@@ -64,6 +64,7 @@ test_data/
 *.png
 *.aux.xml
 
+### Tools
 src/.idea
 .idea
 .vscode
@@ -71,5 +72,6 @@ dist
 conport_export
 context_portal
 .windsurf
-
+.serena
+.agents
 .mcp-config.json

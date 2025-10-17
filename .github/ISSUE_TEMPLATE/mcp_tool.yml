@@ -1,0 +1,187 @@
+name: MCP Tool Addition
+description: Propose a new MCP tool for geospatial operations
+title: "[Tool]: "
+labels: ["tool", "enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template to propose a new MCP tool for the server.
+
+  - type: input
+    id: tool-name
+    attributes:
+      label: Tool Name
+      description: The name of the proposed tool
+      placeholder: e.g., "raster_clip" or "vector_buffer"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tool-category
+    attributes:
+      label: Tool Category
+      description: What category does this tool belong to?
+      options:
+        - Raster Operations
+        - Vector Operations
+        - Coordinate Transformation
+        - Analysis/Statistics
+        - Format Conversion
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: purpose
+    attributes:
+      label: Purpose
+      description: What problem does this tool solve? What use case does it enable?
+      placeholder: Describe the purpose and use case...
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Tool Description
+      description: Detailed description of what this tool does
+      placeholder: Describe the tool's functionality...
+    validations:
+      required: true
+
+  - type: textarea
+    id: parameters
+    attributes:
+      label: Input Parameters
+      description: What parameters does this tool accept?
+      placeholder: |
+        - `uri` (required, string): Path to input file
+        - `output` (required, string): Path to output file
+        - `buffer_distance` (optional, float): Buffer distance in map units
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Output Schema
+      description: What does this tool return?
+      placeholder: |
+        ```json
+        {
+          "success": true,
+          "output_path": "/path/to/output.tif",
+          "metadata": {...}
+        }
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Usage Examples
+      description: Show how agents would use this tool
+      placeholder: |
+        **Example 1:** Basic usage
+        ```json
+        {
+          "uri": "/data/input.tif",
+          "output": "/data/output.tif",
+          "buffer_distance": 100.0
+        }
+        ```
+
+        **Example 2:** Advanced usage
+        ```json
+        {
+          "uri": "/data/input.tif",
+          "output": "/data/output.tif",
+          "buffer_distance": 100.0,
+          "options": {
+            "preserve_topology": true
+          }
+        }
+        ```
+    validations:
+      required: true
+
+  - type: dropdown
+    id: gdal-equivalent
+    attributes:
+      label: GDAL CLI Equivalent
+      description: Does this tool have a GDAL CLI equivalent?
+      options:
+        - "Yes - maps to existing GDAL command"
+        - "No - new operation"
+        - "Partial - combines multiple GDAL operations"
+    validations:
+      required: true
+
+  - type: textarea
+    id: gdal-command
+    attributes:
+      label: GDAL Command Reference
+      description: If applicable, show the equivalent GDAL CLI command
+      placeholder: |
+        ```bash
+        gdalwarp -cutline boundary.shp input.tif output.tif
+        ```
+    validations:
+      required: false
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Implementation Notes
+      description: Suggested implementation approach, libraries to use (Rasterio, GeoPandas, etc.)
+      placeholder: |
+        - Use Rasterio's `mask` function
+        - Leverage Shapely for geometry operations
+        - Consider memory efficiency for large rasters
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: related-work
+    attributes:
+      label: Related Work
+      description: Check all that apply
+      options:
+        - label: This tool complements existing raster tools
+        - label: This tool complements existing vector tools
+        - label: This tool requires new dependencies
+        - label: This tool requires new models/schemas
+        - label: This tool requires new resources
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this tool to your workflow?
+      options:
+        - Critical - Blocking my work
+        - High - Significantly improves workflow
+        - Medium - Nice to have
+        - Low - Minor improvement
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Would you be willing to contribute this tool?
+      options:
+        - label: I'm willing to submit a PR for this tool
+          required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any other context, related tools, or references
+      placeholder: Add any other context about the tool...
+    validations:
+      required: false

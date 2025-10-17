@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 💬 Discussions
+    url: https://github.com/Wayfinder-Foundry/gdal-mcp/discussions
+    about: Ask questions, share ideas, or discuss the project with the community
+  - name: 📖 Documentation
+    url: https://github.com/Wayfinder-Foundry/gdal-mcp/tree/main/docs
+    about: Browse the project documentation, guides, and ADRs
+  - name: 🚀 Vision & Roadmap
+    url: https://github.com/Wayfinder-Foundry/gdal-mcp/blob/main/docs/VISION.md
+    about: Learn about the project vision and future direction

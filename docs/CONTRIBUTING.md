@@ -361,6 +361,33 @@ ADRs should document:
 
 ---
 
+## Utility Scripts
+
+The `scripts/` directory contains utility scripts for repository management:
+
+### Creating GitHub Issues from Task Files
+
+The `create_issues_from_tasks.py` script automates the creation of GitHub issues from task markdown files in `docs/tasks/`.
+
+**Usage:**
+
+```bash
+# Preview what issues would be created (dry-run)
+python scripts/create_issues_from_tasks.py --dry-run
+
+# Create actual GitHub issues (requires gh CLI authentication)
+python scripts/create_issues_from_tasks.py
+```
+
+**Prerequisites:**
+- Python 3.11+
+- `python-frontmatter` package (already in project dependencies)
+- GitHub CLI (`gh`) authenticated with the repository
+
+See [`scripts/README.md`](../scripts/README.md) for detailed documentation.
+
+---
+
 ## Questions?
 
 - **GitHub Issues**: For bug reports and feature requests

@@ -21,6 +21,10 @@ tags: [gdal, mcp, roadmap, planning]
   - Phase 2B: workspace summaries, CRS-indexed catalog views, extended metadata stats
   - Phase 2C: context/history resources (session state, provenance)
   - Phase 2D: domain references & terrain toolkits (resampling/compression guides, terrain parameters)
+- M6: Epistemic Governance (ADR-0026)
+  - Establish justification schema, risk classes, and methodology references (`docs/design/epistemology/`)
+  - Implement enforcement stack across risk classification, storage, middleware, and receipts
+  - Roll out to high-impact tools (reprojection, resampling, hydrology, aggregation)
 
 ## Next Steps
 
@@ -29,3 +33,5 @@ tags: [gdal, mcp, roadmap, planning]
 - Phase 2D domain references: terrain analysis guides, format primers, expanded glossary entries.
 - Automate prompt regression harness using `test/prompt_suite/test_prompts.py` to capture before/after transcripts.
 - Continue documentation cadence: finalize `docs/fastmcp/RESOURCES.md` and promote ADR-0025 to accepted once Phase 2B ships.
+- Execute epistemic enforcement tasks `docs/tasks/2001-2008-*.md` to implement risk classification, storage, middleware, and tool integrations per `docs/design/epistemology/IMPLEMENTATION_PLAN.md`.
+- Draft transactional workflow ADR (task `1020`) once workflow planning prompt (`1010`) and middleware receipts exist.

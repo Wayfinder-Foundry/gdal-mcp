@@ -6,11 +6,6 @@ Ensures all tool modules are imported so their @mcp.tool functions register.
 from __future__ import annotations
 
 # ===============================================================
-# prompts
-# ===============================================================
-import src.prompts  # noqa: F401
-
-# ===============================================================
 # resources/catalog
 # ===============================================================
 import src.resources.catalog.all  # noqa: F401

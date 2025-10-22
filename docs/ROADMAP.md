@@ -21,7 +21,7 @@ tags: [gdal, mcp, roadmap, planning]
   - Phase 2B: workspace summaries, CRS-indexed catalog views, extended metadata stats
   - Phase 2C: context/history resources (session state, provenance)
   - Phase 2D: domain references & terrain toolkits (resampling/compression guides, terrain parameters)
-- M6: Epistemic Governance (ADR-0026)
+- M6: Prompting & Epistemic Governance (ADR-0026)
   - Establish justification schema, risk classes, and methodology references (`docs/design/epistemology/`)
   - Implement enforcement stack across risk classification, storage, middleware, and receipts
   - Roll out to high-impact tools (reprojection, resampling, hydrology, aggregation)

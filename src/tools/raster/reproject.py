@@ -10,6 +10,7 @@ from rasterio.warp import calculate_default_transform, reproject as rio_reprojec
 
 from src.app import mcp
 from src.config import resolve_path
+from src.middleware.preflight import requires_reflection
 from src.models.raster.reproject import Params, Result
 from src.models.resourceref import ResourceRef
 
@@ -273,6 +274,31 @@ async def _reproject(
         raise ToolError("Unexpected error during reprojection: " + str(e)) from e
 
 
+@requires_reflection(
+    [
+        {
+            "prompt_name": "justify_crs_selection",
+            "domain": "crs_datum",
+            "args_fn": lambda args: {
+                "source_crs": args.get("src_crs") or "source CRS",
+                "target_crs": args.get("dst_crs", "unknown"),
+                "operation_context": "raster reprojection",
+                "data_type": "raster",
+            },
+        },
+        {
+            "prompt_name": "justify_resampling_method",
+            "domain": "resampling",
+            "args_fn": lambda args: {
+                "data_type": "raster",
+                "source_resolution": "original",
+                "target_resolution": "resampled",
+                "method": args.get("resampling", "unknown"),
+                "operation_context": "reprojection resampling",
+            },
+        },
+    ]
+)
 @mcp.tool(
     name="raster_reproject",
     description=(
@@ -315,8 +341,7 @@ async def reproject(
 ) -> Result:
     """MCP tool wrapper for raster reprojection with flattened parameters.
 
-    Note: Reflection preflight is temporarily disabled pending integration fixes.
-    Will be re-enabled in next patch.
+    Includes reflection preflight for CRS selection and resampling method justification.
     """
     # Build Params object from flattened parameters
     params = Params(

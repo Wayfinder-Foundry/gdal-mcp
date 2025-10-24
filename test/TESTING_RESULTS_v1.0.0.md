@@ -6,19 +6,21 @@
 
 ## Executive Summary
 
-The reflection preflight system with flattened parameters is **working end-to-end**. All seven manual tests passed with the expected prompting/cache behavior, artifacts were written to disk, and tools executed successfully. From a UX perspective in a chat client, the flow is helpful, intentional, educational, verifiable, and aligned with typical expectations (prompts only when needed; silent on cache hits).
+The reflection preflight system with flattened parameters is **working end-to-end**. All seven manual 
+tests passed with the expected prompting/cache behavior, artifacts were written to disk, and tools 
+executed successfully. From a UX perspective in a chat client, the flow is helpful, intentional, educational, verifiable, and aligned with typical expectations (prompts only when needed; silent on cache hits).
 
 ## Test Results Overview
 
-| Test | Scenario | Expected Prompts | Actual Prompts | Output File | Status |
-|------|----------|------------------|----------------|-------------|--------|
-| 1 | First use (EPSG:3857 + cubic) | CRS + Resampling | ✅ Both | `test1_webmercator.tif` | ✅ PASS |
-| 2 | Cache hit (same params) | None | ✅ None | `test2_webmercator.tif` | ✅ PASS |
-| 3 | Partial cache (new CRS) | CRS only | ✅ CRS only | `test3_wgs84.tif` | ✅ PASS |
-| 4 | Partial cache (new resampling) | Resampling only | ✅ Resampling only | `test4_wgs84_nearest.tif` | ✅ PASS |
-| 5 | Full cache miss (both different) | CRS + Resampling | ✅ Both | `test5_utm.tif` | ✅ PASS |
-| 6 | Relative paths | None (cache hit) | ✅ None | `test6_relative.tif` | ✅ PASS |
-| 7 | Lowercase compression (convert) | N/A | ✅ N/A | `test7_compressed.tif` | ✅ PASS |
+| Test | Scenario                         | Expected Prompts | Actual Prompts    | Output File               | Status |
+|------|----------------------------------|------------------|-------------------|---------------------------|--------|
+| 1    | First use (EPSG:3857 + cubic)    | CRS + Resampling | ✅ Both            | `test1_webmercator.tif`   | ✅ PASS |
+| 2    | Cache hit (same params)          | None             | ✅ None            | `test2_webmercator.tif`   | ✅ PASS |
+| 3    | Partial cache (new CRS)          | CRS only         | ✅ CRS only        | `test3_wgs84.tif`         | ✅ PASS |
+| 4    | Partial cache (new resampling)   | Resampling only  | ✅ Resampling only | `test4_wgs84_nearest.tif` | ✅ PASS |
+| 5    | Full cache miss (both different) | CRS + Resampling | ✅ Both            | `test5_utm.tif`           | ✅ PASS |
+| 6    | Relative paths                   | None (cache hit) | ✅ None            | `test6_relative.tif`      | ✅ PASS |
+| 7    | Lowercase compression (convert)  | N/A              | ✅ N/A             | `test7_compressed.tif`    | ✅ PASS |
 
 **Overall:** 7/7 tests passing (100%)
 

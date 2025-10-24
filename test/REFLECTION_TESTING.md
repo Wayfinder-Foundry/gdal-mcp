@@ -1,6 +1,7 @@
 # Reflection System Testing Guide - v1.0.0
 
-This guide provides step-by-step instructions for testing the re-enabled reflection preflight system with the flattened parameter architecture.
+This guide provides step-by-step instructions for testing the re-enabled reflection preflight system 
+with the flattened parameter architecture.
 
 ## What Changed
 

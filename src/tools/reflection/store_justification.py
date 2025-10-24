@@ -66,8 +66,7 @@ async def store_justification(
 
     if ctx:
         await ctx.info(
-            f"✓ Stored justification for {prompt_name} in domain {domain} "
-            f"(hash={hash_key[:16]}...)"
+            f"✓ Stored justification for {prompt_name} in domain {domain} (hash={hash_key[:16]}...)"
         )
 
     logger.info(

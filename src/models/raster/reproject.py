@@ -2,10 +2,23 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field
-from rasterio.enums import Resampling
 
 from src.models.resourceref import ResourceRef
+
+# Define resampling methods as a literal type for better MCP serialization
+ResamplingMethod = Literal[
+    "nearest",
+    "bilinear",
+    "cubic",
+    "cubic_spline",
+    "lanczos",
+    "average",
+    "mode",
+    "gauss",
+]
 
 
 class Params(BaseModel):
@@ -15,8 +28,12 @@ class Params(BaseModel):
         description="Destination CRS (e.g., 'EPSG:4326', 'EPSG:3857')",
         pattern=r"^(EPSG:\d+|[A-Z]+:.+)$",
     )
-    resampling: Resampling = Field(
-        description="Resampling method (per ADR-0011: explicit required)",
+    resampling: ResamplingMethod = Field(
+        description=(
+            "Resampling method (per ADR-0011: explicit required). "
+            "Options: nearest (categorical data), bilinear (continuous data), "
+            "cubic (smooth continuous data), cubic_spline, lanczos, average, mode, gauss"
+        ),
     )
     src_crs: str | None = Field(
         None,

@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🎉 Major Release - Geospatial Reasoning Substrate
 
-This release transforms gdal-mcp from a tool wrapper into a **geospatial reasoning substrate** that enables models to compose GDAL operations with domain understanding, justified decisions, and persistent context.
+This release transforms gdal-mcp from a tool wrapper into a **geospatial reasoning substrate** that enables 
+models to compose GDAL operations with domain understanding, justified decisions, and persistent context.
 
 ### Added
 

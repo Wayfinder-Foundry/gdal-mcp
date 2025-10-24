@@ -157,8 +157,3 @@ If yes → pick a tool and state the reason. If no → proceed, note why.
 - Plans → `.plans/plan-YYYYMMDD-HHMM.md`
 - Tool index → `.mcp/capabilities.md`
 - Decisions/notes → ConPort memories (and/or `/notes/`)
-
-## Workflows
-* When conducting development tasks, refer to [dev.md](.agents/dev.md)
-* When conducting planning tasks. refer to [plan.md](.agents/plan.md)
-

@@ -4,8 +4,8 @@
 
 GDAL MCP is a production-ready MCP server that exposes powerful geospatial operations through natural language interaction. Built with empathy for domain experts who need GDAL's capabilities without the CLI complexity.
 
-**🎉 Milestone (2025-09-30):** First successful live tool invocation - GDAL operations are now conversational!
-**🚀 Update (2025-10-10):** Phase 2A resource suite shipped (metadata/catalog/reference) – unlocking autonomous geospatial reasoning workflows.
+**🎉 v1.0.0 Released (2025-10-24):** Complete reflection preflight system - geospatial reasoning with justified decisions!
+**🚀 Milestone:** First production-ready release with epistemic governance and domain-aware tool composition.
 
 [![CI](https://github.com/Wayfinder-Foundry/gdal-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/Wayfinder-Foundry/gdal-mcp/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -32,19 +32,29 @@ The AI agent uses GDAL MCP under the hood - properly, safely, with production-qu
 
 ## 🚀 Features
 
-- **✅ Production-Ready**: First live tool invocation successful (2025-09-30)
-- **🧭 Resource Discovery (0.2.0)**: `catalog://workspace/{all|raster|vector}/{subpath}` resources expose the active workspace so agents can plan without manual file listings.
-- **🔍 Metadata Intelligence (0.2.0)**: `metadata://{file}/format` surfaces driver/format details alongside existing raster/vector metadata.
-- **📚 Reference Library (0.2.0)**: CRS, resampling, compression, and glossary resources provide curated knowledge for agents (`reference://crs/common/{coverage}`, etc.).
-- **Python-Native Stack**: Rasterio, PyProj, pyogrio, Shapely (no GDAL CLI dependency)
-- **5 Core Tools**: `raster_info`, `raster_convert`, `raster_reproject`, `raster_stats`, `vector_info`
-- **Type-Safe**: Pydantic models with auto-generated JSON schemas
-- **Workspace Security**: PathValidationMiddleware for secure file access (ADR-0022)
-- **Context Support**: Real-time LLM feedback during long operations (ADR-0020)
+### Geospatial Reasoning (v1.0.0)
+- **🧠 Reflection Preflight System**: Pre-execution reasoning prompts for consequential operations
+- **📝 Justified Decisions**: Intent, alternatives, choice, and confidence tracking
+- **💾 Persistent Context**: Disk-based reflection store with domain-aware caching
+- **🎯 Domain Awareness**: CRS selection, resampling methods, hydrology, aggregation reasoning
+- **🔗 Tool Composition**: Models discover workflows through understanding + tool awareness
+
+### Production Quality
+- **✅ Type-Safe**: Full mypy strict mode compliance, Pydantic models with JSON schemas
+- **🧪 Tested**: 72 passing tests with comprehensive coverage
+- **🔒 Secure**: PathValidationMiddleware for workspace isolation (ADR-0022)
+- **⚡ Fast**: Python-native stack (Rasterio, PyProj, pyogrio, Shapely)
+- **📊 Observable**: Real-time LLM feedback during long operations (ADR-0020)
+
+### Resources & Discovery
+- **🧭 Workspace Catalog**: `catalog://workspace/{all|raster|vector}/{subpath}` for autonomous planning
+- **🔍 Metadata Intelligence**: `metadata://{file}/format` for driver/format details
+- **📚 Reference Library**: CRS, resampling, compression, glossary knowledge (`reference://crs/common/{coverage}`)
+
+### Infrastructure
 - **FastMCP 2.0**: Native configuration, middleware, Context API
 - **CI/CD Pipeline**: GitHub Actions with quality gates, test matrix, PyPI publishing
-- **Comprehensive Tests**: 23/23 tests passing across Python 3.11-3.12
-- **ADR-Documented**: 25 architecture decisions guiding development
+- **ADR-Documented**: 26 architecture decisions guiding development
 
 ## 📦 Installation
 
@@ -229,7 +239,7 @@ uv run pytest test/ --cov=src --cov-report=term-missing
 uv run pytest test/test_raster_tools.py -v
 ```
 
-**Current Status**: ✅ 58 tests passing (catalog, metadata, reference, band metadata suites)
+**Current Status**: ✅ 72 tests passing (includes reflection system, prompts, and full integration suite)
 
 Test fixtures create tiny synthetic datasets (10×10 rasters, 3-feature vectors) for fast validation.
 
@@ -307,18 +317,23 @@ MIT License - see [LICENSE](LICENSE) for details.
 - ✅ Docker deployment
 - ✅ MCP client integration
 
-**0.2.0 Achievements**:
-- Phase 2A resources (ADR-0023) delivered: catalog discovery, metadata format inspection, knowledge/reference APIs.
-- Shared reference utilities enable smarter agent planning (resampling heuristics, CRS guidance, compression catalog, glossary).
-- Styleguide and ADR additions (0023–0025) guide future contributions.
+**v1.0.0 Achievements** ✅:
+- Complete reflection preflight system with epistemic governance
+- Domain-aware reasoning prompts (CRS, resampling, hydrology, aggregation)
+- Justification schema with persistent context storage
+- Full type safety (mypy strict mode) and comprehensive testing
+- Agent guidelines for tool awareness and emergent workflows
 
-**Next Steps**:
-- Phase 2C context/history resources (session state, provenance).
-- Phase 2D domain references expansion (terrain analysis guides, advanced format primers).
-- Expanded spatial analysis tools and workflows powered by new reference knowledge.
+**Next Phase - Geospatial Analysis**:
+- Vector analysis tools (clip, buffer, overlay, query)
+- Raster analysis primitives (classify, calc, zonal statistics, contour)
+- Semantic reasoning capabilities (urban detection, elevation analysis, water classification)
+- Multi-step workflow discovery through tool composition
 
 ---
 
-**Status**: MVP Ready for Public Release 🚀
+**Status**: v1.0.0 Production Release 🚀
+
+A geospatial reasoning substrate that enables models to compose GDAL operations with domain understanding, justified decisions, and persistent context - unlocking discovery of novel analysis workflows beyond prescribed procedures.
 
 Built with ❤️ for the geospatial AI community.

@@ -8,7 +8,16 @@ from src.app import mcp
 from src.shared.reference import list_resampling_methods, resampling_guide
 
 
-@mcp.resource("reference://resampling/available/{category}")
+@mcp.resource(
+    uri="reference://resampling/available/{category}",
+    name="Resampling Methods Available",
+    description=(
+        "Complete enumeration of available resampling methods from rasterio.enums.Resampling. "
+        "Lists all supported algorithms including nearest, bilinear, cubic, cubic_spline, lanczos, "
+        "average, mode, gauss, and max/min/med/q1/q3. Used by raster_reproject and raster_convert "
+        "with overviews. Filter by category: 'interpolation', 'aggregation', or 'all'."
+    ),
+)
 def list_resampling_methods_resource(
     category: str = "all",
     ctx: Context | None = None,
@@ -24,7 +33,18 @@ def list_resampling_methods_resource(
     return {"entries": entries, "total": len(entries)}
 
 
-@mcp.resource("reference://resampling/guide/{method}")
+@mcp.resource(
+    uri="reference://resampling/guide/{method}",
+    name="Resampling Selection Guide",
+    description=(
+        "Expert guidance for choosing appropriate resampling methods based on data type and "
+        "use case. Explains trade-offs between interpolation quality, performance, and data "
+        "integrity. Critical for raster_reproject operations per ADR-0011 requirement. "
+        "Covers: nearest (categorical/discrete data, preserves exact values), bilinear "
+        "(continuous data, smooth results), cubic (elevation/scientific, highest quality), "
+        "average (downsampling), mode (categorical downsampling). Filter by method name or 'all'."
+    ),
+)
 def resampling_guide_resource(
     method: str = "all",
     ctx: Context | None = None,

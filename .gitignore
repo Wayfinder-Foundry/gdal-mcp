@@ -64,3 +64,7 @@ context_portal/
 
 # MCP configs
 .mcp-config.json
+
+# Test output files (generated during testing)
+test/data/test*.tif
+test/data/test*.json

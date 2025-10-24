@@ -14,35 +14,31 @@ def register(mcp: FastMCP) -> None:
         description="Pre-execution micro-guidance for resampling method reasoning.",
         tags={"reasoning", "resampling"},
     )
-    def justify_resampling_method(
-        data_type: str,
-        source_resolution: str,
-        target_resolution: str,
-        method: str,
-        operation_context: str,
-    ) -> list[Message]:
+    def justify_resampling_method(method: str) -> list[Message]:
+        """Justify resampling method selection for reprojection.
+
+        Args:
+            method: Resampling method (e.g., 'cubic', 'nearest', 'bilinear')
+        """
         content = (
-            f"Before resampling **{data_type}** from {source_resolution} → "
-            f"{target_resolution} using **{method}** ({operation_context}):\n\n"
+            f"Before resampling using **{method}** method:\n\n"
             "**Reason through:**\n"
-            "• Signal property to preserve? "
-            "(class fidelity/gradient/distribution)\n"
-            "• Categorical vs continuous implications?\n"
-            "• Artifact risks? (smoothing/aliasing/false classes)\n"
-            "• Why not nearest/bilinear/cubic/mode/average?\n\n"
+            "• What signal property must be preserved? "
+            "(exact values, smooth gradients, class boundaries, statistical distribution)\n"
+            "• Is the data categorical (discrete classes) or continuous (measurements)?\n"
+            "• What artifacts or distortions might this method introduce?\n"
+            "• What alternative resampling methods were considered and why were they rejected?\n\n"
             "**Return strict JSON:**\n"
             "```json\n"
             "{\n"
-            '  "intent": "signal property to preserve '
-            '(e.g., classification fidelity)",\n'
+            '  "intent": "signal property to preserve (e.g., exact class values for land cover)",\n'
             '  "alternatives": [\n'
-            '    {"method": "nearest|bilinear|cubic|mode|average", '
-            '"why_not": "reason"}\n'
+            '    {"method": "nearest|bilinear|cubic|average|mode", "why_not": "reason"}\n'
             "  ],\n"
             '  "choice": {\n'
             f'    "method": "{method}",\n'
-            '    "rationale": "why this method preserves the intent",\n'
-            '    "tradeoffs": "artifacts introduced (e.g., smoothing)"\n'
+            '    "rationale": "why this method preserves the signal property",\n'
+            '    "tradeoffs": "artifacts or distortions introduced"\n'
             "  },\n"
             '  "confidence": "low|medium|high"\n'
             "}\n"

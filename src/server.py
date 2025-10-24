@@ -29,15 +29,25 @@ import src.tools.raster.convert  # noqa: F401
 import src.tools.raster.info  # noqa: F401
 import src.tools.raster.reproject  # noqa: F401
 import src.tools.raster.stats  # noqa: F401
+import src.tools.reflection.store_justification  # noqa: F401
 import src.tools.vector.info  # noqa: F401
 
 # ===============================================================
 # prompts
 # ===============================================================
 from src.app import mcp
+from src.middleware.reflection_middleware import ReflectionMiddleware
 from src.prompts import register_prompts
 
 # Register prompts (the epistemic layer)
 register_prompts(mcp)
+
+# ===============================================================
+# reflection system
+# ===============================================================
+
+# Register reflection middleware
+# This intercepts tool calls and checks for required justifications
+mcp.add_middleware(ReflectionMiddleware())
 
 __all__ = ["mcp"]

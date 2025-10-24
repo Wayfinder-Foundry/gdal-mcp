@@ -14,32 +14,30 @@ def register(mcp: FastMCP) -> None:
         description="Pre-execution micro-guidance for CRS/datum selection reasoning.",
         tags={"reasoning", "crs"},
     )
-    def justify_crs_selection(
-        source_crs: str,
-        target_crs: str,
-        operation_context: str,
-        data_type: str = "raster",
-    ) -> list[Message]:
+    def justify_crs_selection(dst_crs: str) -> list[Message]:
+        """Justify target CRS selection for reprojection.
+
+        Args:
+            dst_crs: Target coordinate reference system (e.g., 'EPSG:3857')
+        """
         content = (
-            f"Before CRS transform **{source_crs}** → **{target_crs}** "
-            f"({operation_context}):\n\n"
+            f"Before reprojecting to **{dst_crs}**:\n\n"
             "**Reason through:**\n"
-            "• What property must stay truthful? "
-            "(distance/area/shape/hydrology)\n"
-            "• Datum shift risks? (vertical/horizontal alignment)\n"
-            "• Distortion tradeoffs within analysis extent?\n"
-            "• Why not other CRS options?\n\n"
+            "• What spatial property must be preserved? "
+            "(distance accuracy, area accuracy, shape, angular relationships)\n"
+            "• Why is this CRS appropriate for the intended analysis?\n"
+            "• What are the distortion characteristics and tradeoffs?\n"
+            "• What alternative CRS options were considered and why were they rejected?\n\n"
             "**Return strict JSON:**\n"
             "```json\n"
             "{\n"
-            '  "intent": "property to preserve '
-            '(e.g., distance accuracy for flow calculations)",\n'
+            '  "intent": "property to preserve (e.g., area accuracy for land cover analysis)",\n'
             '  "alternatives": [\n'
-            '    {"method": "EPSG:XXXX", "why_not": "reason for rejection"}\n'
+            '    {"crs": "EPSG:XXXX", "why_not": "reason for rejection"}\n'
             "  ],\n"
             '  "choice": {\n'
-            f'    "method": "{target_crs}",\n'
-            '    "rationale": "why this CRS fits the intent",\n'
+            f'    "crs": "{dst_crs}",\n'
+            '    "rationale": "why this CRS fits the analytical intent",\n'
             '    "tradeoffs": "known distortions or limitations"\n'
             "  },\n"
             '  "confidence": "low|medium|high"\n'

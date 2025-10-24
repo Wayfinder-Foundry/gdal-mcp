@@ -10,7 +10,7 @@ from rasterio.warp import calculate_default_transform, reproject as rio_reprojec
 
 from src.app import mcp
 from src.config import resolve_path
-from src.middleware.preflight import requires_reflection
+from src.middleware import requires_reflection
 from src.models.raster.reproject import Params, Result
 from src.models.resourceref import ResourceRef
 
@@ -236,12 +236,12 @@ async def _reproject(
                 ],
                 width=dst_width,
                 height=dst_height,
-                bounds=(
+                bounds=[
                     dst_bounds.left,
                     dst_bounds.bottom,
                     dst_bounds.right,
                     dst_bounds.top,
-                ),
+                ],
             )
 
     except rasterio.errors.RasterioIOError as e:
@@ -279,23 +279,12 @@ async def _reproject(
         {
             "prompt_name": "justify_crs_selection",
             "domain": "crs_datum",
-            "args_fn": lambda args: {
-                "source_crs": args.get("src_crs") or "source CRS",
-                "target_crs": args.get("dst_crs", "unknown"),
-                "operation_context": "raster reprojection",
-                "data_type": "raster",
-            },
+            "args_fn": lambda kwargs: {"dst_crs": kwargs["dst_crs"]},
         },
         {
             "prompt_name": "justify_resampling_method",
             "domain": "resampling",
-            "args_fn": lambda args: {
-                "data_type": "raster",
-                "source_resolution": "original",
-                "target_resolution": "resampled",
-                "method": args.get("resampling", "unknown"),
-                "operation_context": "reprojection resampling",
-            },
+            "args_fn": lambda kwargs: {"method": kwargs["resampling"]},
         },
     ]
 )
@@ -313,9 +302,9 @@ async def _reproject(
         "dst_crs (e.g. 'EPSG:3857', 'EPSG:4326', 'EPSG:32610'), "
         "resampling (nearest for categorical data, bilinear/cubic for continuous data). "
         "OPTIONAL: src_crs (override source CRS if missing/incorrect), "
-        "resolution (target pixel size as (x, y) tuple in destination units), "
+        "resolution (target pixel size as [x, y] list in destination units),"
         "width/height (explicit output dimensions in pixels), "
-        "bounds (crop to extent in destination CRS as (left, bottom, right, top)), "
+        "bounds (crop to extent in destination CRS as [left, bottom, right, top]),"
         "nodata (override nodata value for output). "
         "OUTPUT: ReprojectionResult with ResourceRef (output file URI/path/size/metadata), "
         "src_crs used, dst_crs, resampling method, output transform (6-element affine), "
@@ -332,10 +321,10 @@ async def reproject(
     dst_crs: str,
     resampling: str,
     src_crs: str | None = None,
-    resolution: tuple[float, float] | None = None,
+    resolution: list[float] | None = None,
     width: int | None = None,
     height: int | None = None,
-    bounds: tuple[float, float, float, float] | None = None,
+    bounds: list[float] | None = None,
     nodata: float | None = None,
     ctx: Context | None = None,
 ) -> Result:

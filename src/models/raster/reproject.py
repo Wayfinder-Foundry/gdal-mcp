@@ -39,9 +39,11 @@ class Params(BaseModel):
         None,
         description="Source CRS override (auto-detected if None)",
     )
-    resolution: tuple[float, float] | None = Field(
+    resolution: list[float] | None = Field(
         None,
-        description="Output resolution as (x_res, y_res) in destination CRS units",
+        min_length=2,
+        max_length=2,
+        description="Output resolution as [x_res, y_res] in destination CRS units",
     )
     width: int | None = Field(
         None,
@@ -53,9 +55,11 @@ class Params(BaseModel):
         ge=1,
         description="Output height in pixels (mutually exclusive with resolution)",
     )
-    bounds: tuple[float, float, float, float] | None = Field(
+    bounds: list[float] | None = Field(
         None,
-        description="Output bounds (left, bottom, right, top) in destination CRS",
+        min_length=4,
+        max_length=4,
+        description="Output bounds [left, bottom, right, top] in destination CRS",
     )
     nodata: float | None = Field(
         None,
@@ -79,6 +83,8 @@ class Result(BaseModel):
     )
     width: int = Field(ge=1, description="Output width in pixels")
     height: int = Field(ge=1, description="Output height in pixels")
-    bounds: tuple[float, float, float, float] = Field(
-        description="Output bounds (left, bottom, right, top) in dst_crs"
+    bounds: list[float] = Field(
+        min_length=4,
+        max_length=4,
+        description="Output bounds [left, bottom, right, top] in dst_crs",
     )

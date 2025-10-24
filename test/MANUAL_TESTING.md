@@ -290,10 +290,10 @@ rm -rf .preflight/justifications/resampling/
 ## Expected Test Results Summary
 
 | Test | Reflection Prompts | Cache Hit | Output File | New Justifications |
-|------|-------------------|-----------|-------------|-------------------|
-| 1    | ✅ Yes (2)        | ❌ No     | ✅ Yes      | ✅ Yes (2)        |
-| 2    | ❌ No             | ✅ Yes    | ✅ Yes      | ❌ No             |
-| 3    | ✅ Yes (2)        | ❌ No     | ✅ Yes      | ✅ Yes (2)        |
+|------|--------------------|-----------|-------------|--------------------|
+| 1    | ✅ Yes (2)          | ❌ No      | ✅ Yes       | ✅ Yes (2)          |
+| 2    | ❌ No               | ✅ Yes     | ✅ Yes       | ❌ No               |
+| 3    | ✅ Yes (2)          | ❌ No      | ✅ Yes       | ✅ Yes (2)          |
 
 ---
 

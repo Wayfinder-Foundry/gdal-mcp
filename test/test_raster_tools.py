@@ -5,7 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from rasterio.enums import Compression, Resampling
 
 from src.models.raster.convert import Options as ConvertOptions
 from src.models.raster.reproject import Params as ReprojectParams
@@ -68,7 +67,7 @@ async def test_raster_convert_with_compression(tiny_raster_gtiff: Path, test_dat
 
     options = ConvertOptions(
         driver="GTiff",
-        compression=Compression.lzw,
+        compression="lzw",
         tiled=True,
     )
 
@@ -89,7 +88,7 @@ async def test_raster_convert_with_overviews(tiny_raster_gtiff: Path, test_data_
 
     options = ConvertOptions(
         overviews=[2, 4],
-        overview_resampling=Resampling.average,
+        overview_resampling="average",
     )
 
     result = await _convert(

@@ -2,10 +2,31 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
-from rasterio.enums import Compression
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, Field
 
 from src.models.resourceref import ResourceRef
+
+# Define compression methods as a literal type for better MCP serialization
+# Note: Values are lowercase to match rasterio.enums.Compression
+CompressionMethod = Literal[
+    "jpeg",
+    "lzw",
+    "packbits",
+    "deflate",
+    "ccittrle",
+    "ccittfax3",
+    "ccittfax4",
+    "lzma",
+    "none",
+    "zstd",
+    "lerc",
+    "lerc_deflate",
+    "lerc_zstd",
+    "webp",
+    "jpeg2000",
+]
 
 
 class Options(BaseModel):
@@ -15,14 +36,14 @@ class Options(BaseModel):
         default="GTiff",
         description="Output driver (GTiff, COG, PNG, JPEG, etc.)",
     )
-    compression: Compression | None = Field(
+    compression: CompressionMethod | None = Field(
         None,
         description=(
-            "Compression method (case-insensitive). "
+            "Compression method (lowercase). "
             "See reference://compression/available/all for full list with guidance. "
-            "Common options: DEFLATE (universal, lossless), LZW (GeoTIFF, categorical), "
-            "ZSTD (modern, fast, GDAL 3.4+), JPEG (lossy, RGB only), NONE (no compression). "
-            "Driver compatibility varies - DEFLATE works with most formats."
+            "Common options: deflate (universal, lossless), lzw (GeoTIFF, categorical), "
+            "zstd (modern, fast, GDAL 3.4+), jpeg (lossy, RGB only), none (no compression). "
+            "Driver compatibility varies - deflate works with most formats."
         ),
     )
     tiled: bool = Field(
@@ -54,22 +75,6 @@ class Options(BaseModel):
         default_factory=dict,
         description="Additional driver-specific creation options",
     )
-
-    @field_validator("compression", mode="before")
-    @classmethod
-    def normalize_compression(cls, v: str | Compression | None) -> Compression | None:
-        """Normalize compression to lowercase for case-insensitive matching.
-
-        Note: Rasterio's Compression enum uses lowercase values (deflate, lzw, etc.)
-        but our reference resource documents them as uppercase for clarity.
-        This validator accepts both cases.
-        """
-        if v is None:
-            return None
-        if isinstance(v, Compression):
-            return v
-        # Convert string to lowercase to match rasterio enum values
-        return Compression[v.lower()]
 
     model_config = ConfigDict()
 

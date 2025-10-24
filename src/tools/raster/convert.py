@@ -73,15 +73,10 @@ async def _convert(
 
                 # Apply compression if specified
                 if options.compression:
-                    # Handle both enum and string (Pydantic may convert enum to string)
-                    compress_value = (
-                        options.compression.name
-                        if hasattr(options.compression, "name")
-                        else options.compression
-                    )
-                    profile["compress"] = compress_value
+                    # compression is now a string literal
+                    profile["compress"] = options.compression
                     if ctx:
-                        await ctx.debug(f"Applying compression: {compress_value}")
+                        await ctx.debug(f"Applying compression: {options.compression}")
 
                 # Apply photometric if specified
                 if options.photometric:
@@ -156,13 +151,7 @@ async def _convert(
                 size=size_bytes,
                 driver=options.driver,
                 meta={
-                    "compression": (
-                        options.compression.name
-                        if hasattr(options.compression, "name")
-                        else options.compression
-                    )
-                    if options.compression
-                    else None,
+                    "compression": options.compression,
                     "tiled": options.tiled,
                 },
             )
@@ -171,13 +160,7 @@ async def _convert(
             return Result(
                 output=resource_ref,
                 driver=options.driver,
-                compression=(
-                    options.compression.name
-                    if hasattr(options.compression, "name")
-                    else options.compression
-                )
-                if options.compression
-                else None,
+                compression=options.compression,
                 size_bytes=size_bytes,
                 overviews_built=overviews_built,
             )

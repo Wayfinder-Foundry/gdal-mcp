@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import rasterio
 from fastmcp import Context
 from fastmcp.exceptions import ToolError
 from rasterio.enums import Resampling
 
 from src.app import mcp
+from src.config import resolve_path
 from src.models.raster.convert import Options, Result
 from src.models.resourceref import ResourceRef
 
@@ -23,8 +22,8 @@ async def _convert(
     """Core logic: Convert a raster dataset to a new format.
 
     Args:
-        uri: Path/URI to the source raster dataset.
-        output: Path for the output raster file.
+        uri: Path/URI to the source raster dataset (relative or absolute).
+        output: Path for the output raster file (relative or absolute).
         options: Conversion options (driver, compression, tiling, overviews, etc.).
         ctx: Optional MCP context for logging and progress reporting.
 
@@ -34,12 +33,16 @@ async def _convert(
     Raises:
         ToolError: If raster cannot be opened or conversion fails.
     """
+    # Resolve paths to absolute
+    uri_path = str(resolve_path(uri))
+    output_path = resolve_path(output)
+
     # Default options if not provided
     if options is None:
         options = Options()
 
     if ctx:
-        await ctx.info(f"📂 Opening source raster: {uri}")
+        await ctx.info(f"📂 Opening source raster: {uri_path}")
         await ctx.debug(
             f"Conversion target: driver={options.driver}, "
             f"compression={options.compression}, tiled={options.tiled}"
@@ -49,7 +52,7 @@ async def _convert(
     try:
         with rasterio.Env():
             # Open source dataset
-            with rasterio.open(uri) as src:
+            with rasterio.open(uri_path) as src:
                 if ctx:
                     await ctx.info(
                         f"✓ Source: {src.driver}, {src.width}x{src.height}, "
@@ -88,10 +91,10 @@ async def _convert(
                 profile.update(options.creation_options)
 
                 if ctx:
-                    await ctx.info(f"📝 Writing output: {output}")
+                    await ctx.info(f"📝 Writing output: {output_path}")
 
                 # Write output dataset
-                with rasterio.open(output, "w", **profile) as dst:
+                with rasterio.open(str(output_path), "w", **profile) as dst:
                     # Copy all bands with progress reporting
                     for band_idx in range(1, src.count + 1):
                         if ctx:
@@ -118,7 +121,7 @@ async def _convert(
                 if ctx:
                     await ctx.info(f"🔨 Building overviews: {options.overviews}")
 
-                with rasterio.open(output, "r+") as dst:
+                with rasterio.open(str(output_path), "r+") as dst:
                     # Map resampling string to Resampling enum
                     resampling_map = {
                         "nearest": Resampling.nearest,
@@ -140,7 +143,6 @@ async def _convert(
                     await ctx.debug(f"✓ Overviews built: {overviews_built}")
 
             # Get output file size
-            output_path = Path(output)
             size_bytes = output_path.stat().st_size
 
             if ctx:

@@ -62,3 +62,10 @@ source = "vcs"
 [tool.hatch.build.targets.wheel]
 # Package the real module under src/, not the src/ dir itself
 packages = ["src"]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.18.1",
+    "pytest>=8.4.2",
+    "ruff>=0.13.0",
+]

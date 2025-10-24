@@ -53,7 +53,7 @@ Before selecting any resampling method, the agent should surface:
 ## 4. Mapping Schema → Resampling Context
 
 | Schema Field        | Resampling Interpretation                                   |
-| ------------------- | ----------------------------------------------------------- |
+|---------------------|-------------------------------------------------------------|
 | `domain`            | always `resampling_justification`                           |
 | `intent`            | what information must survive the spatial transform         |
 | `assumptions`       | physical vs categorical meaning of pixels                   |
@@ -153,5 +153,4 @@ This is how the agent remains capable of *scientific evolution.*
 ## Related References
 
 - **Risk Registry**: `EPISTEMIC_RISK_CLASSES.md`
-- **Implementation Blueprint**: `IMPLEMENTATION_PLAN.md`
 

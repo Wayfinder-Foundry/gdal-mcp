@@ -11,6 +11,7 @@ from rasterio.enums import Resampling
 from rasterio.warp import calculate_default_transform, reproject as rio_reproject
 
 from src.app import mcp
+from src.middleware.preflight import requires_reflection
 from src.models.raster.reproject import Params, Result
 from src.models.resourceref import ResourceRef
 
@@ -271,6 +272,43 @@ async def _reproject(
         raise ToolError("Unexpected error during reprojection: " + str(e)) from e
 
 
+@requires_reflection(
+    [
+        {
+            "prompt_name": "justify_crs_selection",
+            "domain": "crs_datum",
+            "args_fn": lambda args: {
+                "source_crs": (
+                    args.get("params").src_crs
+                    if args.get("params") and hasattr(args.get("params"), "src_crs")
+                    else "source CRS"
+                ),
+                "target_crs": (
+                    args.get("params").dst_crs
+                    if args.get("params") and hasattr(args.get("params"), "dst_crs")
+                    else "unknown"
+                ),
+                "operation_context": "raster reprojection",
+                "data_type": "raster",
+            },
+        },
+        {
+            "prompt_name": "justify_resampling_method",
+            "domain": "resampling",
+            "args_fn": lambda args: {
+                "data_type": "raster",
+                "source_resolution": "original",
+                "target_resolution": "resampled",
+                "method": (
+                    args.get("params").resampling
+                    if args.get("params") and hasattr(args.get("params"), "resampling")
+                    else "unknown"
+                ),
+                "operation_context": "reprojection resampling",
+            },
+        },
+    ]
+)
 @mcp.tool(
     name="raster_reproject",
     description=(

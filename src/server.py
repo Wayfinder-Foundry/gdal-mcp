@@ -32,8 +32,12 @@ import src.tools.raster.stats  # noqa: F401
 import src.tools.vector.info  # noqa: F401
 
 # ===============================================================
-# app
+# prompts
 # ===============================================================
 from src.app import mcp
+from src.prompts import register_prompts
+
+# Register prompts (the epistemic layer)
+register_prompts(mcp)
 
 __all__ = ["mcp"]

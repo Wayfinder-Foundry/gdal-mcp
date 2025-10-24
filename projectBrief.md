@@ -313,7 +313,7 @@ A world where geospatial expertise is no longer limited by technical barriers. W
 - **Documentation**: [docs/](docs/)
 - **Vision**: [docs/design/VISION.md](docs/VISION.md)
 - **Architecture**: [docs/design/ARCHITECTURE.md](docs/design/ARCHITECTURE.md)
-- **Prompting Strategy**: [docs/design/PROMPTING.md](docs/design/PROMPTING.md)
+- **Prompting Strategy**: [docs/design/PROMPTING.md](docs/design/prompting/PROMPTING.md)
 - **Decorator Guide**: [docs/fastmcp/DECORATORS.md](docs/fastmcp/DECORATORS.md)
 
 ---

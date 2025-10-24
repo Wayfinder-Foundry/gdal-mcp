@@ -344,6 +344,49 @@ Justification files are stored as JSON in `.preflight/justifications/{domain}/sh
 }
 ```
 
+### Important: Source CRS Placeholder Behavior
+
+**Cache key computation for CRS justifications:**
+
+The CRS reflection uses a **placeholder for source CRS** when `src_crs` is not explicitly provided:
+
+```python
+args_fn=lambda kwargs: {
+    "dst_crs": kwargs["dst_crs"]
+}
+```
+
+This means:
+- **Cache key only includes `dst_crs`** (destination projection)
+- **Source CRS does not affect caching** (allows flexibility across different source datasets)
+- **Justification reasoning focuses on destination choice**, not source→destination transformation
+
+**When storing justifications programmatically:**
+
+If calling `store_justification` directly (not via prompts), ensure `prompt_args` matches exactly:
+
+```json
+{
+  "prompt_args": {
+    "dst_crs": "EPSG:3857"
+  }
+}
+```
+
+**Do NOT include `src_crs` in prompt_args** unless the reflection config's `args_fn` is changed to extract it.
+
+**Why this design?**
+- CRS selection reasoning depends on **intended use** (what properties to preserve)
+- Source CRS is less relevant — same destination reasoning applies whether source is EPSG:4326, EPSG:32610, etc.
+- Example: "Use EPSG:3857 for web mapping" applies regardless of whether source is WGS84 or UTM
+
+**Cache hit example:**
+```
+Source: EPSG:4326 → EPSG:3857 (cache miss, stores justification)
+Source: EPSG:32610 → EPSG:3857 (cache HIT! Same dst_crs)
+Source: EPSG:4326 → EPSG:4326 (cache miss, different dst_crs)
+```
+
 ---
 
 ## Summary Checklist

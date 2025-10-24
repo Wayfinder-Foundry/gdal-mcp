@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import rasterio
 from fastmcp import Context
 from fastmcp.exceptions import ToolError
@@ -11,6 +9,7 @@ from rasterio.enums import Resampling
 from rasterio.warp import calculate_default_transform, reproject as rio_reproject
 
 from src.app import mcp
+from src.config import resolve_path
 from src.models.raster.reproject import Params, Result
 from src.models.resourceref import ResourceRef
 
@@ -24,8 +23,8 @@ async def _reproject(
     """Core logic: Reproject a raster dataset to a new CRS.
 
     Args:
-        uri: Path/URI to the source raster dataset.
-        output: Path for the output raster file.
+        uri: Path/URI to the source raster dataset (relative or absolute).
+        output: Path for the output raster file (relative or absolute).
         params: Reprojection parameters (dst_crs, resampling, resolution, etc.).
         ctx: Optional MCP context for logging and progress reporting.
 
@@ -35,14 +34,18 @@ async def _reproject(
     Raises:
         ToolError: If raster cannot be opened or reprojection fails.
     """
+    # Resolve paths to absolute
+    uri_path = str(resolve_path(uri))
+    output_path = resolve_path(output)
+
     if ctx:
-        await ctx.info("📂 Opening source raster: " + uri)
+        await ctx.info("📂 Opening source raster: " + uri_path)
         await ctx.debug("Target CRS: " + params.dst_crs + ", Resampling: " + params.resampling)
 
     # Per ADR-0013: wrap in rasterio.Env for per-request config isolation
     try:
         with rasterio.Env():
-            with rasterio.open(uri) as src:
+            with rasterio.open(uri_path) as src:
                 # Determine source CRS (use override if provided)
                 src_crs = params.src_crs if params.src_crs else src.crs
                 if src_crs is None:
@@ -55,7 +58,7 @@ async def _reproject(
                 if ctx:
                     await ctx.info(
                         "✓ Source: "
-                        + src_crs
+                        + str(src_crs)
                         + ", "
                         + str(src.width)
                         + "x"
@@ -149,10 +152,10 @@ async def _reproject(
                     profile["nodata"] = params.nodata
 
                 if ctx:
-                    await ctx.info("📝 Writing reprojected output: " + output)
+                    await ctx.info("📝 Writing reprojected output: " + str(output_path))
 
                 # Write reprojected dataset
-                with rasterio.open(output, "w", **profile) as dst:
+                with rasterio.open(str(output_path), "w", **profile) as dst:
                     for band_idx in range(1, src.count + 1):
                         # Progress: 10% setup, 80% reprojection (distributed), 10% finalize
                         progress_start = 10 + int(((band_idx - 1) / src.count) * 80)
@@ -187,17 +190,20 @@ async def _reproject(
                     await ctx.report_progress(90, 100)
 
             # Get output file size
-            output_path = Path(output)
             size_bytes = output_path.stat().st_size
 
             # Calculate output bounds in destination CRS
-            with rasterio.open(output) as dst:
+            with rasterio.open(str(output_path)) as dst:
                 dst_bounds = dst.bounds
 
             if ctx:
                 await ctx.report_progress(100, 100)
                 await ctx.info(
-                    "✓ Reprojection complete: " + output + " (" + str(size_bytes) + " bytes)"
+                    "✓ Reprojection complete: "
+                    + str(output_path)
+                    + " ("
+                    + str(size_bytes)
+                    + " bytes)"
                 )
 
             # Build ResourceRef per ADR-0012

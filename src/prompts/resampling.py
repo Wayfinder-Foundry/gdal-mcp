@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from fastmcp import FastMCP
-from fastmcp.prompts.prompt import Message
+from fastmcp.prompts import Message, PromptMessage
 
 
 def register(mcp: FastMCP) -> None:
@@ -14,7 +14,7 @@ def register(mcp: FastMCP) -> None:
         description="Pre-execution micro-guidance for resampling method reasoning.",
         tags={"reasoning", "resampling"},
     )
-    def justify_resampling_method(method: str) -> list[Message]:
+    def justify_resampling_method(method: str) -> list[PromptMessage]:
         """Justify resampling method selection for reprojection.
 
         Args:

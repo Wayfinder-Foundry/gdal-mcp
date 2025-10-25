@@ -10,7 +10,6 @@ from rasterio.warp import calculate_default_transform, reproject as rio_reprojec
 
 from src.app import mcp
 from src.config import resolve_path
-from src.middleware import requires_reflection
 from src.models.raster.reproject import Params, Result
 from src.models.resourceref import ResourceRef
 
@@ -274,20 +273,6 @@ async def _reproject(
         raise ToolError("Unexpected error during reprojection: " + str(e)) from e
 
 
-@requires_reflection(
-    [
-        {
-            "prompt_name": "justify_crs_selection",
-            "domain": "crs_datum",
-            "args_fn": lambda kwargs: {"dst_crs": kwargs["dst_crs"]},
-        },
-        {
-            "prompt_name": "justify_resampling_method",
-            "domain": "resampling",
-            "args_fn": lambda kwargs: {"method": kwargs["resampling"]},
-        },
-    ]
-)
 @mcp.tool(
     name="raster_reproject",
     description=(

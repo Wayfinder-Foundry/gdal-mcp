@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from fastmcp import FastMCP
-from fastmcp.prompts.prompt import Message
+from fastmcp.prompts import Message, PromptMessage
 
 
 def register(mcp: FastMCP) -> None:
@@ -14,7 +14,7 @@ def register(mcp: FastMCP) -> None:
         description="Pre-execution micro-guidance for CRS/datum selection reasoning.",
         tags={"reasoning", "crs"},
     )
-    def justify_crs_selection(dst_crs: str) -> list[Message]:
+    def justify_crs_selection(dst_crs: str) -> list[PromptMessage]:
         """Justify target CRS selection for reprojection.
 
         Args:

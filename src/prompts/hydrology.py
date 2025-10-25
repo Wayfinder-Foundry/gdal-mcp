@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from fastmcp import FastMCP
-from fastmcp.prompts.prompt import Message
+from fastmcp.prompts import Message, PromptMessage
 
 
 def register(mcp: FastMCP) -> None:
@@ -19,7 +19,7 @@ def register(mcp: FastMCP) -> None:
         intent: str,
         watershed_extent: str | None = None,
         data_resolution: str | None = None,
-    ) -> list[Message]:
+    ) -> list[PromptMessage]:
         extras = []
         if watershed_extent:
             extras.append(f"Extent: {watershed_extent}")

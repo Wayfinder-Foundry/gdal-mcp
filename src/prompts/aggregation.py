@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from fastmcp import FastMCP
-from fastmcp.prompts.prompt import Message
+from fastmcp.prompts import Message, PromptMessage
 
 
 def register(mcp: FastMCP) -> None:
@@ -19,7 +19,7 @@ def register(mcp: FastMCP) -> None:
         statistic: str,
         zones: str | None = None,
         operation_context: str | None = None,
-    ) -> list[Message]:
+    ) -> list[PromptMessage]:
         extras = []
         if zones:
             extras.append(f"Zones: {zones}")

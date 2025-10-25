@@ -36,6 +36,7 @@ import src.tools.vector.info  # noqa: F401
 # prompts
 # ===============================================================
 from src.app import mcp
+from src.middleware.paths import PathValidationMiddleware
 from src.middleware.reflection_middleware import ReflectionMiddleware
 from src.prompts import register_prompts
 
@@ -46,7 +47,11 @@ register_prompts(mcp)
 # reflection system
 # ===============================================================
 
-# Register reflection middleware
+# Register path validation middleware (security layer)
+# This enforces workspace boundaries and prevents directory traversal
+mcp.add_middleware(PathValidationMiddleware())
+
+# Register reflection middleware (epistemic layer)
 # This intercepts tool calls and checks for required justifications
 mcp.add_middleware(ReflectionMiddleware())
 

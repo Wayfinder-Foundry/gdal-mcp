@@ -31,28 +31,21 @@ class ReflectionSpec:
 
 
 # Configuration mapping tool names to their reflection requirements
+# IMPORTANT: args_fn must extract ONLY the parameters that the corresponding prompt accepts
+# to ensure cache keys match between middleware and stored justifications
 TOOL_REFLECTIONS: dict[str, list[ReflectionSpec]] = {
     "raster_reproject": [
         ReflectionSpec(
             domain="crs_datum",
             prompt_name="justify_crs_selection",
-            args_fn=lambda kwargs: {
-                "source_crs": kwargs.get("src_crs") or "source CRS",
-                "target_crs": kwargs.get("dst_crs", "unknown"),
-                "operation_context": "raster reprojection",
-                "data_type": "raster",
-            },
+            # justify_crs_selection(dst_crs: str) - only accepts dst_crs
+            args_fn=lambda kwargs: {"dst_crs": kwargs.get("dst_crs", "unknown")},
         ),
         ReflectionSpec(
             domain="resampling",
             prompt_name="justify_resampling_method",
-            args_fn=lambda kwargs: {
-                "data_type": "raster",
-                "source_resolution": "original",
-                "target_resolution": "resampled",
-                "method": kwargs.get("resampling", "unknown"),
-                "operation_context": "reprojection resampling",
-            },
+            # justify_resampling_method(method: str) - only accepts method
+            args_fn=lambda kwargs: {"method": kwargs.get("resampling", "unknown")},
         ),
     ],
 }

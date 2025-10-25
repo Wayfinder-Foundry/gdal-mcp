@@ -90,3 +90,54 @@ def reset_workspaces_cache() -> None:
     """Reset workspaces cache (useful for testing)."""
     global _workspaces_cache
     _workspaces_cache = None
+
+
+def get_workspace_root() -> Path | None:
+    """Get the primary workspace root directory for resolving relative paths.
+
+    Returns the first configured workspace, or None if no workspaces configured.
+    This is used to resolve relative paths in tool calls to absolute paths.
+
+    Returns:
+        Primary workspace root as absolute Path, or None if unrestricted.
+    """
+    workspaces = get_workspaces()
+    if workspaces:
+        return workspaces[0]
+
+    # No workspace configured - use current working directory
+    cwd = Path.cwd()
+    logger.debug(f"No workspace root configured, using CWD: {cwd}")
+    return cwd
+
+
+def resolve_path(path: str | Path) -> Path:
+    """Resolve a path to absolute, using workspace root for relative paths.
+
+    Args:
+        path: Path string or Path object (can be relative or absolute)
+
+    Returns:
+        Absolute Path object
+
+    Examples:
+        >>> resolve_path("data/sample.tif")  # Relative
+        Path("/workspace/data/sample.tif")
+
+        >>> resolve_path("/absolute/path.tif")  # Absolute
+        Path("/absolute/path.tif")
+    """
+    p = Path(path)
+
+    if p.is_absolute():
+        return p
+
+    # Relative path - resolve against workspace root
+    workspace_root = get_workspace_root()
+    if workspace_root:
+        resolved = (workspace_root / p).resolve()
+        logger.debug(f"Resolved relative path '{path}' to '{resolved}'")
+        return resolved
+
+    # No workspace root - resolve against CWD
+    return p.resolve()

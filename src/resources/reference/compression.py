@@ -8,7 +8,17 @@ from src.app import mcp
 from src.shared.reference import list_compression_methods
 
 
-@mcp.resource("reference://compression/available/{kind}")
+@mcp.resource(
+    uri="reference://compression/available/{kind}",
+    name="Compression Methods Reference",
+    description=(
+        "Available raster compression methods with detailed guidance on when to use each. "
+        "Provides comprehensive information about compression algorithms including lossless "
+        "(LZW, DEFLATE, ZSTD, PACKBITS) and lossy (JPEG, WEBP) methods. Includes trade-offs "
+        "between compression ratio, speed, and compatibility. Essential for raster_convert "
+        "operations to optimize file size while preserving data quality."
+    ),
+)
 def list_compression_methods_resource(
     kind: str = "all",
     ctx: Context | None = None,

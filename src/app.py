@@ -1,22 +1,17 @@
 from __future__ import annotations
 
-import warnings
-
 from fastmcp import FastMCP
 
-from src.middleware import PathValidationMiddleware
-
-# Suppress Pydantic v1 deprecation warnings from FastMCP dependency
-# TODO: Remove when FastMCP upgrades to Pydantic v2 model_config
-warnings.filterwarnings(
-    "ignore",
-    category=DeprecationWarning,
-    message=".*Support for class-based `config` is deprecated.*",
+mcp = FastMCP(
+    name="GDAL-MCP",
+    instructions=(
+        "GDAL-MCP provides geospatial data processing tools, resources, and methodology "
+        "guidance. You have access to: (1) Tools for raster/vector operations "
+        "(reproject, convert, info, stats), (2) Resources for discovering workspace data, "
+        "file metadata, and reference knowledge (CRS, compression, resampling methods), "
+        "(3) Prompts for epistemic reasoning when scientific correctness requires "
+        "methodological justification. Operations touching CRS/datum, resampling, hydrology "
+        "conditioning, or aggregation may trigger epistemic preflight to ensure scientific "
+        "validity."
+    ),
 )
-
-# Single FastMCP instance shared across tool modules
-mcp = FastMCP("GDAL MCP", mask_error_details=True)
-
-# Add path validation middleware for workspace scoping (ADR-0022)
-# This automatically validates all file paths against allowed workspaces
-mcp.add_middleware(PathValidationMiddleware())

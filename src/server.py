@@ -6,11 +6,6 @@ Ensures all tool modules are imported so their @mcp.tool functions register.
 from __future__ import annotations
 
 # ===============================================================
-# prompts
-# ===============================================================
-import src.prompts  # noqa: F401
-
-# ===============================================================
 # resources/catalog
 # ===============================================================
 import src.resources.catalog.all  # noqa: F401
@@ -34,11 +29,30 @@ import src.tools.raster.convert  # noqa: F401
 import src.tools.raster.info  # noqa: F401
 import src.tools.raster.reproject  # noqa: F401
 import src.tools.raster.stats  # noqa: F401
+import src.tools.reflection.store_justification  # noqa: F401
 import src.tools.vector.info  # noqa: F401
 
 # ===============================================================
-# app
+# prompts
 # ===============================================================
 from src.app import mcp
+from src.middleware.paths import PathValidationMiddleware
+from src.middleware.reflection_middleware import ReflectionMiddleware
+from src.prompts import register_prompts
+
+# Register prompts (the epistemic layer)
+register_prompts(mcp)
+
+# ===============================================================
+# reflection system
+# ===============================================================
+
+# Register path validation middleware (security layer)
+# This enforces workspace boundaries and prevents directory traversal
+mcp.add_middleware(PathValidationMiddleware())
+
+# Register reflection middleware (epistemic layer)
+# This intercepts tool calls and checks for required justifications
+mcp.add_middleware(ReflectionMiddleware())
 
 __all__ = ["mcp"]

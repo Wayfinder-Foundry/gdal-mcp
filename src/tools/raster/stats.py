@@ -5,6 +5,7 @@ from __future__ import annotations
 from fastmcp import Context
 
 from src.app import mcp
+from src.config import resolve_path
 from src.models.raster.stats import Band, Histogram, Params, Result
 from src.shared.raster.stats import stats as extract_raster_stats
 
@@ -15,8 +16,11 @@ async def _stats(
     ctx: Context | None = None,
 ) -> Result:
     """Compute statistics using shared extractor and map to Result model."""
+    # Resolve path to absolute
+    uri_path = str(resolve_path(uri))
+
     params_dict = params.model_dump() if params is not None else None
-    data = extract_raster_stats(uri, params_dict, ctx)
+    data = extract_raster_stats(uri_path, params_dict, ctx)
 
     band_models: list[Band] = []
     for b in data.get("band_stats", []):

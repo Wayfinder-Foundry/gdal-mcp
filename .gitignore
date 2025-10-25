@@ -1,77 +1,70 @@
-# Virtual Environment
-.venv/
+# Preflight reflection cache
+.preflight/
 
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
-*.pyc
-*.so
-*.egg-info/
-*.egg
-*.eggs/
-*.manifest
-*.spec
+*$py.class
 
-# Virtual environments
-venv/
-.env/
-.envrc
-.env.*
-.virtualenv/
-*.virtualenv
-
-# uv (Python package manager)
-.uv/
-uv_cache/
-uv.db
-
-# Local eggs
-dist/
+# Distribution / packaging
+.Python
 build/
-*.egg
+develop-eggs/
+dist/
+downloads/
+eggs/
 .eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
 *.egg-info/
 .installed.cfg
+*.egg
 
-# Misc
-.DS_Store
-*.log
-*.sqlite3
-*.db
-*.bak
-*.swp
-*.swo
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
 
-### Test output
+# Unit test / coverage reports
 htmlcov/
-.coverage
 .tox/
+.coverage
+.coverage.*
+.cache
 nosetests.xml
 coverage.xml
 *.cover
-.cache
+.hypothesis/
 .pytest_cache/
 
-### Test data and temporary files
-test_data/
-*.tif
-*.tiff
-*.vrt
-*.jpg
-*.jpeg
-*.png
-*.aux.xml
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
-### Tools
-src/.idea
-.idea
-.vscode
-dist
-conport_export
-context_portal
-.windsurf
-.serena
-.agents
+# IDE settings
+.vscode/
+.idea/
+
+# Project specific
+.mypy_cache/
+.ruff_cache/
+.serena/
+.conport/
+.windsurf/
+conport_export/
+.epistemic/
+context_portal/
+
+# MCP configs
 .mcp-config.json
+
+# Test output files (generated during testing)
+test/data/test*.tif
+test/data/test*.json

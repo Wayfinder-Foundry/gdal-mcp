@@ -14,6 +14,7 @@ from fastmcp import Context
 from fastmcp.exceptions import ToolError
 
 from src.app import mcp
+from src.config import resolve_path
 from src.models.vector.info import Info
 from src.shared import vector
 
@@ -23,8 +24,11 @@ async def _info(
     ctx: Context | None = None,
 ) -> Info:
     """Return structured metadata for a vector dataset using shared extractor."""
+    # Resolve path to absolute
+    uri_path = str(resolve_path(uri))
+
     try:
-        data = vector.info(uri, ctx)
+        data = vector.info(uri_path, ctx)
         return Info(
             path=data["path"],
             driver=data.get("driver"),

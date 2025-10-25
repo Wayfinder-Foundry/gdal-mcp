@@ -5,6 +5,7 @@ from __future__ import annotations
 from fastmcp import Context
 
 from src.app import mcp
+from src.config import resolve_path
 from src.models.raster.info import Info
 from src.shared.raster.info import extract_raster_info
 
@@ -15,9 +16,12 @@ async def _info(
     ctx: Context | None = None,
 ) -> Info:
     """Return structured metadata for a raster dataset using shared extractor."""
+    # Resolve path to absolute
+    uri_path = str(resolve_path(uri))
+
     if ctx:
-        await ctx.info(f"[raster_info] Loading metadata for {uri}")
-    data = extract_raster_info(uri, band, ctx)
+        await ctx.info(f"[raster_info] Loading metadata for {uri_path}")
+    data = extract_raster_info(uri_path, band, ctx)
     if ctx:
         await ctx.info("[raster_info] Metadata extraction complete")
     return Info(

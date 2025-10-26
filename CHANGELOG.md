@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-10-26
+
+### Changed
+
+#### Reflection Prompt Improvements
+- **Advisory tone over prescriptive language** - All reflection prompts updated to respect user autonomy
+- **CRS prompt** - Changed from "Before reprojecting..." to "The operation will use..."
+- **Resampling prompt** - Changed from "Before resampling..." to conversational guidance
+- **Hydrology prompt** - Updated for future consistency (not yet integrated with tools)
+- **Aggregation prompt** - Updated for future consistency (not yet integrated with tools)
+
+#### UX Enhancements
+- **Conversational intervention** - AI now asks users about concerns instead of blocking
+- **Respects explicit requirements** - User-specified parameters are documented, not questioned
+- **Educational advisory** - AI provides guidance when detecting potential issues
+- **Natural flow** - No artificial barriers, just helpful conversation
+
+### Documentation
+- **ADR-0026 Amendment** - Documented the shift from prescriptive to advisory prompting
+- **Philosophy alignment** - Implementation now matches "preserve agent autonomy" principle
+
+### Technical Details
+- No breaking changes - API identical to v1.0.0
+- No new features - Same tools and capabilities
+- Prompt refinement only - Middleware and cache unchanged
+- All type checks passing - Full mypy compliance maintained
+
+### Impact
+This patch release fixes UX friction identified in v1.0.0 where prescriptive prompts were blocking explicit user requirements. The advisory pattern enables natural conversation while maintaining epistemic accountability.
+
+---
+
 ## [1.0.0] - 2025-10-24
 
 ### 🎉 Major Release - First MCP Server with Epistemic Governance
@@ -181,6 +213,7 @@ First successful live tool invocation - GDAL operations are now conversational!
 
 ---
 
+[1.0.1]: https://github.com/Wayfinder-Foundry/gdal-mcp/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/Wayfinder-Foundry/gdal-mcp/compare/v0.2.1...v1.0.0
 [0.2.1]: https://github.com/Wayfinder-Foundry/gdal-mcp/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/Wayfinder-Foundry/gdal-mcp/compare/v0.1.0...v0.2.0

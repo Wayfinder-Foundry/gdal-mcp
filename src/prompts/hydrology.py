@@ -11,7 +11,7 @@ def register(mcp: FastMCP) -> None:
 
     @mcp.prompt(
         name="justify_hydrology_conditioning",
-        description="Pre-execution micro-guidance for hydrologic conditioning reasoning.",
+        description="Advisory guidance for hydrologic conditioning reasoning.",
         tags={"reasoning", "hydrology"},
     )
     def justify_hydrology_conditioning(
@@ -28,9 +28,13 @@ def register(mcp: FastMCP) -> None:
         context_suffix = f" ({', '.join(extras)})" if extras else ""
 
         content = (
-            f"Before hydrologic conditioning using **{conditioning_method}** "
-            f"for {intent}{context_suffix}:\n\n"
-            "**Reason through:**\n"
+            f"The operation will use **{conditioning_method}** conditioning "
+            f"for {intent}{context_suffix}.\n\n"
+            "**Your role:**\n"
+            "• If the user specified this method: document why it's appropriate. "
+            "If you see concerns, ask them conversationally before proceeding.\n"
+            "• If you're choosing this method: explain your reasoning.\n\n"
+            "**Consider:**\n"
             "• Hydrologic property to preserve? "
             "(flow paths/accumulation/sinks)\n"
             "• Why fill/breach/burn/snap for this basin?\n"

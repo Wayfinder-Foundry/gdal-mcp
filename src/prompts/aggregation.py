@@ -11,7 +11,7 @@ def register(mcp: FastMCP) -> None:
 
     @mcp.prompt(
         name="justify_aggregation_strategy",
-        description="Pre-execution micro-guidance for aggregation/statistical reasoning.",
+        description="Advisory guidance for aggregation/statistical reasoning.",
         tags={"reasoning", "aggregation"},
     )
     def justify_aggregation_strategy(
@@ -28,9 +28,13 @@ def register(mcp: FastMCP) -> None:
         context_suffix = f" ({', '.join(extras)})" if extras else ""
 
         content = (
-            f"Before aggregation **{aggregation_type}** using **{statistic}**"
-            f"{context_suffix}:\n\n"
-            "**Reason through:**\n"
+            f"The operation will use **{statistic}** statistic for **{aggregation_type}**"
+            f"{context_suffix}.\n\n"
+            "**Your role:**\n"
+            "• If the user specified this statistic: document why it's appropriate. "
+            "If you see concerns, ask them conversationally before proceeding.\n"
+            "• If you're choosing this statistic: explain your reasoning.\n\n"
+            "**Consider:**\n"
             "• Interpretation goal? (central tendency/dominance/extremes)\n"
             "• How does statistic preserve phenomenon?\n"
             "• Distribution/independence/zone design assumptions?\n"

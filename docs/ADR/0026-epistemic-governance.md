@@ -156,10 +156,59 @@ enforcement validates structure, not content.
 - Document epistemic governance patterns for contributors
 - Refine schema based on real-world justifications
 
+## Amendment (2025-10-26): Advisory Over Prescriptive Prompting
+
+### Context
+Initial v1.0.0 implementation used prescriptive prompt language ("Before executing, justify...") that created a blocking pattern. While this enforced epistemic accountability, it conflicted with explicit user intent and natural conversational flow.
+
+Example friction:
+```
+User: "Reproject to Albers for our national mapping project"
+AI: *blocked by reflection*
+    "Why did you choose Albers? Justify before proceeding..."
+```
+
+This violated the principle of preserving agent autonomy (§6) by forcing justification even when user intent was explicit and appropriate.
+
+### Refinement
+Reflection prompts should be **advisory, not blocking**:
+
+1. **Trust model judgment**: The AI can detect when user intent is explicit vs when it's making autonomous choices
+2. **Enable educational intervention**: If AI sees a potential issue with user's choice, it should ask conversationally, not block
+3. **Document all reasoning**: Whether user-specified or AI-chosen, justifications are captured for provenance
+
+**Prompt pattern change:**
+
+Before (prescriptive):
+```
+"Before reprojecting to {crs}, reason through:
+ • Why is this CRS appropriate?
+ • What alternatives were considered?"
+```
+
+After (advisory):
+```
+"The operation will use {crs}.
+ • If user-specified and appropriate: document reasoning and proceed
+ • If user-specified but concerning: ask them conversationally
+ • If you're choosing: explain your reasoning"
+```
+
+### Impact
+- **Preserves agent autonomy**: AI decides when justification is needed vs when it's documentation
+- **Respects user expertise**: Explicit requirements (e.g., "project requires Albers") aren't questioned
+- **Enables education**: AI can still intervene when it detects genuine risks
+- **Natural conversation**: No artificial blocking, just helpful advisory
+
+This aligns better with the core principle: "hold the agent accountable" for reasoning, don't prescribe its behavior.
+
+**Implementation**: Update prompt language in `src/prompts/crs.py`, `src/prompts/resampling.py`, and future reflection prompts. No middleware changes required.
+
+---
+
 ## Status
 
-Proposed — philosophy documented in `docs/design/epistemology/README.md` and
-`docs/design/prompting/README.md`; implementation tasks to follow.
+Implemented (v1.0.0) — Amendment in progress (v1.1.0)
 
 ## References
 

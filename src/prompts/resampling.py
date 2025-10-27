@@ -48,13 +48,21 @@ def register(mcp: FastMCP) -> None:
             "**Provide structured reasoning:**\n"
             "```json\n"
             "{\n"
-            f'  "method": "{method}",\n'
             '  "intent": "signal property to preserve (e.g., smooth gradients for elevation)",\n'
-            '  "rationale": "why this method achieves the intent",\n'
-            '  "tradeoffs": "artifacts or compromises",\n'
-            '  "user_advisory": "if concerns exist, note them here (optional)"\n'
+            '  "alternatives": [\n'
+            '    {"method": "nearest|bilinear|cubic|average|mode", '
+            '"why_not": "reason if considered"}\n'
+            "  ],\n"
+            '  "choice": {\n'
+            f'    "method": "{method}",\n'
+            '    "rationale": "why this method achieves the intent",\n'
+            '    "tradeoffs": "artifacts or compromises"\n'
+            "  },\n"
+            '  "confidence": "low|medium|high"\n'
             "}\n"
             "```\n\n"
+            "**Note:** The `alternatives` array is optional - include it if you genuinely "
+            "considered other options, otherwise use an empty array `[]`.\n\n"
             "If you have concerns about the user's choice, **ask them conversationally** "
             "before proceeding. Otherwise, document the reasoning and continue."
         )

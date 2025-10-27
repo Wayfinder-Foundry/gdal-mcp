@@ -29,8 +29,12 @@ def compute_reflection_hash(
 
     Uses the same logic as the original preflight system.
 
+    NOTE: tool_name parameter is kept for backwards compatibility but is NOT
+    used in the hash computation. The hash is domain-based to enable cross-domain
+    cache sharing (e.g., same CRS justification works for both raster and vector).
+
     Args:
-        tool_name: Name of the tool being called
+        tool_name: Name of the tool being called (not used in hash, kept for API compat)
         prompt_args: Arguments that would be passed to the prompt
         prompt_name: Name of the prompt
         domain: Reflection domain
@@ -40,7 +44,7 @@ def compute_reflection_hash(
     """
     normalized = _normalize_prompt_args(prompt_args)
     prompt_hash = _hash_prompt_content(prompt_name)
-    return _stable_hash(tool_name, normalized, domain, prompt_hash)
+    return _stable_hash(normalized, domain, prompt_hash)
 
 
 async def reflection_preflight_check(

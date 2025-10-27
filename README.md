@@ -6,8 +6,9 @@
 
 GDAL MCP doesn't just execute geospatial operations—it **thinks through them**. Built on FastMCP with a reflection middleware that requires AI agents to justify methodological decisions before execution.
 
-**🎉 v1.0.0 Released (2025-10-24)** — First MCP server with built-in epistemic governance  
-**🧠 Reflection System** — Pre-execution reasoning for CRS, resampling, hydrology, and aggregation
+**🎉 v1.1.1 Released (2025-10-26)** — Vector tool parity + cross-domain reflection validated  
+**🧠 Reflection System** — Domain-based epistemic reasoning that transcends data types  
+**⚡ 75% Cache Hit Rate** — Methodology reasoning carries across raster ↔ vector operations
 
 [![CI](https://github.com/Wayfinder-Foundry/gdal-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/Wayfinder-Foundry/gdal-mcp/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)

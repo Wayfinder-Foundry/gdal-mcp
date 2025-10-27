@@ -30,7 +30,12 @@ import src.tools.raster.info  # noqa: F401
 import src.tools.raster.reproject  # noqa: F401
 import src.tools.raster.stats  # noqa: F401
 import src.tools.reflection.store_justification  # noqa: F401
+import src.tools.vector.buffer  # noqa: F401
+import src.tools.vector.clip  # noqa: F401
+import src.tools.vector.convert  # noqa: F401
 import src.tools.vector.info  # noqa: F401
+import src.tools.vector.reproject  # noqa: F401
+import src.tools.vector.simplify  # noqa: F401
 
 # ===============================================================
 # prompts

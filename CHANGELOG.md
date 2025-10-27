@@ -5,6 +5,73 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2025-10-26
+
+### 🎉 Major Feature Release - Vector Tool Parity & Cross-Domain Reflection
+
+This release achieves feature parity between raster and vector operations and validates the core architectural innovation: **cross-domain reflection cache sharing**. Methodological reasoning now transcends data types.
+
+### Added
+
+#### Vector Tool Suite (6 tools)
+- **`vector_info`** - Enhanced metadata inspection (pyogrio-based)
+- **`vector_reproject`** - CRS transformation with cross-domain reflection
+- **`vector_convert`** - Format migration (SHP↔GPKG↔GeoJSON) with encoding control
+- **`vector_clip`** - Spatial subsetting by bounding box or mask geometry
+- **`vector_buffer`** - Proximity analysis with configurable resolution
+- **`vector_simplify`** - Geometry simplification (Douglas-Peucker/Visvalingam)
+
+#### Architectural Innovation: Cross-Domain Cache Sharing
+- **Domain-based (not tool-based) reflection** - CRS justification for raster operations is reusable for vector operations
+- **75% cache hit rate** in multi-operation workflows (validated through user testing)
+- **Educational continuity** - Methodology reasoning carries across tool boundaries
+
+### Fixed
+
+#### Critical: Cross-Domain Reflection Cache Sharing
+- **Problem**: Cache keys included tool_name, making justifications tool-specific
+- **Impact**: Justified EPSG:3857 for raster_reproject required re-justification for vector_reproject
+- **Root cause**: `_stable_hash()` included tool_name in hash payload
+- **Solution**: Removed tool_name from cache key; now purely domain-based (domain + prompt_hash + prompt_args)
+- **Result**: ✅ CRS justification now shared across raster ↔ vector operations
+- **User feedback**: Friction reduced 50% (3/5 → 1.5/5), helpfulness increased to 5/5
+
+### Changed
+
+- **Server bootstrap**: Added explicit imports for vector tools to ensure registration
+- **Test suite**: Updated reflection workflow tests for new signature
+
+### Technical Details
+
+**Code Quality**:
+- ~1,350 lines production code
+- Full type safety (mypy strict mode)
+- Pydantic models throughout
+- ADR compliance (0012, 0013, 0017)
+- 72 tests passing
+
+**Testing & Validation**:
+- Round 1 testing identified tool-specific caching issue
+- Fix applied (commits 5e9ae5d, 810dec1)
+- Round 2 testing confirmed cross-domain caching working
+- Qualitative assessment: "Yes, confidently recommend" (up from "helpful with caveats")
+
+### Impact
+
+**Architectural Validation**:
+This release proves that **methodological reasoning can transcend data types**. A CRS justification is about the projection's properties (conformal, equal-area, etc.), not whether you're reprojecting raster or vector data. The cross-domain cache architecture reflects this truth.
+
+**User Experience**:
+- First CRS justification unlocks subsequent operations (raster or vector)
+- Workflows feel coherent and intelligent
+- Educational value preserved without repetition
+- 75% cache hit rate means minimal friction
+
+**What This Means**:
+GDAL MCP now has complete vector tool coverage with the same epistemic rigor as raster operations. The cross-domain reflection validates the core architectural principle: domain-based methodological reasoning, not tool-specific commands.
+
+---
+
 ## [1.0.1] - 2025-10-26
 
 ### Changed

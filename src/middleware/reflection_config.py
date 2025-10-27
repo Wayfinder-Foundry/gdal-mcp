@@ -48,6 +48,16 @@ TOOL_REFLECTIONS: dict[str, list[ReflectionSpec]] = {
             args_fn=lambda kwargs: {"method": kwargs.get("resampling", "unknown")},
         ),
     ],
+    "vector_reproject": [
+        ReflectionSpec(
+            domain="crs_datum",
+            prompt_name="justify_crs_selection",
+            # CRITICAL: Same domain and args as raster_reproject to enable
+            # cross-domain cache sharing
+            # justify_crs_selection(dst_crs: str) - only accepts dst_crs
+            args_fn=lambda kwargs: {"dst_crs": kwargs.get("dst_crs", "unknown")},
+        ),
+    ],
 }
 
 

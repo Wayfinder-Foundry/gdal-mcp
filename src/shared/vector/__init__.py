@@ -3,5 +3,6 @@ from .clip import clip
 from .convert import convert
 from .info import info
 from .reproject import reproject
+from .simplify import simplify
 
-__all__ = ["buffer", "clip", "convert", "info", "reproject"]
+__all__ = ["buffer", "clip", "convert", "info", "reproject", "simplify"]

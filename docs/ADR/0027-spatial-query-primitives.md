@@ -1,4 +1,4 @@
-# ADR-0027: Spatial Query Primitives as Phase 3 Foundation
+# ADR-0027: Conversational Spatial Query Layer
 
 **Status:** Proposed  
 **Date:** 2025-10-27  
@@ -9,14 +9,37 @@
 
 ## Context
 
-### The File I/O Limitation
+### The Symbiotic Analyst-Agent Vision
 
-GDAL MCP v1.1 provides comprehensive **file-centric operations**:
-- `raster_info(file)` - Inspect entire file metadata
-- `raster_reproject(input_file, output_file)` - Transform entire file
-- `vector_clip(input_file, output_file, bounds)` - Process entire file with bounds
+**Target use case:** An analyst asks a domain question:
+> "How much of this satellite image is urban area?"
 
-**What's missing:** The ability to **spatially query subsets** of datasets without full file processing.
+To answer this, the agent must:
+1. Sample spatial regions (query subsets)
+2. Analyze spectral signatures (classification)
+3. Calculate area statistics (aggregation)
+4. Refine iteratively based on results
+
+**Current limitation:** GDAL MCP v1.1 only provides **file-centric operations** (process entire files). The agent cannot:
+- Query spatial subsets for analysis
+- Iteratively refine query extents
+- Compose multi-step spatial workflows
+- Answer analytical questions through spatial exploration
+
+### The Gap We're Filling
+
+**GDAL already has spatial operations:**
+- `gdal.Warp -te` (clip to extent)
+- Rasterio windowed reading (`.read(window=...)`)
+- pyogrio spatial filtering (`bbox=...`)
+
+**What's missing: Conversational interface + intelligent composition**
+- Natural language → appropriate GDAL operation
+- Reflection/justification for spatial reasoning
+- Automatic optimization detection
+- Workflow orchestration across queries
+
+**We're not reimplementing GDAL. We're making it conversational.**
 
 ### Real-World Use Case: LiDAR QC Analysis
 
@@ -61,13 +84,19 @@ Agent: *spatial query on point cloud → extracts subset → analyzes variation*
 
 ## Decision
 
-**We will implement spatial query primitives as the foundation for Phase 3**, enabling:
-1. Polygon-based spatial queries
-2. Bounding box queries  
-3. Conditional optimization (indexing, VRTs, in-memory drivers)
-4. Query-driven workflows (not just file-to-file transformations)
+**We will create a conversational layer over existing GDAL spatial operations**, enabling:
+1. Natural language → GDAL spatial query mapping
+2. Reflection/justification for spatial reasoning
+3. Iterative refinement through dialogue
+4. Compositional workflows (query → analyze → refine → query)
 
-**This shifts GDAL MCP from file I/O centric to spatially-aware.**
+**This shifts GDAL MCP from "execute commands" to "answer analytical questions."**
+
+**Critical scope decision:**
+- ✅ **We wrap existing GDAL/Rasterio/pyogrio functionality**
+- ❌ **We do NOT reimplement spatial operations**
+- ✅ **We add conversational interface + methodological justification**
+- ❌ **We do NOT create custom indexing or virtual dataset logic** (see ADR-0028, ADR-0029)
 
 ---
 
@@ -121,113 +150,135 @@ Spatial queries have methodological implications:
 
 ## Architecture
 
-### Core Capabilities (Must-Have)
+### Core Principle: Wrap, Don't Rewrite
 
-#### 1. Spatial Query Tools
+**We provide a conversational interface over existing GDAL capabilities:**
+- Rasterio for raster spatial queries
+- pyogrio for vector spatial queries
+- Reflection middleware for methodological justification
+- MCP resources for query result inspection
 
-**Raster spatial query:**
+### Spatial Query Tools
+
+#### `raster_query` - Conversational Raster Windowing
+
+**Wraps:** Rasterio windowed reading (`rasterio.open().read(window=...)`)
+
 ```python
-raster_query(
-    uri: str,
-    geometry: dict | list[float],  # GeoJSON polygon or [minx, miny, maxx, maxy]
-    output: str | None = None,     # If None, return in-memory
-    bands: list[int] | None = None,
-    resolution: list[float] | None = None
-) -> Result
-```
-
-**Vector spatial query:**
-```python
-vector_query(
+@mcp.tool()
+async def raster_query(
     uri: str,
     geometry: dict | list[float],  # GeoJSON polygon or bbox
-    output: str | None = None,     # If None, return in-memory
-    attributes: list[str] | None = None,
-    where: str | None = None       # SQL-like attribute filter
-) -> Result
-```
-
-**Key design decision:** `output=None` enables in-memory results for immediate follow-on operations.
-
-#### 2. Implementation Strategy
-
-**Raster queries (Rasterio):**
-```python
-# Window-based reading with spatial indexing
-with rasterio.open(uri) as src:
-    window = from_bounds(*bounds, transform=src.transform)
-    data = src.read(window=window, out_shape=target_shape)
-```
-
-**Vector queries (pyogrio):**
-```python
-# Built-in spatial filtering
-gdf = read_dataframe(
-    uri,
-    bbox=bbox,        # Spatial filter
-    where=where_sql,  # Attribute filter
-    columns=columns   # Column subset
-)
-```
-
-**Both leverage native library optimizations** - no manual indexing needed for basic queries.
-
-### Optimization Layer (Conditional)
-
-#### 1. Spatial Indexing
-
-**When to build spatial index:**
-```python
-# Decision heuristic
-if dataset_size_gb > 10 and expected_query_count > 5:
-    build_rtree_index()  # Amortize cost over multiple queries
-```
-
-**Index types:**
-- **R-tree:** Vector datasets (Shapely STRtree)
-- **Quadtree:** Raster datasets (tile-based indexing)
-
-**Storage:** External sidecar files (`.idx`, `.qix`) for persistence
-
-#### 2. Virtual Datasets (VRT)
-
-**When to create VRT:**
-```python
-# Decision heuristic
-if len(files) > 1 and are_spatially_contiguous(files) and query_spans_boundaries():
-    create_vrt(files)  # Seamless querying across tiles
-else:
-    query_individual_files()  # Avoid VRT overhead
-```
-
-**Anti-pattern to avoid:**
-- Creating VRT for spatially disjoint files (e.g., opposite sides of the world)
-- VRT for single-query workflows (overhead not justified)
-
-**VRT as tool vs resource:**
-- **Tool:** `vrt_create(files, output)` - Explicit VRT generation
-- **Resource:** `vrt://workspace/{pattern}` - Dynamic discovery (future consideration)
-
-#### 3. In-Memory Drivers
-
-**When to use memory driver:**
-```python
-# Decision heuristic  
-if is_intermediate_result and next_operation_within_seconds < 30:
-    use_memory_driver()  # Skip disk I/O
-else:
-    persist_to_disk()    # Provenance + resumability
+    output: str | None = None,      # None = in-memory for composition
+    bands: list[int] | None = None,
+    ctx: Context | None = None
+) -> Result:
+    """Query raster by spatial extent.
+    
+    This is a conversational wrapper around Rasterio window reading.
+    
+    Value-add:
+    - Reflection for query extent justification
+    - Natural language → spatial extent mapping
+    - Result as MCP resource for composition
+    - Progress reporting for large queries
+    """
+    # Reflection: Justify query extent
+    # Implementation: Pure Rasterio (no custom logic)
+    # Return: MCP resource for next operation
 ```
 
 **Implementation:**
-- GDAL `/vsimem/` virtual file system
-- Rasterio `MemoryFile` context managers
-- Short-lived for pipeline operations only
+```python
+with rasterio.open(uri) as src:
+    window = from_bounds(*bounds, src.transform)
+    data = src.read(bands=bands, window=window)
+    
+    if output:
+        # Persist for inspection
+        write_result(output, data, src.meta)
+    else:
+        # In-memory for immediate composition
+        return InMemoryResult(data, metadata)
+```
 
-**Trade-offs:**
-- **Pro:** Eliminates I/O overhead in multi-step workflows
-- **Con:** Results not directly inspectable (ephemeral)
-- **Resolution:** Lightweight reflection for self-review
+#### `vector_query` - Conversational Vector Filtering
+
+**Wraps:** pyogrio spatial filtering (`read_dataframe(bbox=...)`)
+
+```python
+@mcp.tool()
+async def vector_query(
+    uri: str,
+    geometry: dict | list[float],
+    output: str | None = None,
+    attributes: list[str] | None = None,
+    where: str | None = None,
+    ctx: Context | None = None
+) -> Result:
+    """Query vector by spatial/attribute filters.
+    
+    This is a conversational wrapper around pyogrio filtering.
+    
+    Value-add:
+    - Reflection for query reasoning
+    - Natural language → SQL filter mapping
+    - Result as MCP resource
+    - Multi-criteria filtering guidance
+    """
+    # Reflection: Justify query criteria
+    # Implementation: Pure pyogrio (no custom logic)
+    # Return: MCP resource
+```
+
+**Implementation:**
+```python
+gdf = read_dataframe(
+    uri,
+    bbox=bbox,
+    where=where,
+    columns=attributes
+)
+
+if output:
+    gdf.to_file(output)
+else:
+    return InMemoryGeoDataFrame(gdf)
+```
+
+### Optimization Considerations (Out of Scope for v1.2.0)
+
+**Phase 3a (this ADR) focuses on core conversational wrapper only.**
+
+**Optimization capabilities deferred to future ADRs:**
+- **Spatial indexing** → ADR-0028 (detection, creation, usage)
+- **VRT management** → ADR-0029 (multi-file query optimization)
+- **Advanced caching** → Future consideration
+
+**Rationale for deferral:**
+1. Core spatial query works WITHOUT optimization (just slower)
+2. Optimization adds significant complexity
+3. Need usage data to inform optimization heuristics
+4. Keeps v1.2.0 scope manageable
+
+**Note:** Existing GDAL/Rasterio/pyogrio optimizations (GeoPackage R-tree, COG tiling, Shapefile .shx) are used automatically - we don't need custom implementations for basic performance.
+
+#### In-Memory Results for Composition (In Scope)
+
+**Purpose:** Enable immediate composition without disk I/O
+
+**When to use in-memory:**
+```python
+if next_operation_imminent:
+    return InMemoryResult()  # Agent can chain immediately
+else:
+    persist_to_disk()  # Human inspection + provenance
+```
+
+**Implementation:**
+- Rasterio `MemoryFile` for rasters
+- GeoDataFrame in memory for vectors
+- Lifetime: Single workflow session only
 
 **Self-Review Pattern:**
 When in-memory result created, trigger lightweight reflection:
@@ -249,162 +300,47 @@ Agent self-reviews:
 
 ---
 
-## Decision Framework: When to Optimize
+## MCP Integration
 
-### Flowchart for Query Optimization
+### Tools (Stateful Operations)
 
-```
-Spatial Query Request
-    ↓
-Q: Will there be multiple queries on this dataset?
-    ├─ No → Direct query (no index)
-    └─ Yes → Q: Dataset > 10 GB?
-            ├─ No → Direct query
-            └─ Yes → Build spatial index
-    ↓
-Q: Does query span multiple files?
-    ├─ No → Query single file
-    └─ Yes → Q: Are files spatially contiguous?
-            ├─ No → Query files individually
-            └─ Yes → Create VRT, then query
-    ↓
-Q: Is result needed for immediate next operation?
-    ├─ No → Persist to disk
-    └─ Yes → Q: Next operation < 30 seconds away?
-            ├─ No → Persist to disk
-            └─ Yes → Use in-memory driver
-```
-
-### Configuration Parameters
-
-Expose optimization thresholds as environment variables:
-```bash
-GDAL_MCP_INDEX_THRESHOLD_GB=10          # When to build spatial index
-GDAL_MCP_INDEX_QUERY_COUNT=5            # Minimum queries to justify index
-GDAL_MCP_MEMORY_DRIVER_TTL=30           # Seconds before persist in-memory
-GDAL_MCP_VRT_MIN_FILES=2                # Minimum files for VRT consideration
-```
-
-**Rationale:** Different workflows have different optimization profiles. Make thresholds tunable.
-
-**Configuration Management Note:**
-This ADR exposes the need for comprehensive configuration management:
-1. Centralized environment variable documentation (`docs/CONFIGURATION.md`)
-2. Tiered configuration (static security boundaries vs dynamic operational settings)
-3. Dynamic workspace switching (with user confirmation, within security boundaries)
-4. Session-scoped vs persistent configuration
-
-**Related future work:** Consider `workspace_switch` tool for dynamic workspace changes within allowed paths (requires explicit user confirmation for security).
-
----
-
-## Tool vs Resource Design
-
-### Spatial Query as Tools
-
-**Rationale for tool-based design:**
-1. **Stateful operation:** Query involves computation (reading, filtering, transforming)
-2. **Reflection integration:** Queries may need methodological justification (extent choice, sampling strategy)
-3. **Result management:** Tools can return in-memory or persisted outputs flexibly
-
-**Example tools:**
-- `raster_query(uri, geometry, ...)` → Query raster by spatial extent
-- `vector_query(uri, geometry, ...)` → Query vector by spatial/attribute filters
-
-### Spatial Indexes as Resources + Tools (Hybrid)
-
-**Insight:** Indexes blur tool/resource boundaries - they're created (tool-like) but also discovered/inspected (resource-like).
-
-**Proposed hybrid approach:**
-
-#### Resources for Discovery & Inspection
-```
-index://dataset.tif
-├── exists: true
-├── type: "rtree"
-├── path: "/workspace/.gdal_indexes/dataset.tif.spatial.idx"
-├── created: "2025-10-27T14:00:00Z"
-├── bounds: [...]
-└── feature_count: 12450
-
-index://dataset.tif/stats
-├── query_count: 47
-├── avg_query_time_ms: 12.3
-└── cache_hit_rate: 0.73
-
-index://dataset.tif/registry  # Multi-index support
-├── spatial: "/path/to/dataset.tif.spatial.idx"
-├── attributes:
-│   ├── elevation: "/path/to/dataset.tif.attr_elevation.idx"
-│   └── classification: "/path/to/dataset.tif.attr_classification.idx"
-└── temporal: "/path/to/dataset.tif.temporal.idx"
-```
-
-#### Tools for Creation & Management
+**Query tools (Phase 3a - v1.2.0):**
 ```python
-spatial_index_create(uri, type="spatial") → creates index, returns resource URI
-spatial_index_delete(uri, type="spatial") → removes index
-spatial_index_rebuild(uri, type="spatial") → recreates if corrupt/outdated
+raster_query(uri, geometry, ...)  # Conversational raster windowing
+vector_query(uri, geometry, ...)  # Conversational vector filtering
 ```
 
-#### Detection & Auto-Loading Pattern
+**Future tools (deferred to ADR-0028, ADR-0029):**
+- Index management: `spatial_index_create`, `spatial_index_delete`
+- VRT management: `vrt_create`, `vrt_delete`
+
+### Resources (Discoverable Metadata)
+
+**Query results (Phase 3a):**
+```
+query://result/{query_id}
+├── geometry_used: [...]
+├── bands: [1, 2, 3]
+├── pixel_count: 1048576
+├── size_bytes: 12582912
+└── created: "2025-10-27T14:00:00Z"
+```
+
+**Future resources (deferred):**
+- `index://dataset.tif` - Index discovery
+- `vrt://workspace/{pattern}` - VRT recommendations
+
+### Prompts (Reflection/Justification)
+
+**Phase 3a prompts:**
 ```python
-# Before spatial query execution
-index_uri = f"index://{dataset_path}"
-if resource_exists(index_uri):
-    # Automatically load and use index
-    use_spatial_index()
-else:
-    # Check if index creation justified
-    if meets_threshold_criteria():
-        prompt_index_creation()  # Lightweight suggestion
+justify_query_extent(geometry, purpose)
+# - Why this spatial extent?
+# - What properties must the area satisfy?
+# - Alternatives considered?
 ```
 
-**Naming convention for uniqueness:**
-```
-.gdal_indexes/
-├── dataset.tif.spatial.idx        # Spatial index (geometry-based)
-├── dataset.tif.attr_elevation.idx # Attribute index (field-based)
-├── dataset.tif.temporal.idx       # Temporal index (time-series)
-```
-
-**Benefits:**
-- Resources enable automatic discovery (tools check for index before querying)
-- Tools provide explicit control (create/delete/rebuild)
-- Registry resource handles multi-index scenarios
-- Unique naming prevents conflicts
-
-### VRTs as Resources + Tools (Hybrid)
-
-**Similar hybrid pattern:**
-
-#### Resources for Discovery
-```
-vrt://workspace/project_tiles/
-├── files: ["tile_1.tif", "tile_2.tif", "tile_3.tif"]
-├── spatially_contiguous: true
-├── recommended: true  # Meets VRT threshold criteria
-└── coverage_bounds: [...]
-```
-
-#### Tools for Creation
-```python
-vrt_create(files, output) → Explicit VRT generation with validation
-vrt_delete(vrt_path) → Remove VRT
-```
-
-#### Auto-Detection Pattern
-```python
-# When query spans multiple files
-files = discover_files_in_query_extent()
-vrt_resource = f"vrt://workspace/{pattern}"
-if resource_exists(vrt_resource) and files_are_contiguous():
-    use_existing_vrt()
-else:
-    query_files_individually()
-```
-
-**Decision:** Start with tool-based creation, add resource discovery in Phase 3b as usage patterns emerge.
+**No prompts for optimization** (indexing/VRTs are performance, not methodology)
 
 ---
 
@@ -438,63 +374,80 @@ AI: *reflection: Why search this 10km² area?*
 
 ### Positive
 
-1. **Unlocks real-world workflows** that require spatial subsetting (QC analysis, ROI extraction, multi-scale analysis)
-2. **Enables AI pattern discovery** through iterative spatial sampling
-3. **Maintains Python-native architecture** (no new dependencies)
-4. **Natural composition** with existing tools (query → analyze → query → refine)
-5. **Foundation for Phase 3b** (workflow orchestration builds on spatial primitives)
+1. **Enables analytical questions** - "How much urban area?" becomes answerable through spatial sampling
+2. **Analyst-agent symbiosis** - Agent brings tool knowledge, analyst brings domain context
+3. **Maintains Python-native architecture** - Just wraps existing Rasterio/pyogrio (no new dependencies)
+4. **Simple implementation** - No custom spatial algorithms, minimal complexity
+5. **Natural composition** - Query → analyze → refine workflows emerge naturally
+6. **Foundation for optimization** - Usage patterns will inform ADR-0028/0029 heuristics
 
 ### Negative
 
-1. **Complexity increase** in deciding when to optimize (indexing, VRT, in-memory)
-2. **Memory management** becomes critical for in-memory operations
-3. **Error handling** more complex (partial queries, invalid geometries, index failures)
-4. **Testing burden** increases (need spatial test fixtures, optimization scenarios)
+1. **Limited scope** - No optimization in v1.2.0 (queries may be slow on large datasets)
+2. **Memory management** - In-memory results require careful lifecycle management
+3. **Error handling** - Geometry validation, out-of-bounds queries need robust handling
+4. **Testing burden** - Need realistic spatial fixtures and multi-query workflows
 
 ### Risks
 
-1. **Over-optimization:** Building indexes/VRTs that aren't used → wasted computation
-2. **Memory leaks:** In-memory drivers not properly cleaned up → resource exhaustion
-3. **Confusion:** Users uncertain when to use spatial query vs whole-file tools
+1. **Performance expectations** - Users may expect automatic optimization (not in v1.2.0)
+2. **Memory leaks** - In-memory results not properly cleaned up → resource exhaustion
+3. **Scope creep** - Pressure to add indexing/VRT before usage patterns are understood
 
 **Mitigations:**
-- Conservative optimization defaults (prefer simple over optimized)
-- Explicit in-memory driver lifecycle management (context managers)
-- Clear documentation: "Use spatial query when you need a subset, whole-file tools otherwise"
+- **Clear documentation:** v1.2.0 is core capability only, optimization comes in v1.3+
+- **Context managers:** Explicit lifecycle for in-memory resources
+- **Usage monitoring:** Collect data to inform ADR-0028/0029 optimization decisions
+- **Resist scope creep:** Implement, test, gather data BEFORE optimizing
 
 ---
 
 ## Implementation Phases
 
-### Phase 3a: Spatial Query Primitives (v1.2.0)
+### Phase 3a: Conversational Spatial Query (v1.2.0) - This ADR
 
-**Milestone 1: Core Query Tools**
-- `raster_query` - Polygon/bbox queries with Rasterio windows
-- `vector_query` - Spatial/attribute filtering with pyogrio
-- In-memory result support (`output=None`)
-- Basic error handling (invalid geometries, out-of-bounds)
+**Scope:** Core query tools only, defer optimization to future ADRs
 
-**Milestone 2: Optimization Layer**
-- `spatial_index_create` tool (R-tree for vectors, quadtree for rasters)
-- Decision heuristics for automatic indexing (configurable thresholds)
-- Performance benchmarks (indexed vs non-indexed queries)
+**Milestones:**
 
-**Milestone 3: VRT Support**
-- `vrt_create` tool for multi-file datasets
-- Contiguity detection logic
-- Query across VRT validation
+**M1: Raster Query Tool**
+- `raster_query(uri, geometry, output=None, bands, ctx)`
+- Wrap Rasterio window reading
+- In-memory result support for composition
+- Error handling (invalid geometry, out-of-bounds)
+- Progress reporting via Context API
 
-**Milestone 4: Reflection Integration**
-- `justify_query_extent` prompt
+**M2: Vector Query Tool**
+- `vector_query(uri, geometry, output=None, attributes, where, ctx)`
+- Wrap pyogrio spatial/attribute filtering
+- In-memory GeoDataFrame support
+- SQL-like filtering guidance
+- Progress reporting
+
+**M3: Query Result Resources**
+- `query://result/{id}` resource for result inspection
+- Metadata exposure (geometry used, size, created)
+- Enable workflow composition
+
+**M4: Reflection Integration**
+- `justify_query_extent` prompt implementation
 - Cache strategy for query justifications
+- Lightweight self-review for in-memory results
 - Testing with multi-query workflows
 
-### Phase 3b: Workflow Intelligence (v1.3.0+)
+**Timeline:** 2-3 weeks
 
-**Builds on spatial query primitives:**
-- Workflow composition (chain queries + analysis)
-- Provenance tracking across spatial operations
-- Pattern libraries (common query sequences)
+### Phase 3b: Optimization Discovery (v1.3.0) - ADR-0028
+
+**Deferred:** Spatial indexing detection, creation, management
+
+### Phase 3c: VRT Intelligence (v1.4.0) - ADR-0029
+
+**Deferred:** Virtual dataset recommendation and management
+
+### Phase 3d: Workflow Orchestration (v1.5.0+)
+
+**Future:** Composition patterns, provenance tracking, pattern libraries
 
 ---
 
@@ -523,7 +476,21 @@ query://dataset.tif?bbox=[...]&bands=[1,2,3]
 
 **Potential future hybrid:** Resources for discovery, tools for execution
 
-### Alternative 3: External Indexing Service
+### Alternative 3: Reimplementing Spatial Operations
+
+**Approach:** Build custom spatial query engine from scratch
+
+**Rejected because:**
+- **Reinventing the wheel:** Rasterio/pyogrio already provide excellent spatial query
+- **Maintenance burden:** Custom implementations require ongoing optimization and bug fixes
+- **Limited value-add:** Our unique value is conversational interface, not faster spatial operations
+- **Risk of bugs:** Spatial operations are complex; existing libraries are battle-tested
+
+**Decision:** Wrap existing libraries, focus on conversational layer
+
+**This is the critical architectural insight:** We're not a GDAL replacement. We're a GDAL conversation layer.
+
+### Alternative 4: External Indexing Service
 
 **Approach:** Separate microservice for spatial indexing (PostGIS-like)
 
@@ -548,17 +515,26 @@ query://dataset.tif?bbox=[...]&bands=[1,2,3]
 
 ## Next Steps
 
-1. **Draft Phase 3 implementation plan** (`docs/PHASE3_PLAN.md`)
-2. **Update VISION.md** to reflect Phase 3a (spatial query) and 3b (workflow)
-3. **Create configuration documentation** (`docs/CONFIGURATION.md`)
-   - Centralize all environment variables
-   - Document tiered configuration (static, dynamic, session)
-   - Specify security boundaries and dynamic workspace switching
-4. **Create spatial query fixtures** for testing (small raster/vector datasets)
-5. **Prototype `raster_query` tool** with Rasterio window reading
-6. **Define reflection prompts** for `justify_query_extent` and `intermediate_result_review`
-7. **Implement index/VRT resource handlers** for discovery pattern
-8. **Benchmark queries** (indexed vs non-indexed, in-memory vs disk)
+### Documentation (Immediate)
+
+1. **Create ADR-0028 stub** - Spatial Indexing Strategy (outline only, defer details)
+2. **Create ADR-0029 stub** - VRT Management (outline only, defer details)
+3. **Update VISION.md** - Reflect Phase 3a/3b/3c split
+4. **Create CONFIGURATION.md** - Centralize env var documentation (separate from ADRs)
+
+### Implementation (Phase 3a - v1.2.0)
+
+5. **Create spatial query fixtures** - Small test datasets (10×10 rasters, simple vectors)
+6. **Implement `raster_query` tool** - Wrap Rasterio windows, add reflection
+7. **Implement `vector_query` tool** - Wrap pyogrio filtering, add reflection
+8. **Define `justify_query_extent` prompt** - Spatial reasoning reflection
+9. **Implement query result resources** - `query://result/{id}` handlers
+10. **Write integration tests** - Multi-query workflows, cache behavior, composition
+
+### Validation
+
+11. **Test with analytical questions** - "How much urban area in this image?"
+12. **Document usage patterns** - Inform ADR-0028/0029 optimization decisions
 
 ---
 

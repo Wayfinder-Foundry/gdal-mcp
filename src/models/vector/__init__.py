@@ -2,6 +2,6 @@
 
 from __future__ import annotations
 
-from . import convert, reproject
+from . import clip, convert, reproject
 
-__all__ = ["convert", "reproject"]
+__all__ = ["clip", "convert", "reproject"]

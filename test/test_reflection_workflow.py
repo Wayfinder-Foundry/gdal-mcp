@@ -244,7 +244,7 @@ async def test_cache_hit_workflow(tmp_path):
     prompt_name = "justify_crs_selection"
     normalized_args = _normalize_prompt_args(prompt_args)
     prompt_hash = _hash_prompt_content(prompt_name)
-    hash_key = _stable_hash("mock_cached_tool", normalized_args, "crs_datum", prompt_hash)
+    hash_key = _stable_hash(normalized_args, "crs_datum", prompt_hash)
 
     # Store the justification
     domain = "crs_datum"

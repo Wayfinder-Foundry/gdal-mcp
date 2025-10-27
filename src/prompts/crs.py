@@ -42,13 +42,20 @@ def register(mcp: FastMCP) -> None:
             "**Provide structured reasoning:**\n"
             "```json\n"
             "{\n"
-            f'  "crs": "{dst_crs}",\n'
             '  "intent": "property to preserve (e.g., area accuracy for land statistics)",\n'
-            '  "rationale": "why this CRS achieves the intent",\n'
-            '  "tradeoffs": "known distortions or limitations",\n'
-            '  "user_advisory": "if concerns exist, note them here (optional)"\n'
+            '  "alternatives": [\n'
+            '    {"method": "EPSG:XXXX", "why_not": "reason if considered"}\n'
+            "  ],\n"
+            '  "choice": {\n'
+            f'    "method": "{dst_crs}",\n'
+            '    "rationale": "why this CRS achieves the intent",\n'
+            '    "tradeoffs": "known distortions or limitations"\n'
+            "  },\n"
+            '  "confidence": "low|medium|high"\n'
             "}\n"
             "```\n\n"
+            "**Note:** The `alternatives` array is optional - include it if you genuinely "
+            "considered other options, otherwise use an empty array `[]`.\n\n"
             "If you have concerns about the user's choice, **ask them conversationally** "
             "before proceeding. Otherwise, document the reasoning and continue."
         )

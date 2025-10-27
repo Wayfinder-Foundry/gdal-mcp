@@ -11,37 +11,45 @@ def register(mcp: FastMCP) -> None:
 
     @mcp.prompt(
         name="justify_crs_selection",
-        description="Pre-execution micro-guidance for CRS/datum selection reasoning.",
+        description="Advisory guidance for CRS/datum selection reasoning.",
         tags={"reasoning", "crs"},
     )
     def justify_crs_selection(dst_crs: str) -> list[PromptMessage]:
-        """Justify target CRS selection for reprojection.
+        """Guide reasoning about CRS selection for reprojection.
+
+        This prompt helps document CRS choices and enables educational
+        intervention when appropriate. The AI should:
+        - Document reasoning for any CRS choice (user or AI-selected)
+        - Ask the user conversationally if concerns are detected
+        - Proceed with explicit user requirements without questioning
 
         Args:
             dst_crs: Target coordinate reference system (e.g., 'EPSG:3857')
         """
         content = (
-            f"Before reprojecting to **{dst_crs}**:\n\n"
-            "**Reason through:**\n"
-            "• What spatial property must be preserved? "
-            "(distance accuracy, area accuracy, shape, angular relationships)\n"
-            "• Why is this CRS appropriate for the intended analysis?\n"
-            "• What are the distortion characteristics and tradeoffs?\n"
-            "• What alternative CRS options were considered and why were they rejected?\n\n"
-            "**Return strict JSON:**\n"
+            f"The operation will use **{dst_crs}** as the target coordinate system.\n\n"
+            "**Your role:**\n"
+            "• If the user explicitly specified this CRS: document why it's appropriate "
+            "for their stated goal. If you see a potential issue they might not be aware of, "
+            "ask them conversationally before proceeding.\n"
+            "• If you're choosing this CRS autonomously: explain your reasoning.\n\n"
+            "**Consider:**\n"
+            "• What spatial property is most important? "
+            "(distance accuracy, area accuracy, shape preservation, angular relationships)\n"
+            "• Why is this CRS suitable for the intended use?\n"
+            "• What are the distortion characteristics and acceptable tradeoffs?\n"
+            "• If appropriate, what alternatives exist and why were they not chosen?\n\n"
+            "**Provide structured reasoning:**\n"
             "```json\n"
             "{\n"
-            '  "intent": "property to preserve (e.g., area accuracy for land cover analysis)",\n'
-            '  "alternatives": [\n'
-            '    {"crs": "EPSG:XXXX", "why_not": "reason for rejection"}\n'
-            "  ],\n"
-            '  "choice": {\n'
-            f'    "crs": "{dst_crs}",\n'
-            '    "rationale": "why this CRS fits the analytical intent",\n'
-            '    "tradeoffs": "known distortions or limitations"\n'
-            "  },\n"
-            '  "confidence": "low|medium|high"\n'
+            f'  "crs": "{dst_crs}",\n'
+            '  "intent": "property to preserve (e.g., area accuracy for land statistics)",\n'
+            '  "rationale": "why this CRS achieves the intent",\n'
+            '  "tradeoffs": "known distortions or limitations",\n'
+            '  "user_advisory": "if concerns exist, note them here (optional)"\n'
             "}\n"
-            "```"
+            "```\n\n"
+            "If you have concerns about the user's choice, **ask them conversationally** "
+            "before proceeding. Otherwise, document the reasoning and continue."
         )
         return [Message(content=content, role="user")]

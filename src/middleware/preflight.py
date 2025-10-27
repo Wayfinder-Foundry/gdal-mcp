@@ -99,12 +99,12 @@ def _hash_prompt_content(prompt_name: str) -> str:
     return hashlib.sha256(prompt_source.encode("utf-8")).hexdigest()[:16]
 
 
-def _stable_hash(tool_name: str, prompt_args: dict[str, Any], domain: str, prompt_hash: str) -> str:
+def _stable_hash(prompt_args: dict[str, Any], domain: str, prompt_hash: str) -> str:
     """Compute stable hash for reflection cache lookup.
 
-    NOTE: tool_name is NOT included in the hash payload to enable cross-domain
-    cache sharing. A CRS justification for EPSG:3857 should be reusable across
-    both raster_reproject and vector_reproject tools (same domain: crs_datum).
+    CRITICAL: This hash is domain-based, NOT tool-based, to enable cross-domain
+    cache sharing. A CRS justification for EPSG:3857 is reusable across both
+    raster_reproject and vector_reproject tools (same domain: crs_datum).
 
     The cache key is based on:
     - domain (e.g., crs_datum, resampling)
@@ -112,6 +112,14 @@ def _stable_hash(tool_name: str, prompt_args: dict[str, Any], domain: str, promp
     - prompt_args (e.g., dst_crs=EPSG:3857)
 
     This enables the architectural goal of domain-based (not tool-based) reflection.
+
+    Args:
+        prompt_args: Arguments for the reflection prompt
+        domain: Reflection domain (e.g., crs_datum, resampling)
+        prompt_hash: Hash of the prompt source code
+
+    Returns:
+        SHA256 hash string prefixed with "sha256:"
     """
     payload = json.dumps(
         {
@@ -190,7 +198,7 @@ def _build_spec_state(
 
     normalized_prompt_args = _normalize_prompt_args(prompt_args_raw)
     prompt_hash = _hash_prompt_content(spec["prompt_name"])
-    hash_key = _stable_hash(tool_name, normalized_prompt_args, spec["domain"], prompt_hash)
+    hash_key = _stable_hash(normalized_prompt_args, spec["domain"], prompt_hash)
 
     return {
         "spec": spec,

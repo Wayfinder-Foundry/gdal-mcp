@@ -1,10 +1,8 @@
 # GDAL MCP
 
-**The first geospatial AI substrate with epistemic reasoning**
+**Geospatial AI with epistemic reasoning**
 
-> *"Before reprojecting to EPSG:3857, why is this CRS appropriate for your analysis? What spatial properties must be preserved? What distortion tradeoffs are acceptable?"*
-
-GDAL MCP doesn't just execute geospatial operations—it **thinks through them**. Built on FastMCP with a reflection middleware that requires AI agents to justify methodological decisions before execution.
+GDAL MCP is a Model Context Protocol (MCP) server that provides AI agents with geospatial analysis capabilities while requiring them to **justify their methodological choices** through a reflection middleware system.
 
 **🎉 v1.1.1 Released (2025-10-26)** — Vector tool parity + cross-domain reflection validated  
 **🧠 Reflection System** — Domain-based epistemic reasoning that transcends data types  
@@ -16,345 +14,210 @@ GDAL MCP doesn't just execute geospatial operations—it **thinks through them**
 [![FastMCP 2.0](https://img.shields.io/badge/FastMCP-2.0-blue.svg)](https://github.com/jlowin/fastmcp)
 [![PyPI Downloads](https://static.pepy.tech/personalized-badge/gdal-mcp?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/gdal-mcp)
 
-## 🧠 Why Reflection Matters
+---
 
-**Geospatial operations have consequences.** Choosing the wrong resampling method can introduce false elevation data. Selecting an inappropriate CRS can distort area calculations by 40%. Aggregating without understanding data distribution can hide critical outliers.
+## 📚 Documentation
 
-**Traditional approach:**
+- **[Quick Start](QUICKSTART.md)** - Installation, setup, and MCP configuration
+- **[Tools Reference](TOOLS.md)** - Complete tool documentation with examples
+- **[Vision](docs/VISION.md)** - Long-term roadmap and philosophy
+- **[Changelog](CHANGELOG.md)** - Release history and updates
+
+---
+
+## 🧠 The Reflection System
+
+### What Makes GDAL MCP Different?
+
+Most AI tool systems execute operations immediately when requested. GDAL MCP requires the AI to **justify methodological decisions** before execution, creating a conversation about the "why" rather than just executing the "what."
+
+**Traditional AI tool approach:**
 ```
 User: "Reproject this DEM to Web Mercator"
-AI: *immediately executes gdal.Warp()*
+AI: *silently executes operation*
+Result: DEM reprojected (but with what resampling? why that CRS? what tradeoffs?)
 ```
 
 **GDAL MCP with reflection:**
 ```
-User: "Reproject this DEM to Web Mercator for a web map"
-AI: *triggered to justify CRS choice*
-    "Before reprojecting to EPSG:3857:
-     - Intent: Preserve angular relationships for web tile rendering
-     - Alternatives considered: EPSG:4326 (rejected: not conformal)
-     - Tradeoffs: Distance/area distortion at high latitudes acceptable for visualization
-     - Confidence: High"
-*stores justification, proceeds with operation*
+User: "Reproject this DEM to Web Mercator for my web map"
+AI: *reflection middleware intercepts*
+AI: "Before reprojecting to EPSG:3857, let me justify this CRS choice:
+     
+     Intent: Web Mercator preserves angles (conformal projection),
+             essential for web tile rendering and navigation
+     
+     Alternatives considered:
+     - EPSG:4326 (WGS84) → rejected: not conformal, distorts shapes
+     - Local UTM → rejected: limited extent, not web-standard
+     
+     Tradeoffs: Area distortion increases at high latitudes
+                (acceptable for web visualization)
+     
+     Confidence: High - this is the standard for web mapping"
+
+*justification stored, operation proceeds*
+Result: DEM reprojected with documented methodology
 ```
 
-The AI doesn't just follow instructions—it **understands the methodology**.
+### Why This Matters
 
-## 🎯 Real-World Examples
+**1. Utilizes Full MCP Protocol Capabilities**
 
-### Example 1: DEM Reprojection with Methodological Reasoning
+The Model Context Protocol isn't just about tool execution—it's about **agentic reasoning and interaction**. The reflection system leverages MCP's design to enable:
+- Pre-execution prompting (tool dependencies)
+- Structured reasoning (schema-validated justifications)
+- Stateful workflows (justification caching)
+- Human-in-the-loop interaction (advisory prompts)
 
-**Scenario:** You need to reproject a 30m elevation model from WGS84 to UTM for slope analysis.
+**2. Prevents Silent Failures**
 
-**User prompt:**
+Geospatial operations can execute successfully while producing **methodologically incorrect results**:
+- Nearest-neighbor resampling on continuous elevation data (creates artifacts)
+- Web Mercator for area calculations (40%+ distortion possible)
+- Bilinear interpolation on categorical data (creates invalid class values)
+
+The reflection system **surfaces these choices** for validation.
+
+**3. Educational, Not Restrictive**
+
+The AI isn't blocked from executing operations—it's **required to demonstrate understanding**:
+- First use: Explains reasoning, teaches methodology
+- Cached: Instant execution (knowledge persists)
+- Result: 75%+ cache hit rates, minimal friction
+
+**4. Creates Audit Trail**
+
+Every methodological decision is documented with:
+- Intent (what property must be preserved?)
+- Alternatives (what else was considered?)
+- Rationale (why this choice?)
+- Tradeoffs (what are the limitations?)
+- Confidence (high/medium/low)
+
+This enables **reproducible geospatial science**.
+
+## 🎯 Example Workflow
+
+### Multi-Operation Geospatial Analysis
+
 ```
-Reproject my DEM from test/data/elevation.tif to UTM Zone 10N. 
-I need accurate slope calculations.
+User: "I need to reproject this DEM to UTM for accurate slope analysis,
+       then reproject this vector layer to the same CRS for overlay"
+
+AI Workflow:
+1. Inspects DEM metadata (raster_info)
+2. REFLECTION: Justifies UTM Zone 10N choice (accurate distance/area)
+3. REFLECTION: Justifies cubic resampling (smooth gradients for derivatives)
+4. Reprojects DEM (raster_reproject)
+5. Inspects vector metadata (vector_info)
+6. CACHE HIT: Reuses UTM justification (cross-domain!)
+7. Reprojects vector (vector_reproject) - instant, no re-prompting
+8. Both datasets now aligned in UTM Zone 10N
+
+Result: 2 operations, 2 reflections (not 3!)
+Cache hit rate: 50% → Saves time, maintains methodology
 ```
 
-**What happens:**
+**The Key Innovation:** The CRS justification from step 2 is reused in step 6 because the methodology (why UTM Zone 10N?) is **domain-based, not tool-based**. It doesn't matter if you're working with raster or vector data—the projection choice reasoning is the same.
 
-1. **AI inspects the source:** `raster_info` reveals EPSG:4326, 30m resolution
-2. **Reflection triggered (CRS):**
-   - Why UTM Zone 10N (EPSG:32610)?
-   - Intent: Preserve distance accuracy for slope/aspect calculations
-   - Alternative: Web Mercator (EPSG:3857) — rejected, non-conformal distortion
-   - Tradeoff: Limited to ~6° longitude zone, acceptable for local analysis
-3. **Reflection triggered (Resampling):**
-   - Why cubic convolution?
-   - Intent: Smooth gradients while preserving elevation values
-   - Alternative: Nearest neighbor — rejected, creates blocky artifacts in slope
-   - Alternative: Bilinear — rejected, cubic provides superior smoothness for derivatives
-4. **Execution:** Reprojection proceeds with cached justifications
-5. **Result:** Properly reprojected DEM with documented methodology
-
-**Cache behavior:** Next time you reproject *any* DEM to UTM with cubic, no re-justification needed.
-
-### Example 2: Multi-Resolution COG Creation
-
-**User prompt:**
-```
-Create a Cloud-Optimized GeoTIFF from this 10GB Landsat scene.
-Optimize for web serving with multiple zoom levels.
-```
-
-**What happens:**
-
-1. **AI plans the operation:** Convert with compression + overviews
-2. **Smart defaults applied:**
-   - Driver: COG (Cloud-Optimized GeoTIFF)
-   - Compression: DEFLATE (lossless, good ratio)
-   - Tiling: 256×256 blocks (web-optimized)
-   - Overviews: [2, 4, 8, 16] (zoom levels)
-3. **Execution with real-time feedback:**
-   ```
-   Building overviews [2, 4, 8, 16]...
-   Output: 1.2GB (88% reduction)
-   Validation: ✓ COG structure valid
-   ```
-
-### Example 3: Cache Intelligence
-
-**First request:**
-```
-Reproject this imagery to EPSG:3857 using cubic resampling for a web map.
-```
-→ Triggers both CRS and resampling justifications (~30 seconds)
-
-**Second request (same session):**
-```
-Now reproject this other tile to EPSG:3857 with cubic for the same map.
-```
-→ Cache hit! Both justifications reused (instant)
-
-**Third request (different parameter):**
-```
-Actually, use bilinear instead to reduce processing time.
-```
-→ CRS justification cached, only resampling re-justified
+See **[Tools Reference](TOOLS.md)** for detailed examples of all available tools.
 
 ## ⚡ Key Features
 
-### 🧠 Reflection System (v1.0.0)
+### 🧠 Reflection Middleware
+- Pre-execution reasoning for CRS selection, resampling methods
+- Structured justifications (intent, alternatives, choice, tradeoffs, confidence)
+- Persistent cache with 75% hit rates in multi-operation workflows
+- **Cross-domain cache sharing** - CRS justification works for both raster AND vector
 
-**The core innovation:** FastMCP middleware that intercepts tool calls and enforces epistemic discipline.
-
-- **Pre-execution reasoning prompts** for operations with methodological implications
-- **Structured justifications** (intent → alternatives → choice → tradeoffs → confidence)
-- **Persistent cache** (`.preflight/justifications/{domain}/`) with SHA256-based lookup
-- **Domain-specific reasoning:** CRS/datum, resampling, hydrology conditioning, aggregation
-- **Automatic cache hits:** Same parameters = instant execution (no re-justification)
-
-**Reflection domains:**
-- `crs_datum` — Coordinate system selection and datum transformations
-- `resampling` — Interpolation method choice for raster operations  
-- `hydrology` — Flow direction, watershed delineation, DEM conditioning *(planned)*
-- `aggregation` — Zonal statistics, temporal composites, data fusion *(planned)*
-
-**How it works:**
-1. User requests operation with methodological choices (e.g., "reproject to UTM")
-2. Middleware intercepts `raster_reproject` call, checks cache
-3. If no justification exists → triggers `justify_crs_selection` prompt
-4. AI provides structured reasoning → stored with hash key
-5. Operation proceeds with validated methodology
-6. Future requests with same parameters skip justification (cache hit)
-
-**See:** [test/REFLECTION_TESTING.md](test/REFLECTION_TESTING.md) for comprehensive testing guide with 7 scenarios
+### 🛠️ Comprehensive Toolset
+- **Raster tools:** info, convert, reproject, stats
+- **Vector tools:** info, reproject, convert, clip, buffer, simplify
+- See **[Tools Reference](TOOLS.md)** for complete documentation
 
 ### 🛡️ Production Quality
+- Full type safety (mypy strict mode)
+- 72 passing tests
+- Workspace security (path validation middleware)
+- Python-native (Rasterio/PyProj/pyogrio)
+- Real-time feedback via FastMCP Context API
 
-- **Type-safe:** Full mypy strict mode, Pydantic models with JSON schemas
-- **Tested:** 72 passing tests including reflection system integration
-- **Secure:** PathValidationMiddleware for workspace isolation (no directory traversal)
-- **Fast:** Python-native (Rasterio/GDAL bindings, no CLI shelling)
-- **Observable:** Real-time feedback during long operations via FastMCP Context API
+### 📚 MCP Resources
+- Workspace catalog for autonomous file discovery
+- Metadata intelligence for format detection  
+- Reference knowledge base (CRS, resampling methods, compression options)
 
-### Resources & Discovery
-- **🧭 Workspace Catalog**: `catalog://workspace/{all|raster|vector}/{subpath}` for autonomous planning
-- **🔍 Metadata Intelligence**: `metadata://{file}/format` for driver/format details
-- **📚 Reference Library**: CRS, resampling, compression, glossary knowledge (`reference://crs/common/{coverage}`)
+## 📦 Quick Start
 
-### Infrastructure
-- **FastMCP 2.0**: Native configuration, middleware, Context API
-- **CI/CD Pipeline**: GitHub Actions with quality gates, test matrix, PyPI publishing
-- **ADR-Documented**: 26 architecture decisions guiding development
-
-## 📦 Installation
-
-### Method 1: uvx (Recommended)
+### Install via uvx (Recommended)
 
 ```bash
-# Run directly without installation
+# Run directly from PyPI
 uvx --from gdal-mcp gdal --transport stdio
 ```
 
-### Method 2: Docker
+### MCP Configuration (Claude Desktop)
 
-```bash
-# Build and run
-docker build -t gdal-mcp .
-docker run -i gdal --transport stdio
-```
-
-### Method 3: Local Development
-
-```bash
-# Clone and install
-git clone https://github.com/JordanGunn/gdal-mcp.git
-cd gdal-mcp
-uv sync
-uv run gdal --transport stdio
-```
-
-See [QUICKSTART.md](docs/QUICKSTART.md) for detailed setup instructions.
-### Method 4: Dev Container (For Contributors)
-
-Use VS Code with the provided devcontainer for a pre-configured development environment:
-
-```bash
-# Open in VS Code and select "Reopen in Container"
-# Everything is set up automatically!
-```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) and [`.devcontainer/README.md`](.devcontainer/README.md) for details.
-
----
-
-See [QUICKSTART.md](QUICKSTART.md) for detailed setup instructions.
-
-## 🔧 Available Tools
-
-### Raster Tools
-
-#### `raster_info`
-Inspect raster metadata without reading pixel data.
-
-**Use cases:** Understand projection, resolution, extent before processing
-
-**Input:** `uri` (path to raster)
-
-**Output:** Driver, CRS, bounds, transform, dimensions, data type, nodata value, overview levels
-
-**Example conversation:**
-```
-User: "What's the CRS and resolution of elevation.tif?"
-AI: *calls raster_info*
-    "The DEM is in EPSG:4326 (WGS84) with 0.000277° resolution (~30m at equator).
-     It covers bounds: [-122.5, 37.5, -122.0, 38.0]"
-```
-
-#### `raster_convert`
-Format conversion with compression and multi-resolution overviews.
-
-**Use cases:** Create Cloud-Optimized GeoTIFFs, reduce file size, build pyramids for fast rendering
-
-**Key options:**
-- `driver`: GTiff, COG, PNG, JPEG (COG = Cloud-Optimized GeoTIFF)
-- `compression`: deflate, lzw, zstd, jpeg (case-insensitive)
-- `tiled`: 256×256 blocks for efficient partial reads
-- `overviews`: [2, 4, 8, 16] for multi-resolution display
-
-**Example conversation:**
-```
-User: "Optimize this 5GB satellite image for web serving"
-AI: "Converting to COG with DEFLATE compression and overviews..."
-    *calls raster_convert with driver=COG, compression=deflate, overviews=[2,4,8,16]*
-    "Done! Reduced to 1.2GB (76% savings). Ready for cloud storage with efficient range requests."
-```
-
-#### `raster_reproject` ⚡ *Reflection-enabled*
-Reproject to new coordinate system with methodological justification.
-
-**🧠 Triggers reflection for:**
-- **CRS selection** — Why this projection? What properties must be preserved?
-- **Resampling method** — How to interpolate? What artifacts are acceptable?
-
-**Use cases:** Transform to analysis-appropriate CRS, align multiple datasets, prepare for web mapping
-
-**Required parameters:**
-- `dst_crs`: Target projection (e.g., "EPSG:32610" for UTM Zone 10N)
-- `resampling`: Interpolation method
-  - `nearest` — Categorical data (land cover, classified imagery)
-  - `bilinear` — Fast, good for continuous data
-  - `cubic` — Smoothest, best for DEMs and visualization
-  - `lanczos` — Highest quality, slower
-
-**Optional parameters:**
-- `resolution`: Target pixel size [x, y] in destination units
-- `bounds`: Crop to area of interest [left, bottom, right, top]
-
-**Example conversation:**
-```
-User: "Reproject this land cover map to UTM for area calculations"
-AI: *raster_info shows categorical data*
-    *reflection: Why UTM? → accurate area/distance in local zone*
-    *reflection: Why nearest? → preserves exact class values, no new categories*
-    "Reprojecting to EPSG:32610 with nearest-neighbor to preserve classification..."
-    *executes with justified methodology*
-```
-
-#### `raster_stats`
-Compute statistical summaries and histograms.
-
-**Use cases:** Understand data distribution, find outliers, validate processing results
-
-**Output:** min, max, mean, std, median, percentiles, histogram (optional)
-
-**Example conversation:**
-```
-User: "Check the elevation range in this DEM"
-AI: *calls raster_stats*
-    "Elevation ranges from 145m to 2,847m with mean 892m.
-     Distribution shows two peaks (bimodal) - likely valley and ridge areas."
-```
-
-### Vector Tools
-
-#### `vector_info`
-Inspect vector dataset metadata (Shapefile, GeoJSON, GeoPackage, etc.).
-
-**Output:** Driver, CRS, geometry types, feature count, field schema, bounds
-
-**Example conversation:**
-```
-User: "What's in this shapefile?"
-AI: *calls vector_info*
-    "It's a polygon layer with 1,247 parcels in EPSG:2227 (California State Plane).
-     Fields: parcel_id (string), area_sqft (float), zoning (string), assessed_value (int)"
-```
-
-### Reflection Tools
-
-#### `store_justification`
-Explicitly cache epistemic justifications (used internally by reflection system).
-
-**Purpose:** Allows AI to store methodological reasoning for future operations
-
-**When called:** Automatically after reflection prompts, or manually for custom workflows
-
-**Cache structure:** `.preflight/justifications/{domain}/sha256:{hash}.json`
-
-## 🧪 Testing
-
-Run the comprehensive test suite:
-
-```bash
-# All tests with pytest
-uv run pytest test/ -v
-
-# With coverage
-uv run pytest test/ --cov=src --cov-report=term-missing
-
-# Specific test file
-uv run pytest test/test_raster_tools.py -v
-```
-
-**Current Status**: ✅ 72 tests passing (includes reflection system, prompts, and full integration suite)
-
-Test fixtures create tiny synthetic datasets (10×10 rasters, 3-feature vectors) for fast validation.
-
-## 🔌 Connecting to Claude Desktop
-
-See [QUICKSTART.md](docs/QUICKSTART.md) for full instructions. Quick version:
-
-1. Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "gdal-mcp": {
       "command": "uvx",
-      "args": ["--from", "gdal", "gdal", "--transport", "stdio"],
+      "args": ["--from", "gdal-mcp", "gdal", "--transport", "stdio"],
       "env": {
-        "GDAL_CACHEMAX": "512"
+        "GDAL_MCP_WORKSPACES": "/path/to/your/geospatial/data"
       }
     }
   }
 }
 ```
 
-2. Restart Claude Desktop
-3. Test with: "Use raster_info to inspect /path/to/raster.tif"
+**See [QUICKSTART.md](QUICKSTART.md) for:**
+- Alternative installation methods (Docker, local development)
+- Detailed MCP client configuration
+- Workspace security setup
+- Troubleshooting guide
+
+## 🔧 Available Tools
+
+GDAL MCP provides 12 production-ready tools across three categories:
+
+### Raster Operations
+- `raster_info` - Inspect metadata (CRS, resolution, bands, nodata)
+- `raster_convert` - Format conversion with compression & overviews (COG support)
+- `raster_reproject` ⚡ - CRS transformation (with reflection)
+- `raster_stats` - Statistical analysis with histograms
+
+### Vector Operations
+- `vector_info` - Inspect metadata (CRS, geometry, attributes)
+- `vector_reproject` ⚡ - CRS transformation (with reflection)
+- `vector_convert` - Format migration (SHP ↔ GPKG ↔ GeoJSON)
+- `vector_clip` - Spatial subsetting
+- `vector_buffer` - Proximity analysis
+- `vector_simplify` - Geometry simplification
+
+### Reflection System
+- `store_justification` - Cache epistemic reasoning (used internally)
+- Advisory prompts for CRS selection and resampling methods
+
+**⚡ = Reflection-enabled:** These tools require methodological justification on first use, then cache for instant subsequent execution.
+
+**See [TOOLS.md](TOOLS.md) for complete documentation with examples and parameters.**
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+uv run pytest test/ -v
+
+# With coverage
+uv run pytest test/ --cov=src --cov-report=term-missing
+```
+
+**Status**: ✅ 72 passing tests including reflection system integration
 
 ## 🏗️ Architecture
 
@@ -366,29 +229,11 @@ See [QUICKSTART.md](docs/QUICKSTART.md) for full instructions. Quick version:
 - **NumPy** - Array operations and statistics
 - **Pydantic** - Type-safe models with JSON schema
 
-**Design Principles** (see [docs/design/](docs/design/)):
-- ADR-0007: Structured outputs with Pydantic
-- ADR-0011: Explicit resampling methods
-- ADR-0012: Large outputs via ResourceRef
-- ADR-0013: Per-request config isolation
-- ADR-0017: Python-native over CLI shelling
-
-## 📚 Documentation
-
-**Getting Started:**
-- [QUICKSTART.md](docs/QUICKSTART.md) — Installation and Claude Desktop setup
-- [REFLECTION_TESTING.md](test/REFLECTION_TESTING.md) — Testing the reflection system
-
-**Development:**
-- [CONTRIBUTING.md](docs/CONTRIBUTING.md) — Development guide and standards
-- [docs/design/](docs/design/) — Architecture and design documentation
-- [docs/ADR/](docs/ADR/) — 26 Architecture Decision Records
-
-**Key ADRs:**
-- [ADR-0026](docs/ADR/0026-prompting-and-epistemic-governance.md) — Reflection system design
-- [ADR-0011](docs/ADR/0011-explicit-resampling-required.md) — Why resampling must be explicit
-- [ADR-0017](docs/ADR/0017-python-native-over-cli.md) — Python bindings over CLI shelling
-- [ADR-0022](docs/ADR/0022-path-validation-middleware.md) — Workspace isolation security
+**Key Design Decisions** ([26 ADRs](docs/ADR/) guide development):
+- ADR-0026: Reflection system and epistemic governance
+- ADR-0017: Python-native over CLI shelling for performance
+- ADR-0011: Explicit resampling required (prevents silent data corruption)
+- ADR-0022: Workspace isolation for security
 
 ## 🤝 Contributing
 
@@ -410,69 +255,20 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## 🗺️ Roadmap
 
-### ✅ v1.0.0 — Epistemic Foundation (Released 2025-10-24)
+**Current Status: v1.1.1** - Phase 2 Complete ✅
+- Reflection middleware operational
+- Vector/raster tool parity achieved  
+- Cross-domain cache sharing validated (75% hit rates)
 
-**Reflection middleware:**
-- Pre-execution reasoning for CRS selection and resampling methods
-- Persistent justification cache with SHA256-based lookup
-- Structured justifications (intent, alternatives, choice, tradeoffs, confidence)
-- Integration with `raster_reproject` tool
+**Next: Phase 3 - Workflow Intelligence (v2.0+)**
+- Formal workflow composition
+- Multi-step orchestration
+- Analysis pattern libraries
 
-**Production infrastructure:**
-- Full type safety (mypy strict mode)
-- 72 passing tests with reflection system coverage
-- PathValidationMiddleware for workspace security
-- FastMCP 2.0 with native middleware support
-
-### 🚧 v1.1.0 — Extended Reflection Domains (Q1 2025)
-
-**New reflection triggers:**
-- Hydrology conditioning (DEM preprocessing, flow accumulation parameters)
-- Aggregation strategies (zonal statistics, temporal composites, resampling for aggregation)
-- Format selection (when to use COG vs JPEG vs PNG, compression tradeoffs)
-
-**Workflow composition:**
-- Multi-step analysis discovery ("analyze watershed from this DEM")
-- Chain justifications (reproject → condition → flow direction → watershed)
-- Provenance tracking across operations
-
-### 🔮 v2.0.0 — Analysis Primitives (Q2 2025)
-
-**Vector analysis:**
-- Spatial joins and overlays with geometric reasoning
-- Buffer/clip operations with distance unit justification
-- Attribute queries with SQL generation
-
-**Raster analysis:**
-- Classification with threshold justification
-- Raster calculator with band math validation
-- Zonal statistics with aggregation reflection
-- Contour generation with interval selection
-
-**Semantic capabilities:**
-- Urban area detection from imagery
-- Terrain analysis workflows (slope → aspect → hillshade)
-- Water body classification with spectral reasoning
-
-See [docs/ROADMAP.md](docs/ROADMAP.md) for detailed milestones and technical planning.
+See **[Vision](docs/VISION.md)** for the complete long-term roadmap.
 
 ---
 
-## 🎓 Learn More
+**Built with ❤️ for the geospatial AI community**
 
-- **[Quick Start Guide](docs/QUICKSTART.md)** — Setup and first operations
-- **[Reflection Testing Guide](test/REFLECTION_TESTING.md)** — 7 scenarios testing cache behavior
-- **[Architecture Decisions](docs/ADR/)** — 26 ADRs documenting design choices
-- **[Contributing Guide](docs/CONTRIBUTING.md)** — Development setup and standards
-
----
-
-**Status:** v1.0.0 Production Release 🚀
-
-*The first geospatial MCP server that doesn't just execute operations—it reasons about them.*
-
-**Core innovation:** Epistemic governance through reflection middleware. AI agents must justify methodological choices (CRS, resampling, aggregation) before execution. Justifications are cached for workflow efficiency while maintaining scientific rigor.
-
-**Vision:** Enable discovery of novel geospatial analysis workflows through tool composition with domain understanding, not just prescribed procedures.
-
-Built with ❤️ for the geospatial AI community.
+*Geospatial operations that think, not just execute.*

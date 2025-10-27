@@ -51,33 +51,52 @@ tags: [gdal, mcp, roadmap, planning]
 
 ## 🚧 Active Development
 
-### v1.1.0 — Extended Reflection (Q1 2025)
+### v1.0.1 — Advisory Prompting Pattern (Released 2025-10-26) ✅
+- ✅ All reflection prompts updated to advisory tone
+- ✅ Conversational intervention over blocking
+- ✅ Educational design principle documented
+- ✅ ADR-0026 amendment
+- **Classification:** Patch release (UX refinement, non-breaking)
 
-**Goal:** Expand epistemic reasoning to additional geospatial domains
+### v1.1.0 — Vector Tool Parity & Composition (Q1 2025)
 
-**New reflection domains:**
-- [ ] Hydrology conditioning
-  - DEM preprocessing (fill sinks, breach, hybrid)
-  - Flow direction algorithm selection (D8, D-infinity, MFD)
-  - Flow accumulation threshold for stream network
-- [ ] Aggregation strategies
-  - Zonal statistics resampling (when aggregating multi-resolution)
-  - Temporal compositing (max NDVI, median, percentile)
-  - Data fusion weighting schemes
-- [ ] Format selection
-  - COG vs standard GeoTIFF (use case analysis)
-  - Compression tradeoffs (lossless vs lossy, speed vs ratio)
-  - Tiling strategy (internal vs external overviews)
+**Strategic Pivot:** Focus on vector tool expansion and natural composition patterns before deeper reflection domains.
 
-**Workflow composition:**
-- [ ] Multi-step justification chains
-  - Link justifications across operations
-  - Provenance: "reprojected with [justification_A] → conditioned with [justification_B]"
-- [ ] Workflow discovery prompts
-  - "Analyze watershed" → breaks into: condition DEM → flow direction → accumulation → delineate
-  - Each step carries justifications forward
-- [ ] Session context resources
-  - `context://session/current` - active workflow state
+**Goal:** Achieve raster-vector feature parity and explore how models naturally compose operations through tool discovery.
+
+**Vector tool expansion:**
+- [ ] `vector_reproject` - CRS transformation for vector datasets
+  - Match `raster_reproject` capabilities
+  - Reuse `justify_crs_selection` reflection (cross-tool consistency)
+- [ ] `vector_convert` - Format conversion (Shapefile → GeoPackage, etc.)
+  - Match `raster_convert` pattern
+  - Leverage existing compression/format resources
+- [ ] `vector_clip` - Spatial subsetting by bounding box or geometry
+- [ ] `vector_buffer` - Buffer/proximity analysis
+- [ ] `vector_simplify` - Geometry simplification (Douglas-Peucker, Visvalingam)
+
+**Tool composition exploration:**
+- [ ] Natural composition testing
+  - Can models discover multi-step workflows without explicit prompting?
+  - Example: "Prepare data for web display" → reproject + convert + tile
+  - Example: "Extract city boundaries" → clip vector + reproject + simplify
+- [ ] Composition guidance resources
+  - `reference://workflows/common-patterns` - Typical operation sequences
+  - Document: raster prep, vector cleaning, format migration patterns
+- [ ] Cross-domain operations
+  - Vector-raster interaction: clip raster by vector, zonal stats (future)
+  - Test if models naturally chain: reproject vector → clip raster → analyze
+
+**Observability for composition:**
+- [ ] Session tracking for multi-step workflows
+  - Log operation sequences
+  - Identify common patterns
+  - Measure: Does the model chain tools effectively?
+
+**Deferred to v2.x:**
+- Hydrology conditioning (raster_fill_sinks, flow analysis)
+- Aggregation tools (raster_zonal_stats with vector zones)
+- Deep reflection domains (format selection already covered by resources)
   - `history://operations/{session_id}` - operation log with justifications
 
 ### v1.2.0 — Semantic Primitives (Q2 2025)

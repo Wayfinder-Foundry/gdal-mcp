@@ -2,6 +2,6 @@
 
 from __future__ import annotations
 
-from . import reproject
+from . import convert, reproject
 
-__all__ = ["reproject"]
+__all__ = ["convert", "reproject"]

@@ -32,8 +32,7 @@ def _get_bool_env(var_name: str, *, default: bool = True) -> bool:
         return False
 
     logger.warning(
-        "Invalid value for %s: %s. Expected one of {1,true,0,false}. "
-        "Falling back to default=%s.",
+        "Invalid value for %s: %s. Expected one of {1,true,0,false}. Falling back to default=%s.",
         var_name,
         raw_value,
         default,

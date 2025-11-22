@@ -21,7 +21,6 @@ def _get_bool_env(var_name: str, *, default: bool = True) -> bool:
     Any other value logs a warning and returns the default to avoid
     surprising behavior.
     """
-
     raw_value = os.getenv(var_name)
     if raw_value is None:
         return default
@@ -125,13 +124,11 @@ def reset_workspaces_cache() -> None:
 
 def is_vector_tools_enabled() -> bool:
     """Return whether vector tools and resources should register."""
-
     return _get_bool_env("VECTOR", default=True)
 
 
 def is_raster_tools_enabled() -> bool:
     """Return whether raster tools and resources should register."""
-
     return _get_bool_env("RASTER", default=True)
 
 

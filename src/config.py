@@ -11,6 +11,37 @@ logger = logging.getLogger(__name__)
 _workspaces_cache: list[Path] | None = None
 
 
+def _get_bool_env(var_name: str, *, default: bool = True) -> bool:
+    """Read a boolean environment variable with strict, explicit values.
+
+    Accepts only the following values (case-insensitive):
+    - "1" or "true" → True
+    - "0" or "false" → False
+
+    Any other value logs a warning and returns the default to avoid
+    surprising behavior.
+    """
+
+    raw_value = os.getenv(var_name)
+    if raw_value is None:
+        return default
+
+    normalized = raw_value.strip().lower()
+    if normalized in {"1", "true"}:
+        return True
+    if normalized in {"0", "false"}:
+        return False
+
+    logger.warning(
+        "Invalid value for %s: %s. Expected one of {1,true,0,false}. "
+        "Falling back to default=%s.",
+        var_name,
+        raw_value,
+        default,
+    )
+    return default
+
+
 def get_workspaces() -> list[Path]:
     """Load allowed workspace directories from environment variable.
 
@@ -90,6 +121,18 @@ def reset_workspaces_cache() -> None:
     """Reset workspaces cache (useful for testing)."""
     global _workspaces_cache
     _workspaces_cache = None
+
+
+def is_vector_tools_enabled() -> bool:
+    """Return whether vector tools and resources should register."""
+
+    return _get_bool_env("VECTOR", default=True)
+
+
+def is_raster_tools_enabled() -> bool:
+    """Return whether raster tools and resources should register."""
+
+    return _get_bool_env("RASTER", default=True)
 
 
 def get_workspace_root() -> Path | None:

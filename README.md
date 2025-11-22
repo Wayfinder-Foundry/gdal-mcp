@@ -20,6 +20,7 @@ GDAL MCP is a Model Context Protocol (MCP) server that provides AI agents with g
 
 - **[Quick Start](QUICKSTART.md)** - Installation, setup, and MCP configuration
 - **[Tools Reference](TOOLS.md)** - Complete tool documentation with examples
+- **[Environment Variables](docs/ENVIRONMENT_VARIABLES.md)** - Runtime configuration and tool surface controls
 - **[Vision](docs/VISION.md)** - Long-term roadmap and philosophy
 - **[Changelog](CHANGELOG.md)** - Release history and updates
 

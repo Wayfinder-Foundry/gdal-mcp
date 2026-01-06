@@ -14,8 +14,8 @@ select = ["F", "E", "W", "I", "UP", "D", "B", "C4", "A", "ANN", "PLR"]
 ignore = [
   # Docstrings: prefer Numpy style, avoid prescriptive nitpicks.
   "D100", "D203", "D212", "D213", "D406", "D407", "D413",
-  # Annotations: soften for self/cls/__init__/Any at boundaries.
-  "ANN101", "ANN102", "ANN204", "ANN401",
+  # Annotations: soften for __init__/Any at boundaries.
+  "ANN204", "ANN401",
   # Pylint-ish complexity rules we don't want as blockers.
   "PLR0913", "PLR0912", "PLR0915",
 ]
